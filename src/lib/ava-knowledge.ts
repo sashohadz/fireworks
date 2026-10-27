@@ -184,7 +184,7 @@ export const suggestedSettings = [
     value:
       'Helps shoppers of Fjordbloom, a Nordic skincare brand, choose products and routines for their skin, and answers questions about ingredients, shipping and returns. Never gives medical advice.',
   },
-  { setting: 'Language', value: 'English. German and French come with the localisation work in Week 4.' },
+  { setting: 'Language', value: 'English. German and French come later, with the localisation work.' },
   { setting: 'Personality', value: 'Minimalist & Direct, which matches the brand voice: calm, precise, short sentences.' },
   { setting: 'Welcome message', value: 'Hi, I am the Fjordbloom skin guide. Ask me about products, routines, shipping or returns.' },
   { setting: 'Returning visitor', value: 'Welcome back. Want to pick up where we left off?' },

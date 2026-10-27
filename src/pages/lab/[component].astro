@@ -3,6 +3,7 @@ import FwWidget from '../../components/FwWidget.astro';
 import SnippetPanel from '../../components/SnippetPanel.astro';
 import { labComponents, type LabComponent } from '../../lab/registry';
 import Lab from '../../layouts/Lab.astro';
+import { safeJson } from '../../lib/safe-json';
 import { fullSnippet } from '../../lib/snippet';
 import { firework } from '../../site.config';
 
@@ -20,7 +21,7 @@ const initialAttrs: Record<string, string> = {
   ...(component.usePlaylist && component.slot && firework.playlists[component.slot] ? { playlist: firework.playlists[component.slot] } : {}),
   ...component.initial,
 };
-const labData = JSON.stringify({ component }).replace(/</g, '\\u003c');
+const labData = safeJson({ component });
 ---
 
 <Lab title={component.title} description={component.summary}>

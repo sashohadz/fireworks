@@ -1,5 +1,5 @@
 // Writes out/upload-checklist.md: everything to do in Business Portal for the generated content,
-// in order. Manual upload and tagging is deliberate in Week 1; the API script replaces it later.
+// in order. Manual upload and tagging is deliberate at first; an API script replaces it later.
 //
 // Usage: SITE_URL=https://your-site.netlify.app npm run fw:checklist
 import fs from 'node:fs';
