@@ -1,44 +1,145 @@
 ---
+import FwWidget from '../components/FwWidget.astro';
 import Base from '../layouts/Base.astro';
+import { firework, showroomSchedule } from '../site.config';
+
+const howItWorks = [
+  { title: 'Every evening', text: 'Our live show comes back once a day, with the products pinned right in the player.' },
+  { title: 'Ask in the chat', text: 'Type a question while it plays. Our AI co-host answers in seconds, from our product and policy knowledge.' },
+  { title: 'Shop as you watch', text: 'Tap a pinned product in the player to see its details and shop it.' },
+];
 ---
 
-<Base title="Video Showroom" description="Fjordbloom's always-on video showroom.">
+<Base title="Video Showroom" description="Fjordbloom's showroom: the live show every evening, with an AI co-host in the chat.">
   <section class="section-tight">
-    <div class="container showroom">
+    <div class="container">
       <p class="eyebrow">Video Showroom</p>
       <h1>The Fjordbloom showroom</h1>
       <p class="lede">
-        An always-open room with live events, replays and an AI co-pilot that answers questions in the chat.
+        Our live show returns every evening. Join it, ask anything in the chat, and our AI co-host answers while you watch.
       </p>
-      <div class="fw-placeholder">
-        <p class="fw-placeholder-title">Video Showroom (Week 2)</p>
-        <p>
-          The showroom is configured in Business Portal during Week 2, together with AI Copilot and Assistant Mode. Its
-          embed code will go into <code>src/site.config.ts</code> and render here.
+      <div
+        class="panel showroom-next"
+        id="showroom-next"
+        data-at={showroomSchedule.dailyAt}
+        data-zone={showroomSchedule.timeZone}
+        data-minutes={showroomSchedule.minutes}
+        aria-live="polite"
+      >
+        <span class="showroom-dot" aria-hidden="true"></span>
+        <span id="showroom-next-text">The showroom opens every evening.</span>
+      </div>
+      <FwWidget tag="fw-herounit" slot="showroom" label="Hero unit: the showroom restream" attrs={{ height: '75vh' }} />
+    </div>
+  </section>
+
+  <section class="section-tight" aria-labelledby="showroom-how">
+    <div class="container">
+      <h2 id="showroom-how">How the showroom works</h2>
+      <div class="showroom-steps">
+        {
+          howItWorks.map((s) => (
+            <div>
+              <h3>{s.title}</h3>
+              <p class="muted">{s.text}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight" data-demo-chrome>
+    <div class="container">
+      <div class="note note-info">
+        <p><strong>How this showroom is built.</strong></p>
+        <ul>
+          <li>
+            A restream program in Business Portal (Livestreams, + Create New, Restream) replays the recorded live show
+            every day at {showroomSchedule.dailyAt} {showroomSchedule.timeZone.replace('_', ' ')} time. Each run creates a
+            new event, so a once-a-day slot keeps the records manageable.
+          </li>
+          <li>
+            AI Copilot runs on full auto. It answers chat questions from the same knowledge files as AVA, from the
+            <a href="/lab/ava">AVA setup kit</a>.
+          </li>
+          <li>
+            The hero unit uses playlist <code>{firework.playlists.showroom || '(not set)'}</code>, with "Show in feed while
+            idle" on, so the next session can show before it starts.
+          </li>
+          <li>
+            The difference from the <a href="/live">Live page</a>: Live is the brand's hosted show and its replays.
+            Here, a recording runs again on a schedule and AI answers the chat, with no host.
+          </li>
+          <li>
+            Copilot only answers while a session runs. For a pitch at another time, add a one-time restream that starts
+            a few minutes into the call.
+          </li>
+        </ul>
+        <p class="small">
+          Help center: <a href="https://firework.com/help/smart-restream-scheduler">Smart Restream Scheduler</a> ·
+          <a href="https://firework.com/help/leverage-ai-co-pilot">AI Copilot</a> ·
+          <a href="https://firework.com/help/digital-showroom-general-faqs">Digital Showroom FAQ</a>
         </p>
       </div>
-      <h2>What the showroom demonstrates</h2>
-      <ul>
-        <li><strong>Livestreams and replays</strong> with pinned and multi-pinned products.</li>
-        <li><strong>AI Copilot</strong>, which helps moderate live events and answer viewers in real time.</li>
-        <li><strong>Assistant Mode</strong>, the host view for chat moderation, product pinning and engagement.</li>
-        <li><strong>Simulcasting</strong> to YouTube, Facebook, Instagram and other platforms.</li>
-      </ul>
-      <p class="small muted">
-        Help center: <a href="https://firework.com/docs/video-showroom">Video Showroom docs</a>
-      </p>
     </div>
   </section>
 </Base>
 
-<style>
-  .showroom {
-    max-width: 900px;
+<script>
+  import { currentOrNextSession, describeStart, describeWait } from '../scripts/schedule';
+
+  const box = document.getElementById('showroom-next');
+  const text = document.getElementById('showroom-next-text');
+  if (box && text) {
+    const { at, zone, minutes } = box.dataset;
+    const update = () => {
+      try {
+        const s = currentOrNextSession(at!, zone!, Number(minutes));
+        box.classList.toggle('is-live', s.live);
+        text.textContent = s.live
+          ? 'On now. Join the show below and ask anything in the chat.'
+          : `Next session ${describeStart(s.start)}, ${describeWait(s.start)}. Times are in your time zone.`;
+      } catch {
+        /* keep the static text */
+      }
+    };
+    update();
+    window.setInterval(update, 30_000);
   }
-  .showroom .fw-placeholder {
-    margin: 24px 0 32px;
-    min-height: 240px;
+</script>
+
+<style>
+  .showroom-next {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 24px;
+    padding: 14px 18px;
+    font-weight: 500;
+  }
+  .showroom-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+  }
+  .showroom-next.is-live .showroom-dot {
+    background: #c0392b;
+    box-shadow: 0 0 0 4px rgb(192 57 43 / 0.2);
+  }
+  .showroom-steps {
     display: grid;
-    place-content: center;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .showroom-steps h3 {
+    margin-top: 0;
+  }
+  @media (max-width: 820px) {
+    .showroom-steps {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 </style>

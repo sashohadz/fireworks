@@ -14,7 +14,7 @@ Nothing here is for sale. Products, images and videos are illustrated or AI-gene
 | Area | Path | What it shows |
 |---|---|---|
 | Storefront | `/`, `/shop`, `/products/*`, `/cart` | Hero unit, Storyblock, carousel, grid, Player Deck, floating player, product-page videos via `skus`, cart and purchase tracking |
-| Live and Showroom | `/live`, `/showroom` | Livestream with replays (Showroom arrives in Week 2) |
+| Live and Showroom | `/live`, `/showroom` | Live: the hosted show, its countdown and replays. Showroom: a daily restream with AI Copilot answering the chat, and the next session in the visitor's time zone |
 | OBS overlays | `/live/overlays` | Browser-source overlays at 720x1280 (name strap, product spotlight, giveaway, starting soon) and the OBS settings Firework needs |
 | Pitch mode | `/pitch` | Presents the store as a customer demo: demo tools hidden, presenter notes in a second window |
 | Lab | `/lab` | One page per component with attribute knobs, the exact embed code, CSS variables, an event log and known tickets. Also an accessibility check with axe-core and a shadow-DOM focus tracker |

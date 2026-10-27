@@ -9,7 +9,7 @@
  * use the Settings dialog (gear icon) or URL parameters such as ?channel=my_channel&playlist=abc123.
  */
 
-export type PlaylistSlot = 'hero' | 'storyblock' | 'carousel' | 'grid' | 'deck' | 'floating' | 'live' | 'howto';
+export type PlaylistSlot = 'hero' | 'storyblock' | 'carousel' | 'grid' | 'deck' | 'floating' | 'live' | 'showroom' | 'howto';
 
 export interface FireworkConfig {
   /** Channel name (handle) of the sandbox business, as in the `channel` attribute of Business Portal embed code. */
@@ -32,6 +32,7 @@ export const firework: FireworkConfig = {
     deck: 'o30J7Z', // product page Player Deck
     floating: 'ojEpYM', // floating player on the home page
     live: '5x69le', // replays on the live page
+    showroom: 'gk9Zyb', // daily restream with AI Copilot on the showroom page
     howto: '', // how-to videos on the help pages (Week 2)
   },
   scripts: {
@@ -52,6 +53,17 @@ export const ava = {
   script: 'https://asset.fwscripts.com/js/ava.js',
 };
 
+/**
+ * The showroom's restream program in Business Portal (Livestreams > + Create New > Restream).
+ * Shown to visitors in their own time zone. Keep it in step with the program's time slot.
+ */
+export const showroomSchedule = {
+  dailyAt: '21:00',
+  timeZone: 'Europe/Sofia',
+  /** Length of one session, so the page can say "on now". The live show runs about 2.5 minutes. */
+  minutes: 3,
+};
+
 export const playlistSlots: { slot: PlaylistSlot; label: string; usedOn: string }[] = [
   { slot: 'hero', label: 'Hero unit (livestream playlist)', usedOn: 'Home, Live' },
   { slot: 'storyblock', label: 'Storyblock', usedOn: 'Home' },
@@ -60,6 +72,7 @@ export const playlistSlots: { slot: PlaylistSlot; label: string; usedOn: string 
   { slot: 'deck', label: 'Player Deck', usedOn: 'Product pages' },
   { slot: 'floating', label: 'Floating player', usedOn: 'Home' },
   { slot: 'live', label: 'Live replays', usedOn: 'Live' },
+  { slot: 'showroom', label: 'Showroom restream', usedOn: 'Showroom' },
   { slot: 'howto', label: 'How-to videos', usedOn: 'Help' },
 ];
 

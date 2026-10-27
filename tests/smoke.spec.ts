@@ -144,6 +144,12 @@ test.describe('demo tools', () => {
     await expect(page.locator('#spot-compare')).toBeVisible();
   });
 
+  test('showroom shows the restream and the next session', async ({ page }) => {
+    await page.goto('/showroom?fw=off');
+    await expect(page.locator('fw-herounit')).toHaveAttribute('playlist', /.+/);
+    await expect(page.locator('#showroom-next-text')).toContainText(/Next session|On now/);
+  });
+
   test('checklist ticks survive a reload', async ({ page }) => {
     await page.goto('/learn/go-live-checklist?fw=off');
     await page.locator('label[for="check-0"]').click();
