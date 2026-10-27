@@ -1,0 +1,16 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  code: string;
+}
+const { id, title, code } = Astro.props;
+---
+
+<div class="snippet">
+  <div class="snippet-head">
+    <span>{title}</span>
+    <button type="button" data-copy-target={id}>Copy</button>
+  </div>
+  <pre><code id={id}>{code}</code></pre>
+</div>

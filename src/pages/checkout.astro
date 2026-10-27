@@ -1,0 +1,94 @@
+---
+import Base from '../layouts/Base.astro';
+
+const countries = ['Austria', 'Belgium', 'Denmark', 'Finland', 'France', 'Germany', 'Ireland', 'Italy', 'Netherlands', 'Spain', 'Sweden'];
+---
+
+<Base title="Checkout">
+  <section class="section-tight">
+    <div class="container checkout">
+      <div>
+        <h1>Checkout</h1>
+        <p class="note small">
+          This is a demo checkout. It never asks for payment details and no order is fulfilled. Placing an order sends a
+          Firework purchase event, but only when the page uses the sandbox channel.
+        </p>
+        <form id="checkout-form" class="panel">
+          <div class="field">
+            <label for="co-name">Name</label>
+            <input id="co-name" name="name" value="Demo Shopper" autocomplete="off" required />
+          </div>
+          <div class="field">
+            <label for="co-email">Email</label>
+            <input id="co-email" name="email" type="email" value="demo@example.com" autocomplete="off" required />
+            <span class="hint">Use a placeholder address. Nothing is sent to it.</span>
+          </div>
+          <div class="field">
+            <label for="co-country">Country</label>
+            <select id="co-country" name="country">
+              {countries.map((c) => <option selected={c === 'Denmark'}>{c}</option>)}
+            </select>
+          </div>
+          <button id="co-submit" class="btn" type="submit" style="width:100%">Place demo order</button>
+        </form>
+      </div>
+      <aside class="panel" aria-labelledby="summary-heading">
+        <h2 id="summary-heading">Order summary</h2>
+        <div id="co-summary" aria-live="polite"><p class="muted">Loading…</p></div>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .checkout {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 820px) {
+    .checkout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  import { clearCart, getCart } from '../scripts/cart';
+  import { createOrder, priceCart } from '../scripts/order';
+  import { formatEur } from '../scripts/products-client';
+
+  const summary = document.getElementById('co-summary')!;
+  const form = document.getElementById('checkout-form') as HTMLFormElement;
+  const submit = document.getElementById('co-submit') as HTMLButtonElement;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  async function renderSummary() {
+    const lines = getCart();
+    if (lines.length === 0) {
+      summary.innerHTML = '<p>Your bag is empty. <a href="/shop">Add something first.</a></p>';
+      submit.disabled = true;
+      return;
+    }
+    const totals = await priceCart(lines);
+    summary.innerHTML = `<table class="table"><tbody>${totals.lines
+      .map((l) => `<tr><td>${l.quantity} × ${esc(l.name)}<div class="small muted">${esc(l.unitName)}</div></td><td>${formatEur(l.price * l.quantity)}</td></tr>`)
+      .join('')}
+      <tr><td>Shipping</td><td>${totals.shipping === 0 ? 'Free' : formatEur(totals.shipping)}</td></tr>
+      <tr><th>Total</th><th>${formatEur(totals.total)}</th></tr></tbody></table>`;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const lines = getCart();
+    if (lines.length === 0) return;
+    submit.disabled = true;
+    submit.textContent = 'Placing order…';
+    await createOrder(lines);
+    clearCart();
+    location.href = '/order/confirmed';
+  });
+
+  void renderSummary();
+</script>

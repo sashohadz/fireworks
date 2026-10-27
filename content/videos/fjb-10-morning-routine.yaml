@@ -1,0 +1,38 @@
+id: fjb-10-morning-routine
+title: The three-step morning ritual
+description: Cleanse, brighten, protect. Three products, one calm morning routine.
+kind: routine
+purpose: Multi-product video with three tagged products. Home Storyblock and the routine section.
+products: [FJB-101, FJB-103, FJB-107]
+hashtags: [routine, morningroutine]
+playlists: [storyblock, carousel]
+voiceover:
+  en: Our three step morning ritual. Cleanse with Cloud Milk. Brighten with Cloudberry vitamin C. Protect with Daylight SPF fifty.
+scenes:
+  - type: title
+    text: The three-step morning ritual
+    seconds: 2.5
+  - type: clip
+    product: FJB-101
+    image: lifestyle-1
+    keyframe: The milky-white pump bottle beside a white basin with fresh running water, soft morning light.
+    motion: Slow push-in as clear water runs into the basin.
+    seconds: 4
+    caption: 1. Cleanse
+  - type: clip
+    product: FJB-103
+    image: lifestyle-1
+    keyframe: The amber dropper bottle on pale birch wood with golden cloudberries, morning window light.
+    motion: Gentle orbit around the bottle as sunlight brightens.
+    seconds: 4
+    caption: 2. Brighten
+  - type: clip
+    product: FJB-107
+    image: lifestyle-1
+    keyframe: The sand-coloured SPF tube on a sunlit windowsill overlooking a calm blue sea.
+    motion: Slow pull-back from the tube revealing the bright sea view.
+    seconds: 4
+    caption: 3. Protect
+  - type: title
+    text: Tap a product to shop all three
+    seconds: 2.5

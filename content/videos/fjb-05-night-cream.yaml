@@ -1,0 +1,28 @@
+id: fjb-05-night-cream
+title: Midnight Sea Buckthorn Night Cream
+description: A rich night cream with sea buckthorn oil, bakuchiol and ceramides.
+kind: short
+purpose: Product short for the night cream. Carousel, grid and product page; evening content.
+products: [FJB-105]
+hashtags: [nightcream, bakuchiol]
+playlists: [carousel, grid, deck]
+voiceover:
+  en: Midnight is your overnight reset. Sea buckthorn and bakuchiol, so you wake up soft, plump and calm.
+scenes:
+  - type: clip
+    product: FJB-105
+    image: lifestyle-2
+    keyframe: The midnight-blue jar with a brass lid on a dark wooden bedside table, lit by a single warm candle, deep blue night outside the window.
+    motion: Slow push-in as the candle flame flickers and warm light dances on the brass lid.
+    seconds: 5
+    caption: Bakuchiol and sea buckthorn
+  - type: clip
+    product: FJB-105
+    image: packshot
+    keyframe: Close-up of the open jar showing a rich apricot-tinted cream with a soft swirl on its surface.
+    motion: The camera glides slowly across the creamy swirl as the light shifts.
+    seconds: 5
+    caption: Wake up soft and calm
+  - type: price
+    product: FJB-105
+    seconds: 3

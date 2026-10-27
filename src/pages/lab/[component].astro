@@ -1,0 +1,129 @@
+---
+import FwWidget from '../../components/FwWidget.astro';
+import SnippetPanel from '../../components/SnippetPanel.astro';
+import { labComponents, type LabComponent } from '../../lab/registry';
+import Lab from '../../layouts/Lab.astro';
+import { fullSnippet } from '../../lib/snippet';
+import { firework } from '../../site.config';
+
+export function getStaticPaths() {
+  return labComponents.map((component) => ({ params: { component: component.slug }, props: { component } }));
+}
+
+interface Props {
+  component: LabComponent;
+}
+const { component } = Astro.props;
+
+const initialAttrs: Record<string, string> = {
+  ...(firework.channel ? { channel: firework.channel } : {}),
+  ...(component.usePlaylist && component.slot && firework.playlists[component.slot] ? { playlist: firework.playlists[component.slot] } : {}),
+  ...component.initial,
+};
+const labData = JSON.stringify({ component }).replace(/</g, '\\u003c');
+---
+
+<Lab title={component.title} description={component.summary}>
+  <header>
+    <p class="eyebrow">Lab · <code>&lt;{component.tag}&gt;</code></p>
+    <h1>{component.title}</h1>
+    <p class="lede">{component.summary}</p>
+    <p><strong>When to use it:</strong> {component.whenToUse}</p>
+  </header>
+
+  <div class="lab-grid">
+    <section aria-labelledby="preview-heading">
+      <div class="lab-toolbar">
+        <h2 id="preview-heading">Live preview</h2>
+        <div>
+          <button id="lab-rebuild" type="button" class="btn btn-small btn-ghost">Rebuild widget</button>
+          <button id="lab-reset" type="button" class="btn btn-small btn-ghost">Reset attributes</button>
+          <button id="lab-copy-link" type="button" class="btn btn-small">Copy link to this setup</button>
+        </div>
+      </div>
+      <div id="lab-stage" class="lab-stage">
+        <FwWidget tag={component.tag} slot={component.slot} usePlaylist={component.usePlaylist} attrs={component.initial} label={component.title} />
+      </div>
+
+      <h2>Embed code</h2>
+      <p class="small muted">Updates as you change attributes. This is exactly what renders in the preview.</p>
+      <SnippetPanel id="lab-snippet" title="HTML" code={fullSnippet(component.tag, initialAttrs)} />
+
+      <h2>Events</h2>
+      <p class="small muted">
+        Every <code>fw:*</code> event from this page, newest first. Events documented for this component are marked
+        with an orange bar:
+        {
+          component.events.length ? (
+            component.events.map((e, i) => (
+              <>
+                {i > 0 && ', '}
+                <code>{e}</code>
+              </>
+            ))
+          ) : (
+            <span>none listed in the docs</span>
+          )
+        }.
+      </p>
+      <div class="chip-row">
+        <button id="lab-telemetry" type="button" class="chip">Open Firework telemetry console</button>
+        <a class="chip" href="?debug">Show debug overlay</a>
+      </div>
+      <ol id="lab-events" class="lab-events" aria-live="polite"><li class="empty">No events yet.</li></ol>
+    </section>
+
+    <aside class="lab-knobs panel" aria-labelledby="knobs-heading">
+      <h2 id="knobs-heading">Attributes</h2>
+      <p class="small muted">Empty means the documented default. Changes rebuild the widget.</p>
+      <form id="lab-knobs"></form>
+      <h3>CSS variables</h3>
+      <p class="small muted">Applied to <code>:root</code> and added to the embed code.</p>
+      <div id="lab-css"></div>
+    </aside>
+  </div>
+
+  <section aria-labelledby="nocode-heading">
+    <h2 id="nocode-heading">How a customer does this without code</h2>
+    <p>{component.noCode}</p>
+  </section>
+
+  <section aria-labelledby="issues-heading">
+    <h2 id="issues-heading">Known tickets</h2>
+    <ul class="issue-list">
+      {
+        component.knownIssues.map((issue) => (
+          <li>
+            <strong>{issue.title}.</strong> {issue.body}
+            {issue.repro && (
+              <>
+                {' '}
+                <a href={issue.repro}>Open the repro</a>.
+              </>
+            )}
+            {issue.docs && (
+              <>
+                {' '}
+                <a href={issue.docs}>Docs</a>.
+              </>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section aria-labelledby="docs-heading">
+    <h2 id="docs-heading">Docs</h2>
+    <ul>
+      {component.docs.map((d) => <li><a href={d.url}>{d.label}</a></li>)}
+    </ul>
+  </section>
+
+  <script type="application/json" id="lab-data" set:html={labData}></script>
+</Lab>
+
+<script>
+  import { initLabComponent } from '../../scripts/lab-component';
+  initLabComponent();
+</script>

@@ -1,0 +1,311 @@
+{
+  "currency": "EUR",
+  "products": [
+    {
+      "id": "FJB-101",
+      "handle": "cloud-milk-cleanser",
+      "name": "Cloud Milk Cleanser",
+      "shortName": "Cloud Milk Cleanser",
+      "category": "Cleansers",
+      "summary": "A cushiony milk cleanser that lifts sunscreen and city grime without the tight feeling.",
+      "description": "Oat milk, birch water and a whisper of sea buckthorn oil melt away the day while leaving the skin barrier calm. The pH sits at 5.5, close to healthy skin, so faces feel soft rather than squeaky.",
+      "howToUse": "Massage two pumps onto dry or damp skin for 30 seconds. Add water to emulsify, then rinse. Use morning and evening.",
+      "ingredients": "Aqua, Betula Alba (Birch) Juice, Glycerin, Avena Sativa (Oat) Kernel Extract, Caprylic/Capric Triglyceride, Coco-Glucoside, Hippophae Rhamnoides (Sea Buckthorn) Fruit Oil, Glyceryl Stearate, Cetearyl Alcohol, Panthenol, Sodium Benzoate, Citric Acid.",
+      "highlights": ["pH-balanced at 5.5", "Removes everyday SPF", "Fragrance-free"],
+      "skinTypes": ["Dry", "Sensitive", "Normal"],
+      "tags": ["cleanser", "morning", "evening", "sensitive"],
+      "featured": true,
+      "packaging": { "type": "pump", "body": "#F3EFE7", "cap": "#2F5D73", "label": "#14212B" },
+      "imagePrompt": "a frosted milky-white pump bottle with a fjord-blue pump head and a minimalist label reading 'FJORDBLOOM' and 'Cloud Milk Cleanser' in thin dark sans-serif type",
+      "units": [
+        { "id": "FJB-101-150ML", "name": "150 ml", "option": { "name": "Size", "value": "150 ml" }, "price": 24, "stock": 64, "default": true },
+        { "id": "FJB-101-300ML", "name": "300 ml", "option": { "name": "Size", "value": "300 ml" }, "price": 39, "stock": 31 }
+      ],
+      "faqs": [
+        { "q": "Does it remove waterproof mascara?", "a": "It removes everyday makeup and mineral SPF. For waterproof mascara, use an oil cleanser first, then follow with Cloud Milk." },
+        { "q": "Is it suitable for sensitive skin?", "a": "Yes. It is fragrance-free and pH-balanced at 5.5. Patch test first if your skin is reactive." },
+        { "q": "How long does the 150 ml bottle last?", "a": "About two months when used twice a day." },
+        { "q": "Is it vegan?", "a": "Yes. Every Fjordbloom formula is vegan and cruelty-free." }
+      ]
+    },
+    {
+      "id": "FJB-102",
+      "handle": "glacier-water-toner",
+      "name": "Glacier Water Essence Toner",
+      "shortName": "Glacier Water Toner",
+      "category": "Toners",
+      "summary": "A watery essence that floods skin with hydration and preps it for serum.",
+      "description": "Glacial mineral water, hyaluronic acid in three molecular weights and fermented lingonberry help skin hold on to moisture all day. It feels like nothing on the skin and layers under everything.",
+      "howToUse": "Shake a few drops into your palms and press into clean skin. Layer twice on dry days.",
+      "ingredients": "Aqua, Glacier Water, Glycerin, Sodium Hyaluronate, Hydrolyzed Hyaluronic Acid, Lactobacillus/Vaccinium Vitis-Idaea Ferment Filtrate, Betaine, Allantoin, Pentylene Glycol, Phenoxyethanol.",
+      "highlights": ["Three weights of hyaluronic acid", "Alcohol-free", "Layerable"],
+      "skinTypes": ["All", "Dehydrated"],
+      "tags": ["toner", "hydration", "morning", "evening"],
+      "packaging": { "type": "bottle", "body": "#CFE3EA", "cap": "#E6EBE8", "label": "#14212B" },
+      "imagePrompt": "a pale ice-blue frosted glass bottle with a soft grey cap and a minimalist label reading 'FJORDBLOOM' and 'Glacier Water' in thin dark sans-serif type",
+      "units": [
+        { "id": "FJB-102-200ML", "name": "200 ml", "option": { "name": "Size", "value": "200 ml" }, "price": 28, "stock": 48 }
+      ],
+      "faqs": [
+        { "q": "Is this an exfoliating toner?", "a": "No. It is a hydrating essence with no acids, so it is gentle enough for twice-daily use." },
+        { "q": "Can I use a cotton pad?", "a": "You can, but pressing it in with your hands wastes less product." },
+        { "q": "Does it contain alcohol?", "a": "There are no drying alcohols. Pentylene glycol is a skin-friendly humectant." }
+      ]
+    },
+    {
+      "id": "FJB-103",
+      "handle": "cloudberry-vitamin-c-serum",
+      "name": "Cloudberry Vitamin C Glow Serum",
+      "shortName": "Cloudberry C Serum",
+      "category": "Serums",
+      "summary": "Our hero serum: stable vitamin C and Arctic cloudberry for a brighter, more even look.",
+      "description": "15% ethyl ascorbic acid, a stable form of vitamin C, pairs with cold-pressed cloudberry seed oil, rich in vitamin E and omega fatty acids. Skin looks brighter within two weeks and feels smoother from the first drop.",
+      "howToUse": "Every morning, apply 3 to 4 drops to clean skin before moisturiser. Always follow with SPF.",
+      "ingredients": "Aqua, 3-O-Ethyl Ascorbic Acid, Propanediol, Rubus Chamaemorus (Cloudberry) Seed Oil, Glycerin, Tocopherol, Ferulic Acid, Sodium Hyaluronate, Xanthan Gum, Citric Acid, Phenoxyethanol.",
+      "highlights": ["15% stable vitamin C", "Cold-pressed cloudberry seed oil", "Amber glass protects the formula"],
+      "skinTypes": ["All", "Dull", "Uneven tone"],
+      "tags": ["serum", "vitamin c", "brightening", "morning", "hero"],
+      "featured": true,
+      "packaging": { "type": "dropper", "body": "#C8742B", "cap": "#14212B", "label": "#F7F5F0" },
+      "imagePrompt": "a 30 ml amber glass dropper bottle with a matte black dropper cap and a minimalist off-white label reading 'FJORDBLOOM' and 'Cloudberry C Serum' in thin dark sans-serif type",
+      "lifestylePrompts": [
+        "standing on pale birch wood next to a few golden cloudberries and sea-smoothed pebbles, soft morning window light",
+        "held at an angle above a glass dish with a single serum droplet falling from the dropper, fjord-blue background, crisp backlight"
+      ],
+      "units": [
+        { "id": "FJB-103-15ML", "name": "15 ml", "option": { "name": "Size", "value": "15 ml" }, "price": 29, "stock": 25 },
+        { "id": "FJB-103-30ML", "name": "30 ml", "option": { "name": "Size", "value": "30 ml" }, "price": 48, "stock": 40, "default": true }
+      ],
+      "faqs": [
+        { "q": "Can I use it with retinol?", "a": "Yes, at different times of day: vitamin C in the morning, retinol or bakuchiol at night." },
+        { "q": "Will it tingle?", "a": "Ethyl ascorbic acid is gentle, so most people feel nothing. Mild warmth for a minute is normal. Stop if it stings." },
+        { "q": "Why is the bottle amber?", "a": "Amber glass blocks light, which keeps vitamin C stable for longer." },
+        { "q": "How soon will I see results?", "a": "Most people see a brighter look within two weeks of daily use." },
+        { "q": "Does it oxidise?", "a": "Ethyl ascorbic acid is far more stable than pure L-ascorbic acid. Use it within six months of opening." }
+      ]
+    },
+    {
+      "id": "FJB-104",
+      "handle": "birch-sap-hydra-serum",
+      "name": "Birch Sap Hydra Serum",
+      "shortName": "Birch Sap Serum",
+      "category": "Serums",
+      "summary": "A bouncy hydrating serum made with 70% Finnish birch sap.",
+      "description": "Birch sap replaces water in this formula, bringing natural minerals, amino acids and sugars. Niacinamide and panthenol support the skin barrier so hydration lasts.",
+      "howToUse": "Apply 2 to 3 drops morning and evening after toner. With the Cloudberry serum, use Birch Sap first.",
+      "ingredients": "Betula Alba (Birch) Juice, Niacinamide, Glycerin, Panthenol, Sodium Hyaluronate, Trehalose, Betaine, Allantoin, Xanthan Gum, Sodium Benzoate.",
+      "highlights": ["70% birch sap", "5% niacinamide", "Barrier support"],
+      "skinTypes": ["All", "Dehydrated", "Combination"],
+      "tags": ["serum", "hydration", "niacinamide"],
+      "packaging": { "type": "dropper", "body": "#DCE8E1", "cap": "#F7F5F0", "label": "#2F5D73" },
+      "imagePrompt": "a 30 ml pale sage-green frosted glass dropper bottle with a white dropper cap and a minimalist label reading 'FJORDBLOOM' and 'Birch Sap Serum' in thin fjord-blue sans-serif type",
+      "units": [
+        { "id": "FJB-104-30ML", "name": "30 ml", "option": { "name": "Size", "value": "30 ml" }, "price": 42, "stock": 37 }
+      ],
+      "faqs": [
+        { "q": "Can I layer it with vitamin C?", "a": "Yes. Apply Birch Sap first, wait a minute, then Cloudberry Vitamin C." },
+        { "q": "Is 5% niacinamide irritating?", "a": "5% is well tolerated by most skin types. Start once a day if you are new to it." },
+        { "q": "Is it suitable for oily skin?", "a": "Yes. It is oil-free and absorbs in seconds." }
+      ]
+    },
+    {
+      "id": "FJB-105",
+      "handle": "midnight-sea-buckthorn-night-cream",
+      "name": "Midnight Sea Buckthorn Night Cream",
+      "shortName": "Midnight Night Cream",
+      "category": "Moisturisers",
+      "summary": "A rich, cocooning night cream with sea buckthorn and bakuchiol.",
+      "description": "Sea buckthorn oil, bakuchiol and squalane work overnight so skin wakes up soft, plump and calm. Ceramides help the barrier recover from cold, dry air.",
+      "howToUse": "Warm a pea-sized amount between your fingertips and press onto face and neck as the last step of your evening routine.",
+      "ingredients": "Aqua, Squalane, Butyrospermum Parkii (Shea) Butter, Glycerin, Hippophae Rhamnoides (Sea Buckthorn) Fruit Oil, Bakuchiol, Cetearyl Olivate, Sorbitan Olivate, Ceramide NP, Tocopherol, Sodium Benzoate.",
+      "highlights": ["1% bakuchiol", "Ceramides", "Rich but not greasy"],
+      "skinTypes": ["Dry", "Normal", "Mature"],
+      "tags": ["moisturiser", "night", "bakuchiol"],
+      "featured": true,
+      "packaging": { "type": "jar", "body": "#2B2F4A", "cap": "#C9A46A", "label": "#F7F5F0" },
+      "imagePrompt": "a midnight-blue glass cream jar with a brushed brass lid and a minimalist off-white label reading 'FJORDBLOOM' and 'Midnight Night Cream' in thin sans-serif type",
+      "units": [
+        { "id": "FJB-105-50ML", "name": "50 ml", "option": { "name": "Size", "value": "50 ml" }, "price": 52, "stock": 22 }
+      ],
+      "faqs": [
+        { "q": "Is bakuchiol a retinol alternative?", "a": "Bakuchiol is a plant-derived ingredient often used as a gentler alternative to retinol. It is suitable for nightly use." },
+        { "q": "Can I use it during the day?", "a": "You can, but it is rich. For daytime we recommend Arctic Barrier Day Cream followed by SPF." },
+        { "q": "Why is the cream orange?", "a": "Sea buckthorn oil gives the cream its natural apricot tint. It does not stain skin." }
+      ]
+    },
+    {
+      "id": "FJB-106",
+      "handle": "arctic-barrier-day-cream",
+      "name": "Arctic Barrier Day Cream",
+      "shortName": "Arctic Barrier Cream",
+      "category": "Moisturisers",
+      "summary": "A light daily cream that defends against cold, wind and dry indoor air. Now 20% off.",
+      "description": "Oat beta-glucan, ceramides and cloudberry wax form a breathable shield that keeps moisture in on the coldest days. It sets to a soft satin finish that sits well under SPF and makeup.",
+      "howToUse": "Apply in the morning after serum. Follow with Daylight Mineral Fluid SPF 50.",
+      "ingredients": "Aqua, Caprylic/Capric Triglyceride, Glycerin, Avena Sativa (Oat) Kernel Extract, Beta-Glucan, Ceramide NP, Rubus Chamaemorus Seed Wax, Cetearyl Alcohol, Panthenol, Xanthan Gum, Sodium Benzoate.",
+      "highlights": ["Ceramides and oat beta-glucan", "Light satin finish", "20% off this month"],
+      "skinTypes": ["All", "Sensitive"],
+      "tags": ["moisturiser", "morning", "barrier", "sale"],
+      "packaging": { "type": "pump", "body": "#F7F5F0", "cap": "#8C6D8F", "label": "#14212B" },
+      "imagePrompt": "a matte off-white airless pump bottle with a heather-purple pump head and a minimalist label reading 'FJORDBLOOM' and 'Arctic Barrier Cream' in thin dark sans-serif type",
+      "units": [
+        { "id": "FJB-106-50ML", "name": "50 ml", "option": { "name": "Size", "value": "50 ml" }, "price": 35.2, "compareAtPrice": 44, "stock": 53 }
+      ],
+      "faqs": [
+        { "q": "Does it contain SPF?", "a": "No. Follow with Daylight Mineral Fluid SPF 50 in the morning." },
+        { "q": "Is it good under makeup?", "a": "Yes. It sets to a soft satin finish in about a minute." },
+        { "q": "Why is it on sale?", "a": "It is part of our winter barrier event. The discount is already applied to the price." }
+      ]
+    },
+    {
+      "id": "FJB-107",
+      "handle": "daylight-mineral-spf-50",
+      "name": "Daylight Mineral Fluid SPF 50",
+      "shortName": "Daylight SPF 50",
+      "category": "Sun care",
+      "summary": "A weightless mineral sunscreen fluid with a sheer tint and no white cast.",
+      "description": "Non-nano zinc oxide in a sheer fluid tinted to blend into most skin tones. Broad-spectrum UVA and UVB protection that wears comfortably all day.",
+      "howToUse": "Apply two finger-lengths to face and neck as the last step of your morning routine. Reapply every two hours outdoors.",
+      "ingredients": "Zinc Oxide, Aqua, Caprylic/Capric Triglyceride, Coco-Caprylate/Caprate, Glycerin, Polyglyceryl-3 Polyricinoleate, Iron Oxides, Tocopherol, Sodium Chloride, Phenoxyethanol.",
+      "highlights": ["SPF 50 broad spectrum", "Non-nano zinc oxide", "Sheer tint"],
+      "skinTypes": ["All", "Sensitive"],
+      "tags": ["spf", "sun care", "morning"],
+      "featured": true,
+      "packaging": { "type": "tube", "body": "#F2D9A6", "cap": "#E8913A", "label": "#14212B" },
+      "imagePrompt": "a soft sand-coloured squeeze tube standing on a cloudberry-orange flip cap, with a minimalist label reading 'FJORDBLOOM' and 'Daylight SPF 50' in thin dark sans-serif type",
+      "units": [
+        { "id": "FJB-107-50ML", "name": "50 ml", "option": { "name": "Size", "value": "50 ml" }, "price": 32, "stock": 70 }
+      ],
+      "faqs": [
+        { "q": "Will it leave a white cast?", "a": "A sheer iron-oxide tint cancels most of the white cast on light to medium skin tones." },
+        { "q": "Can I wear it under makeup?", "a": "Yes. Let it set for two minutes first." },
+        { "q": "How much should I apply?", "a": "Two finger-lengths for face and neck. Using less lowers the protection you get." }
+      ]
+    },
+    {
+      "id": "FJB-108",
+      "handle": "sea-kelp-clay-mask",
+      "name": "Sea Kelp Clay Mask",
+      "shortName": "Sea Kelp Mask",
+      "category": "Masks",
+      "summary": "A 10-minute mask with Nordic sea kelp and white clay for clearer-looking pores.",
+      "description": "Kaolin and bentonite clays absorb excess oil while bladderwrack kelp and aloe keep skin comfortable. Think of it as a weekly reset.",
+      "howToUse": "Apply an even layer to clean skin, avoiding the eyes. Rinse after 10 minutes. Use once or twice a week.",
+      "ingredients": "Kaolin, Aqua, Bentonite, Glycerin, Fucus Vesiculosus (Bladderwrack) Extract, Aloe Barbadensis Leaf Juice, Zinc PCA, Xanthan Gum, Sodium Benzoate.",
+      "highlights": ["White clay and kelp", "Ready in 10 minutes", "Weekly reset"],
+      "skinTypes": ["Oily", "Combination"],
+      "tags": ["mask", "pores", "weekly"],
+      "packaging": { "type": "jar", "body": "#5B6B4F", "cap": "#F7F5F0", "label": "#F7F5F0" },
+      "imagePrompt": "a wide moss-green glass jar with a white lid and a minimalist label reading 'FJORDBLOOM' and 'Sea Kelp Mask' in thin off-white sans-serif type",
+      "units": [
+        { "id": "FJB-108-75ML", "name": "75 ml", "option": { "name": "Size", "value": "75 ml" }, "price": 30, "stock": 33 }
+      ],
+      "faqs": [
+        { "q": "Should I leave it on until it cracks?", "a": "No. Rinse at 10 minutes, before it dries completely, to avoid tightness." },
+        { "q": "Is it suitable for dry skin?", "a": "Use it only on your T-zone if your cheeks are dry." },
+        { "q": "How often should I use it?", "a": "Once or twice a week is enough." }
+      ]
+    },
+    {
+      "id": "FJB-109",
+      "handle": "lingonberry-tinted-lip-balm",
+      "name": "Lingonberry Tinted Lip Balm",
+      "shortName": "Lingonberry Lip Balm",
+      "category": "Lips",
+      "summary": "A nourishing balm with a sheer wash of Nordic berry colour, in six shades.",
+      "description": "Lingonberry seed oil, shea butter and candelilla wax soften lips while a buildable tint adds a natural flush. Midnight Plum is sold out and Heather is almost gone.",
+      "howToUse": "Swipe onto bare lips. Layer for more colour. Reapply as often as you like.",
+      "ingredients": "Ricinus Communis (Castor) Seed Oil, Butyrospermum Parkii (Shea) Butter, Euphorbia Cerifera (Candelilla) Wax, Vaccinium Vitis-Idaea (Lingonberry) Seed Oil, Tocopherol. May contain: CI 77491, CI 15850, CI 77891.",
+      "highlights": ["Six shades", "Lingonberry seed oil", "Buildable tint"],
+      "skinTypes": ["All"],
+      "tags": ["lips", "tint", "shades"],
+      "packaging": { "type": "stick", "body": "#B03A48", "cap": "#F7F5F0", "label": "#F7F5F0" },
+      "imagePrompt": "a slim lipstick-style balm tube with a berry-red body and a white cap, with a tiny label reading 'FJORDBLOOM' in thin sans-serif type",
+      "units": [
+        { "id": "FJB-109-CLEAR", "name": "Clear", "option": { "name": "Shade", "value": "Clear" }, "price": 16, "stock": 40, "swatch": "#F1E4DA" },
+        { "id": "FJB-109-ROSEHIP", "name": "Rosehip", "option": { "name": "Shade", "value": "Rosehip" }, "price": 16, "stock": 25, "swatch": "#D98880" },
+        { "id": "FJB-109-LINGONBERRY", "name": "Lingonberry", "option": { "name": "Shade", "value": "Lingonberry" }, "price": 16, "stock": 30, "swatch": "#B03A48", "default": true },
+        { "id": "FJB-109-CLOUDBERRY", "name": "Cloudberry", "option": { "name": "Shade", "value": "Cloudberry" }, "price": 16, "stock": 12, "swatch": "#E8913A" },
+        { "id": "FJB-109-HEATHER", "name": "Heather", "option": { "name": "Shade", "value": "Heather" }, "price": 16, "stock": 3, "swatch": "#9B6B9E" },
+        { "id": "FJB-109-PLUM", "name": "Midnight Plum", "option": { "name": "Shade", "value": "Midnight Plum" }, "price": 16, "stock": 0, "swatch": "#5E2B3E" }
+      ],
+      "faqs": [
+        { "q": "Which shade is the most natural?", "a": "Rosehip is a soft pink that suits most lip tones. Clear has no tint at all." },
+        { "q": "Is Midnight Plum coming back?", "a": "It is sold out for now. Check back in a few weeks." },
+        { "q": "Is it vegan?", "a": "Yes. We use candelilla wax instead of beeswax." }
+      ]
+    },
+    {
+      "id": "FJB-110",
+      "handle": "sauna-ritual-body-oil",
+      "name": "Sauna Ritual Body Oil",
+      "shortName": "Sauna Body Oil",
+      "category": "Body",
+      "summary": "A dry-touch body oil inspired by the Nordic sauna ritual, with birch and juniper.",
+      "description": "Camelina and sea buckthorn oils absorb quickly and leave skin glowing, with a grounding scent of birch leaf, juniper and smoked cedar.",
+      "howToUse": "Massage into damp skin after a shower or sauna. A few drops in bathwater make a soothing soak.",
+      "ingredients": "Camelina Sativa Seed Oil, Caprylic/Capric Triglyceride, Hippophae Rhamnoides Fruit Oil, Betula Alba Leaf Extract, Juniperus Communis Fruit Oil, Cedrus Atlantica Bark Oil, Tocopherol, Parfum, Limonene, Linalool.",
+      "highlights": ["Dry-touch finish", "Birch and juniper scent", "For body and bath"],
+      "skinTypes": ["All"],
+      "tags": ["body", "oil", "evening"],
+      "packaging": { "type": "bottle", "body": "#6B4A3A", "cap": "#C9A46A", "label": "#F7F5F0" },
+      "imagePrompt": "a dark walnut-brown glass oil bottle with a brushed brass cap and a minimalist off-white label reading 'FJORDBLOOM' and 'Sauna Body Oil' in thin sans-serif type",
+      "units": [
+        { "id": "FJB-110-100ML", "name": "100 ml", "option": { "name": "Size", "value": "100 ml" }, "price": 38, "stock": 28 }
+      ],
+      "faqs": [
+        { "q": "Will it stain clothes?", "a": "It absorbs in about a minute. Wait before dressing." },
+        { "q": "Can I use it on my face?", "a": "It is made for the body and contains fragrance, so we don't recommend it for the face." },
+        { "q": "Can I use it in the sauna?", "a": "Apply it after the sauna, not before, so your skin can breathe and sweat freely." }
+      ]
+    },
+    {
+      "id": "FJB-111",
+      "handle": "rose-quartz-gua-sha",
+      "name": "Rose Quartz Gua Sha Stone",
+      "shortName": "Rose Quartz Gua Sha",
+      "category": "Tools",
+      "summary": "A hand-polished rose quartz gua sha for a de-puffing facial massage. Currently sold out.",
+      "description": "Shaped with a notched edge for the jaw and a curved side for the cheeks. Keep it in the fridge for an extra-cooling morning ritual.",
+      "howToUse": "Apply serum or face oil for slip. Glide outward and upward 5 to 10 times per area with light pressure.",
+      "ingredients": "100% rose quartz. Natural variations in colour and veining make each stone unique.",
+      "highlights": ["Hand-polished", "Cooling", "Sold out"],
+      "skinTypes": ["All"],
+      "tags": ["tool", "massage", "sold out"],
+      "packaging": { "type": "stone", "body": "#F2C6C2", "cap": "#F2C6C2", "label": "#8C6D8F" },
+      "imagePrompt": "a hand-polished pale pink rose quartz gua sha stone with a notched edge, lying on a small linen cloth embroidered with 'FJORDBLOOM'",
+      "units": [
+        { "id": "FJB-111-STONE", "name": "Rose quartz", "option": { "name": "Material", "value": "Rose quartz" }, "price": 26, "stock": 0 }
+      ],
+      "faqs": [
+        { "q": "When will it be back in stock?", "a": "It is sold out for now. Each stone is cut by hand, so restocks take a few weeks." },
+        { "q": "How do I clean it?", "a": "Wash it with mild soap and warm water after each use, then dry it with a soft cloth." },
+        { "q": "Can I use it with the body oil?", "a": "Use it with a face serum or face oil instead. The body oil contains fragrance." }
+      ]
+    },
+    {
+      "id": "FJB-112",
+      "handle": "complete-nordic-ritual-discovery-set",
+      "name": "The Complete Nordic Ritual Discovery Set with Travel Pouch (Cleanser, Toner, Serum and Night Cream Minis)",
+      "shortName": "Discovery Set",
+      "category": "Sets",
+      "summary": "Four bestselling minis in a recycled linen pouch: cleanser, toner, vitamin C serum and night cream.",
+      "description": "The easiest way to try the full Fjordbloom ritual. Each mini lasts about three weeks of daily use, and the pouch is made from recycled linen. The long product name is deliberate: it tests how product cards handle overflow.",
+      "howToUse": "Morning: cleanser, toner, then Cloudberry serum. Evening: cleanser, toner, then Midnight night cream.",
+      "ingredients": "See each full-size product page for complete ingredient lists.",
+      "highlights": ["Four minis", "Recycled linen pouch", "Ready to gift"],
+      "skinTypes": ["All"],
+      "tags": ["set", "gift", "travel"],
+      "packaging": { "type": "box", "body": "#E6EBE8", "cap": "#2F5D73", "label": "#14212B" },
+      "imagePrompt": "a pale grey recycled-linen zip pouch with four mini skincare bottles peeking out, and a small box with a label reading 'FJORDBLOOM' and 'Discovery Set' in thin dark sans-serif type",
+      "units": [
+        { "id": "FJB-112-SET", "name": "Discovery set", "option": { "name": "Format", "value": "Set of 4 minis" }, "price": 59, "stock": 18 }
+      ],
+      "faqs": [
+        { "q": "What sizes are the minis?", "a": "Cleanser 30 ml, toner 30 ml, serum 10 ml and night cream 15 ml." },
+        { "q": "Can I take it on a plane?", "a": "Yes. Every mini is under 100 ml, so the set fits cabin-bag rules." },
+        { "q": "Is the pouch reusable?", "a": "Yes. It is made from recycled linen and works as a toiletry bag." }
+      ]
+    }
+  ]
+}

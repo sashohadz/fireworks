@@ -1,0 +1,28 @@
+id: fjb-07-sea-kelp-mask
+title: Sea Kelp Clay Mask
+description: A 10-minute mask with white clay and Nordic sea kelp for clearer-looking pores.
+kind: short
+purpose: Product short for the mask. Carousel, grid and product page; weekly-ritual content.
+products: [FJB-108]
+hashtags: [mask, pores]
+playlists: [carousel, grid, deck]
+voiceover:
+  en: Your ten minute weekly reset. White clay and Nordic sea kelp for clearer looking pores.
+scenes:
+  - type: clip
+    product: FJB-108
+    image: lifestyle-2
+    keyframe: The moss-green jar on wet dark beach stones with fresh strands of kelp, grey sea mist in the background.
+    motion: A small wave gently washes over the stones around the jar as mist drifts past.
+    seconds: 5
+    caption: White clay and Nordic kelp
+  - type: clip
+    product: FJB-108
+    image: packshot
+    keyframe: Close-up of the open jar with a smooth, pale green clay texture and a flat wooden spatula resting on the rim.
+    motion: Slow overhead rotation around the open jar of clay.
+    seconds: 5
+    caption: Ready in 10 minutes
+  - type: price
+    product: FJB-108
+    seconds: 3

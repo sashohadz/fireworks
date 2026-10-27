@@ -1,0 +1,43 @@
+id: fjb-11-live-show
+title: Fjordbloom Live · The Nordic glow edit
+description: A four-minute live shopping show with every Fjordbloom bestseller, streamed as a prerecorded livestream.
+kind: live-show
+purpose: Prerecorded livestream and OBS media source. Its replay fills the live playlist and the Hero unit.
+products: [FJB-101, FJB-102, FJB-103, FJB-104, FJB-105, FJB-107, FJB-108, FJB-109]
+hashtags: [live, liveshopping]
+playlists: [hero, live]
+intro:
+  text: Fjordbloom Live
+  subtext: The Nordic glow edit
+  host: Hello and welcome to Fjordbloom Live! Today we are building a calm, glowing routine, from cleanser to SPF. Every product you see is pinned below, so tap to add it to your bag while we talk.
+segments:
+  - video: fjb-02-cloud-milk-cleanser
+    product: FJB-101
+    host: First, cleanse. Cloud Milk lifts sunscreen and city grime without that tight feeling, and it is pH balanced at five point five.
+  - video: fjb-03-glacier-toner
+    product: FJB-102
+    host: Next, Glacier Water. Press a few drops into your skin with your palms. Three weights of hyaluronic acid keep it hydrated all day.
+  - video: fjb-01-cloudberry-serum
+    product: FJB-103
+    unit: FJB-103-30ML
+    host: Here is our hero, the Cloudberry vitamin C serum. Fifteen percent stable vitamin C, three or four drops every morning.
+  - video: fjb-04-birch-sap-serum
+    product: FJB-104
+    host: Want even more hydration? Birch Sap goes on first, then wait a minute before the vitamin C.
+  - video: fjb-06-daylight-spf
+    product: FJB-107
+    host: And never skip SPF. Daylight is a mineral SPF fifty with a sheer tint, so there is no white cast.
+  - video: fjb-05-night-cream
+    product: FJB-105
+    host: In the evening, switch to Midnight. Sea buckthorn and bakuchiol work while you sleep.
+  - video: fjb-07-sea-kelp-mask
+    product: FJB-108
+    host: Once or twice a week, add the Sea Kelp mask. Ten minutes, then rinse before it dries.
+  - video: fjb-08-lip-balm-shades
+    product: FJB-109
+    unit: FJB-109-LINGONBERRY
+    host: And to finish, a little colour. The Lingonberry balm comes in six shades. Midnight Plum is sold out, so be quick next time.
+outro:
+  text: Thanks for watching
+  subtext: Everything from today is pinned below.
+  host: That is our glow edit! Everything from today is pinned below, and shipping is free from fifty euros. Thank you for watching, and see you next month.

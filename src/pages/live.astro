@@ -1,0 +1,41 @@
+---
+import FwWidget from '../components/FwWidget.astro';
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Live shopping" description="Fjordbloom Live: a monthly live shopping show with pinned products.">
+  <section class="section-tight">
+    <div class="container">
+      <p class="eyebrow">Live shopping</p>
+      <h1>Fjordbloom Live</h1>
+      <p class="lede">
+        A monthly show with real routines and live questions. Pinned products go straight into your bag while you watch.
+      </p>
+      <FwWidget tag="fw-herounit" slot="hero" label="Hero unit: upcoming, live or replay" attrs={{ height: '75vh' }} />
+    </div>
+  </section>
+
+  <section class="section-tight" aria-labelledby="replays-heading">
+    <div class="container">
+      <h2 id="replays-heading">Replays</h2>
+      <FwWidget tag="fw-embed-feed" slot="live" label="Replays carousel" attrs={{ mode: 'row' }} />
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <div class="note note-info">
+        <p><strong>How this demo livestream works.</strong></p>
+        <p>
+          The show is a generated video, streamed with Firework's "stream a prerecorded video" option and scheduled to
+          start automatically. Its replay then appears in the livestream playlist. The same file also works as an OBS
+          media source for practising RTMP streaming at 720x1280, 30 fps, 2-second keyframes.
+        </p>
+        <p class="small">
+          Help center: <a href="https://firework.com/help/how-to-stream-a-prerecorded-video">Stream a prerecorded video</a> ·
+          <a href="https://firework.com/help/how-to-go-live-with-third-party-obs">Go live with OBS</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>

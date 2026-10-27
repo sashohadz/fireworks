@@ -1,0 +1,29 @@
+id: fjb-08-lip-balm-shades
+title: Lingonberry Tinted Lip Balm in six shades
+description: A nourishing balm with a sheer wash of Nordic berry colour. Midnight Plum is sold out.
+kind: short
+purpose: Multi-variant product short. Tests shade variants, a sold-out unit and low stock in the player.
+products: [FJB-109]
+hashtags: [lips, tint]
+playlists: [carousel, grid, deck]
+voiceover:
+  en: Six Nordic berry shades, from clear to lingonberry. A sheer tint you can build up.
+scenes:
+  - type: clip
+    product: FJB-109
+    image: lifestyle-1
+    keyframe: The berry-red lip balm tube lying on soft natural linen next to a small scattering of fresh lingonberries, warm daylight.
+    motion: Slow push-in across the linen towards the lip balm and berries.
+    seconds: 5
+    caption: Six Nordic berry shades
+  - type: clip
+    product: FJB-109
+    image: packshot
+    keyframe: The lip balm tube standing upright with its cap off, showing the glossy berry-coloured balm, soft studio light.
+    motion: Slow turntable rotation of the open lip balm.
+    seconds: 5
+    caption: Sheer, buildable colour
+  - type: price
+    product: FJB-109
+    unit: FJB-109-LINGONBERRY
+    seconds: 3

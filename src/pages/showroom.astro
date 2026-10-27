@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Video Showroom" description="Fjordbloom's always-on video showroom.">
+  <section class="section-tight">
+    <div class="container showroom">
+      <p class="eyebrow">Video Showroom</p>
+      <h1>The Fjordbloom showroom</h1>
+      <p class="lede">
+        An always-open room with live events, replays and an AI co-pilot that answers questions in the chat.
+      </p>
+      <div class="fw-placeholder">
+        <p class="fw-placeholder-title">Video Showroom (Week 2)</p>
+        <p>
+          The showroom is configured in Business Portal during Week 2, together with AI Copilot and Assistant Mode. Its
+          embed code will go into <code>src/site.config.ts</code> and render here.
+        </p>
+      </div>
+      <h2>What the showroom demonstrates</h2>
+      <ul>
+        <li><strong>Livestreams and replays</strong> with pinned and multi-pinned products.</li>
+        <li><strong>AI Copilot</strong>, which helps moderate live events and answer viewers in real time.</li>
+        <li><strong>Assistant Mode</strong>, the host view for chat moderation, product pinning and engagement.</li>
+        <li><strong>Simulcasting</strong> to YouTube, Facebook, Instagram and other platforms.</li>
+      </ul>
+      <p class="small muted">
+        Help center: <a href="https://firework.com/docs/video-showroom">Video Showroom docs</a>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .showroom {
+    max-width: 900px;
+  }
+  .showroom .fw-placeholder {
+    margin: 24px 0 32px;
+    min-height: 240px;
+    display: grid;
+    place-content: center;
+  }
+</style>

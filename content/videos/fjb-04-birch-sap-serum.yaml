@@ -1,0 +1,28 @@
+id: fjb-04-birch-sap-serum
+title: Birch Sap Hydra Serum
+description: A bouncy hydrating serum made with 70% Finnish birch sap and 5% niacinamide.
+kind: short
+purpose: Product short for the hydrating serum. Carousel, grid and product page.
+products: [FJB-104]
+hashtags: [serum, niacinamide, hydration]
+playlists: [carousel, grid, deck]
+voiceover:
+  en: Seventy percent Finnish birch sap and five percent niacinamide. Bouncy hydration that never feels sticky.
+scenes:
+  - type: clip
+    product: FJB-104
+    image: lifestyle-1
+    keyframe: The pale sage dropper bottle on a mossy log in a sunlit birch forest, white bark trunks softly blurred behind it.
+    motion: Slow crane down from the birch canopy to the bottle as sunlight flickers through leaves.
+    seconds: 5
+    caption: 70% birch sap
+  - type: clip
+    product: FJB-104
+    image: packshot
+    keyframe: A clear drop of birch sap sliding down smooth white birch bark next to the sage dropper bottle, macro shot.
+    motion: The drop slowly slides down the bark and glints in the light.
+    seconds: 5
+    caption: Bouncy, never sticky
+  - type: price
+    product: FJB-104
+    seconds: 3

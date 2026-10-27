@@ -1,0 +1,82 @@
+---
+import { labComponents } from '../../lab/registry';
+import Lab from '../../layouts/Lab.astro';
+
+const params = [
+  { param: '?channel=name', what: 'Use another Firework channel on any page. Purchase tracking switches off for non-sandbox channels.' },
+  { param: '?playlist=id', what: 'Force one playlist on every widget of the page. Empty value means the whole channel.' },
+  { param: '?fw=off | lazy | on', what: 'Skip the Firework SDK, load it lazily with fwn-async.js, or load it normally.' },
+  { param: '?debug', what: 'Show the debug overlay with every fw:* event and the SDK status.' },
+  { param: '?debug_fwn=true', what: 'Firework’s own switch to bypass sandbox mode when an embed does not show.' },
+  { param: '?a.attribute=value', what: 'Lab pages only: set a widget attribute, e.g. ?a.mode=grid. “Copy link” builds these for you.' },
+  { param: '?css.--fw-var=value', what: 'Lab pages only: set a CSS variable, e.g. ?css.--fw-thumbnail-border-radius=0.' },
+];
+
+const ids = [
+  { where: 'Google XML feed', field: 'g:item_group_id and g:id', example: 'FJB-103 and FJB-103-30ML' },
+  { where: 'Firework CSV import', field: 'Product External ID and Product Unit External ID', example: 'FJB-103 and FJB-103-30ML' },
+  { where: 'Public API product upsert', field: 'external_id and product_units[].external_id', example: 'FJB-103 and FJB-103-30ML' },
+  { where: 'Product page Storyblock', field: 'skus', example: 'FJB-103' },
+  { where: 'Hashtag fallback', field: 'hashtag on the video', example: 'fjb103' },
+  { where: 'Purchase event', field: 'line_items[].sku', example: 'FJB-103-30ML' },
+];
+---
+
+<Lab title="Overview" description="Every Firework web component, live, with every documented attribute as a control.">
+  <p class="eyebrow">Firework lab</p>
+  <h1>The test page, done properly</h1>
+  <p class="lede">
+    Every Firework web component, live, with each documented attribute as a control, the exact embed code, and every
+    event it fires. Use it to learn, to reproduce tickets and to show customers what a setting does.
+  </p>
+
+  <h2>Components</h2>
+  <div class="lab-cards">
+    {
+      labComponents.map((c) => (
+        <a class="lab-card" href={`/lab/${c.slug}`}>
+          <strong>{c.title}</strong> <code>&lt;{c.tag}&gt;</code>
+          <p>{c.summary}</p>
+        </a>
+      ))
+    }
+  </div>
+
+  <h2>Tools</h2>
+  <div class="lab-cards">
+    <a class="lab-card" href="/lab/styling"><strong>Styling playground</strong><p>CSS variables, fonts and presets, with the CSS to copy.</p></a>
+    <a class="lab-card" href="/lab/issues"><strong>Known-issue repros</strong><p>Reproduce common tickets, then apply the fix live.</p></a>
+    <a class="lab-card" href="?debug"><strong>Debug overlay</strong><p>Add <code>?debug</code> to any page to see events and SDK status.</p></a>
+  </div>
+
+  <h2>Use it with your own sandbox</h2>
+  <p>
+    Open <button type="button" class="link-btn" data-open-settings>Settings</button> and enter your channel and
+    playlist IDs. They are saved in your browser only, so teammates can share one deployment.
+  </p>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>URL parameter</th><th>What it does</th></tr></thead>
+      <tbody>{params.map((p) => <tr><td><code>{p.param}</code></td><td>{p.what}</td></tr>)}</tbody>
+    </table>
+  </div>
+
+  <h2>One ID, everywhere</h2>
+  <p>
+    Most "videos don't show on the product page" and "purchases not attributed" tickets come down to mismatched IDs.
+    This catalog uses the same external IDs in every path:
+  </p>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Where</th><th>Field</th><th>Example</th></tr></thead>
+      <tbody>{ids.map((r) => <tr><td>{r.where}</td><td>{r.field}</td><td><code>{r.example}</code></td></tr>)}</tbody>
+    </table>
+  </div>
+
+  <h2>Coming in later phases</h2>
+  <ul>
+    <li>Week 2: livestream page with replay, Showroom with Copilot, AVA, accessibility audit, pitch mode.</li>
+    <li>Week 3: shopping lab (hydration, cart sync, custom CTA, failure toggles), tracking lab, repro sandbox, injection bookmarklet.</li>
+    <li>Week 4: localisation switch and a page-speed comparison with and without Firework.</li>
+  </ul>
+</Lab>

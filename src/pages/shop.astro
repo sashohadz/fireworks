@@ -1,0 +1,59 @@
+---
+import FwWidget from '../components/FwWidget.astro';
+import ProductCard from '../components/ProductCard.astro';
+import Base from '../layouts/Base.astro';
+import { products } from '../lib/catalog';
+
+const categories = [...new Set(products.map((p) => p.category))];
+---
+
+<Base title="Shop" description="All Fjordbloom products, with a shoppable video grid.">
+  <section class="section-tight">
+    <div class="container">
+      <p class="eyebrow">Shop</p>
+      <h1>Everything Fjordbloom</h1>
+      <p class="lede">Twelve products, including a few deliberate edge cases: a sale, a sold-out tool, a six-shade balm and a very long product name.</p>
+      <div class="chip-row filters" role="group" aria-label="Filter by category">
+        <button type="button" class="chip" aria-pressed="true" data-filter="all">All</button>
+        {categories.map((c) => <button type="button" class="chip" aria-pressed="false" data-filter={c}>{c}</button>)}
+      </div>
+      <div class="product-grid" id="product-grid">
+        {products.map((p) => <ProductCard product={p} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="grid-heading">
+    <div class="container">
+      <p class="eyebrow">Grid</p>
+      <h2 id="grid-heading">Shop by video</h2>
+      <FwWidget tag="fw-embed-feed" slot="grid" label="Grid" attrs={{ mode: 'grid', max_videos: 8 }} />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .filters {
+    margin: 24px 0 28px;
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('#product-grid .product-card');
+  const apply = (filter: string) => {
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+    cards.forEach((card) => {
+      card.hidden = filter !== 'all' && card.dataset.category !== filter;
+    });
+  };
+  buttons.forEach((b) =>
+    b.addEventListener('click', () => {
+      const filter = b.dataset.filter ?? 'all';
+      apply(filter);
+      history.replaceState(null, '', filter === 'all' ? location.pathname : `#${encodeURIComponent(filter)}`);
+    }),
+  );
+  const fromHash = decodeURIComponent(location.hash.slice(1));
+  if (fromHash && [...buttons].some((b) => b.dataset.filter === fromHash)) apply(fromHash);
+</script>

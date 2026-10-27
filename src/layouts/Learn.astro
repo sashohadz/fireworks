@@ -1,0 +1,24 @@
+---
+import Base from './Base.astro';
+
+interface Props {
+  frontmatter?: { title?: string; description?: string; updated?: string };
+  title?: string;
+  description?: string;
+}
+const fm = Astro.props.frontmatter ?? {};
+const title = fm.title ?? Astro.props.title ?? 'Learn';
+const description = fm.description ?? Astro.props.description;
+---
+
+<Base title={title} description={description}>
+  <div class="container section-tight">
+    <nav class="small muted" aria-label="Breadcrumb"><a href="/learn">Learn</a> / {title}</nav>
+    <article class="prose">
+      <h1>{title}</h1>
+      {description && <p class="lede">{description}</p>}
+      <slot />
+      {fm.updated && <p class="small muted">Last checked against the public docs: {fm.updated}.</p>}
+    </article>
+  </div>
+</Base>

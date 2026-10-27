@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Scan for secrets
+        run: npm run lint:secrets
+      - name: Validate catalog and video specs
+        run: npm run validate
+      - name: Type-check
+        run: npm run check
+      - name: Build
+        run: npm run build

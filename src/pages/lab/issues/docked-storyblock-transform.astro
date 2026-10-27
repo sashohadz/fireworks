@@ -1,0 +1,69 @@
+---
+import FwWidget from '../../../components/FwWidget.astro';
+import Lab from '../../../layouts/Lab.astro';
+---
+
+<Lab title="Docked Storyblock scrolls with the page" description="Repro: CSS transform on a parent breaks the docked Storyblock.">
+  <p class="eyebrow">Lab · repro</p>
+  <h1>Docked Storyblock scrolls with the page</h1>
+  <dl class="ticket">
+    <dt>Symptom</dt>
+    <dd>With <code>dock="true"</code>, the Storyblock should shrink into a fixed corner player when scrolled out of view. Instead the docked player scrolls away with the content.</dd>
+    <dt>Cause</dt>
+    <dd>An ancestor element has a CSS <code>transform</code> (sliders, animation libraries and <code>will-change</code> often add one). A transform creates a new containing block, so <code>position: fixed</code> stops being relative to the viewport.</dd>
+    <dt>Fix</dt>
+    <dd>Remove the transform from the ancestor, or add <code>reset_transform="always"</code> to the widget so Firework removes ancestor transforms while its player is floating or fullscreen.</dd>
+  </dl>
+
+  <div class="chip-row" role="group" aria-label="Repro state">
+    <button type="button" class="chip" aria-pressed="true" data-mode="broken">Broken: no reset_transform</button>
+    <button type="button" class="chip" aria-pressed="false" data-mode="fixed">Fixed: reset_transform="always"</button>
+  </div>
+  <p class="small muted">Play the video, then scroll down past it and watch where the docked player goes.</p>
+
+  <div class="repro-frame" style="transform: translateZ(0)">
+    <p class="small"><code>&lt;div style="transform: translateZ(0)"&gt;</code> wraps this Storyblock.</p>
+    <div id="repro-slot">
+      <FwWidget tag="fw-storyblock" slot="storyblock" label="Storyblock with dock" attrs={{ dock: 'true', height: '420px' }} />
+    </div>
+  </div>
+
+  <div class="filler" aria-hidden="true">
+    {Array.from({ length: 10 }, (_, i) => <p class="muted">Scroll content {i + 1}. Keep scrolling to see the docked player.</p>)}
+  </div>
+</Lab>
+
+<style>
+  .ticket {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 8px 16px;
+    margin: 20px 0 24px;
+  }
+  .ticket dt {
+    font-weight: 700;
+  }
+  .ticket dd {
+    margin: 0;
+  }
+  .filler p {
+    padding: 40px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-mode]');
+  function setMode(mode: string) {
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    const current = document.querySelector<HTMLElement>('#repro-slot fw-storyblock');
+    if (!current) return;
+    const next = document.createElement('fw-storyblock');
+    for (const { name, value } of [...current.attributes]) {
+      if (name !== 'reset_transform') next.setAttribute(name, value);
+    }
+    if (mode === 'fixed') next.setAttribute('reset_transform', 'always');
+    current.replaceWith(next);
+  }
+  buttons.forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode!)));
+</script>

@@ -1,0 +1,160 @@
+---
+import FwWidget from '../../components/FwWidget.astro';
+import SnippetPanel from '../../components/SnippetPanel.astro';
+import Lab from '../../layouts/Lab.astro';
+
+// CSS variables from https://docs.firework.com/firework-for-developers/web/integration-guide/styling
+const groups = [
+  { title: 'General', vars: ['--fw-font-family', '--fw-font-color', '--fw-title-color', '--fw-title-font-size', '--fw-title-font-weight', '--fw-primary-button-background', '--fw-primary-button-color'] },
+  { title: 'CTA button', vars: ['--fw-cta-button-background', '--fw-cta-button-color', '--fw-cta-button-border-radius', '--fw-cta-button-font-size', '--fw-cta-button-font-weight', '--fw-cta-button-height'] },
+  { title: 'Thumbnails', vars: ['--fw-thumbnail-border-radius', '--fw-thumbnail-width', '--fw-thumbnail-height', '--fw-thumbnail-aspect-ratio', '--fw-thumbnail-gap', '--fw-thumbnail-justify', '--fw-thumbnail-font-size', '--fw-thumbnail-font-weight'] },
+  { title: 'Storyblock', vars: ['--fw-storyblock-background', '--fw-storyblock-border-radius'] },
+  { title: 'Player', vars: ['--fw-player-background', '--fw-player-border-radius', '--fw-product-name-font-color', '--fw-product-image-background-color', '--fw-caption-background-color', '--fw-caption-color'] },
+  { title: 'Player Deck product card (global scope only)', vars: ['--fw-player-deck-product-card-font-color', '--fw-player-deck-product-card-font-size', '--fw-player-deck-product-card-font-weight', '--fw-player-deck-product-card-discount-price-font-color'] },
+];
+
+const presets = {
+  brand: {
+    label: 'Fjordbloom brand',
+    vars: {
+      '--fw-font-family': "'Inter Variable', system-ui, sans-serif",
+      '--fw-thumbnail-border-radius': '14px',
+      '--fw-cta-button-background': '#2F5D73',
+      '--fw-cta-button-color': '#FFFFFF',
+      '--fw-cta-button-border-radius': '999px',
+      '--fw-storyblock-border-radius': '14px',
+    },
+  },
+  editorial: {
+    label: 'Editorial serif, square corners',
+    vars: {
+      '--fw-font-family': "'Fraunces Variable', Georgia, serif",
+      '--fw-thumbnail-border-radius': '0',
+      '--fw-storyblock-border-radius': '0',
+      '--fw-player-border-radius': '0',
+      '--fw-cta-button-background': '#14212B',
+      '--fw-cta-button-border-radius': '0',
+      '--fw-thumbnail-gap': '2px',
+    },
+  },
+  playful: {
+    label: 'Playful, big thumbnails',
+    vars: {
+      '--fw-thumbnail-border-radius': '28px',
+      '--fw-thumbnail-width': '280px',
+      '--fw-thumbnail-height': '466px',
+      '--fw-thumbnail-gap': '18px',
+      '--fw-cta-button-background': '#E8913A',
+      '--fw-cta-button-border-radius': '16px',
+      '--fw-storyblock-border-radius': '28px',
+    },
+  },
+  docs: { label: 'Firework defaults (clear all)', vars: {} },
+};
+
+const data = JSON.stringify({ groups, presets }).replace(/</g, '\\u003c');
+---
+
+<Lab title="Styling playground" description="Firework CSS variables, live, with the CSS to copy.">
+  <p class="eyebrow">Lab · styling</p>
+  <h1>Styling playground</h1>
+  <p class="lede">
+    Change Firework's CSS variables and watch three widgets update. Use a preset to show a customer how far theming goes
+    without custom code.
+  </p>
+  <p class="note small">
+    Fonts, colours, radii and thumbnail sizes are documented CSS variables. Custom carousel arrow icons are not in the
+    styling docs, so check with the team how the weekly task expects them to be done.
+  </p>
+
+  <div class="chip-row" id="presets" role="group" aria-label="Presets">
+    {Object.entries(presets).map(([key, p]) => <button type="button" class="chip" data-preset={key}>{p.label}</button>)}
+  </div>
+
+  <div class="lab-grid" style="margin-top:20px">
+    <section aria-labelledby="styling-preview">
+      <h2 id="styling-preview">Preview</h2>
+      <div class="lab-stage">
+        <p class="eyebrow">Carousel</p>
+        <FwWidget tag="fw-embed-feed" slot="carousel" label="Carousel" attrs={{ mode: 'row' }} />
+        <p class="eyebrow" style="margin-top:24px">Player Deck</p>
+        <FwWidget tag="fw-player-deck" slot="deck" label="Player Deck" />
+        <p class="eyebrow" style="margin-top:24px">Storyblock</p>
+        <FwWidget tag="fw-storyblock" slot="storyblock" label="Storyblock" attrs={{ height: '480px' }} />
+      </div>
+      <h2>CSS to copy</h2>
+      <SnippetPanel id="styling-css" title="CSS" code="/* No overrides: Firework defaults plus this site's theme */" />
+    </section>
+    <aside class="lab-knobs panel" aria-labelledby="vars-heading">
+      <h2 id="vars-heading">CSS variables</h2>
+      <div id="styling-knobs"></div>
+    </aside>
+  </div>
+
+  <script type="application/json" id="styling-data" set:html={data}></script>
+</Lab>
+
+<script>
+  interface StylingData {
+    groups: { title: string; vars: string[] }[];
+    presets: Record<string, { label: string; vars: Record<string, string> }>;
+  }
+  const data = JSON.parse(document.getElementById('styling-data')!.textContent ?? '{}') as StylingData;
+  const knobs = document.getElementById('styling-knobs')!;
+  const output = document.getElementById('styling-css')!;
+  const values: Record<string, string> = {};
+  const allVars = data.groups.flatMap((g) => g.vars);
+
+  function apply() {
+    for (const name of allVars) {
+      const v = values[name]?.trim();
+      if (v) document.documentElement.style.setProperty(name, v);
+      else document.documentElement.style.removeProperty(name);
+    }
+    const set = Object.entries(values).filter(([, v]) => v.trim());
+    output.textContent = set.length
+      ? `:root {\n${set.map(([k, v]) => `  ${k}: ${v};`).join('\n')}\n}`
+      : "/* No overrides: Firework defaults plus this site's theme */";
+    knobs.querySelectorAll<HTMLInputElement>('input').forEach((input) => {
+      input.value = values[input.name] ?? '';
+      input.classList.toggle('is-set', input.value.trim() !== '');
+    });
+  }
+
+  for (const group of data.groups) {
+    const fieldset = document.createElement('fieldset');
+    fieldset.className = 'knob-group';
+    const legend = document.createElement('legend');
+    legend.textContent = group.title;
+    fieldset.appendChild(legend);
+    for (const name of group.vars) {
+      const wrap = document.createElement('div');
+      wrap.className = 'knob';
+      const label = document.createElement('label');
+      label.htmlFor = `var-${name}`;
+      label.textContent = name;
+      const input = document.createElement('input');
+      input.id = `var-${name}`;
+      input.name = name;
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+      input.placeholder = /color|background/.test(name) ? '#2F5D73' : /family/.test(name) ? 'Georgia, serif' : '12px';
+      input.addEventListener('input', () => {
+        values[name] = input.value;
+        apply();
+      });
+      wrap.append(label, input);
+      fieldset.appendChild(wrap);
+    }
+    knobs.appendChild(fieldset);
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      for (const k of Object.keys(values)) delete values[k];
+      Object.assign(values, data.presets[btn.dataset.preset!]?.vars ?? {});
+      apply();
+    }),
+  );
+  apply();
+</script>

@@ -1,0 +1,41 @@
+---
+import { brand } from '../lib/catalog';
+import { repoUrl } from '../site.config';
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <p class="logo-word">Fjordbloom</p>
+        <p class="muted">{brand.tagline} {brand.origin}.</p>
+        <p class="small muted">{brand.disclaimer}</p>
+      </div>
+      <div>
+        <p class="eyebrow">Store</p>
+        <ul>
+          <li><a href="/shop">Shop all</a></li>
+          <li><a href="/live">Live shopping</a></li>
+          <li><a href="/help">Help and FAQ</a></li>
+          <li><a href="/help/shipping-returns">Shipping and returns</a></li>
+          <li><a href="/help/ingredients">Ingredient glossary</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="eyebrow">Demo tools</p>
+        <ul>
+          <li><a href="/lab">Firework lab</a></li>
+          <li><a href="/learn">Learn Firework</a></li>
+          <li><a href="/feeds/google.xml">Google XML product feed</a></li>
+          <li><a href="/feeds/firework-products.csv">Firework CSV import</a></li>
+          <li><a href="/api/products.json">Mock commerce API</a></li>
+          <li><a href={repoUrl}>Source on GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="footer-fine">
+      Built for Firework training and troubleshooting. Product images and videos are AI-generated or illustrated.
+      Firework is a trademark of its owner; this is not an official Firework site.
+    </p>
+  </div>
+</footer>

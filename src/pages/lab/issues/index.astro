@@ -1,0 +1,41 @@
+---
+import Lab from '../../../layouts/Lab.astro';
+
+const issues = [
+  {
+    href: '/lab/issues/docked-storyblock-transform',
+    title: 'Docked Storyblock scrolls with the page',
+    summary: 'A CSS transform on a parent element breaks the docked player. Fixed with reset_transform="always".',
+  },
+  {
+    href: '/lab/issues/floating-player-mobile',
+    title: 'Floating player too big on mobile',
+    summary: 'Default size is tuned for IAB video ads. Shrink it with CSS variables in a media query.',
+  },
+];
+---
+
+<Lab title="Known-issue repros" description="Reproduce common Firework tickets and apply the fix live.">
+  <p class="eyebrow">Lab · repros</p>
+  <h1>Known-issue repros</h1>
+  <p class="lede">
+    Each page reproduces a common ticket on purpose, then lets you switch the fix on. Every page follows the same
+    format: symptom, cause, fix.
+  </p>
+  <div class="lab-cards">
+    {
+      issues.map((i) => (
+        <a class="lab-card" href={i.href}>
+          <strong>{i.title}</strong>
+          <p>{i.summary}</p>
+        </a>
+      ))
+    }
+  </div>
+  <h2>Adding a repro</h2>
+  <p>
+    Copy one of these pages, keep the symptom, cause and fix format, and link it from the component's
+    <code>knownIssues</code> entry in <code>src/lab/registry.ts</code>. Never name a customer in a repro: the repo is
+    public.
+  </p>
+</Lab>

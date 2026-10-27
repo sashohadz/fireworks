@@ -1,0 +1,71 @@
+---
+import FwWidget from '../../../components/FwWidget.astro';
+import SnippetPanel from '../../../components/SnippetPanel.astro';
+import Lab from '../../../layouts/Lab.astro';
+
+const fixCss = `@media (max-width: 640px) {
+  :root {
+    --fw-player-width: 90px;
+    --fw-player-height: 160px;
+    --fw-player-margin: 8px;
+  }
+}`;
+---
+
+<Lab title="Floating player too big on mobile" description="Repro: default floating player size on phones.">
+  <p class="eyebrow">Lab · repro</p>
+  <h1>Floating player too big on mobile</h1>
+  <dl class="ticket">
+    <dt>Symptom</dt>
+    <dd>On phones the pinned floating player covers buttons or text the shopper needs.</dd>
+    <dt>Cause</dt>
+    <dd>The default minimised size (180×320, or 108×192 on small screens) is chosen so IAB video ads fit. Sites with sticky footers or chat buttons feel it most.</dd>
+    <dt>Fix</dt>
+    <dd>Set <code>--fw-player-width</code> and <code>--fw-player-height</code> in a media query, and move it with <code>player_placement</code> or <code>--fw-player-margin</code>. Tell the customer that smaller sizes can break video ads.</dd>
+  </dl>
+
+  <div class="chip-row" role="group" aria-label="Repro state">
+    <button type="button" class="chip" aria-pressed="true" data-size="default">Default size</button>
+    <button type="button" class="chip" aria-pressed="false" data-size="small">Custom small size on phones</button>
+  </div>
+  <p class="small muted">Use the browser's device toolbar at phone width to compare. The player is pinned bottom-right.</p>
+
+  <FwWidget tag="fw-player" slot="floating" label="Floating player (pinned)" attrs={{ mode: 'pinned', player_placement: 'bottom-right' }} />
+
+  <h2>The fix as CSS</h2>
+  <SnippetPanel id="fix-css" title="CSS" code={fixCss} />
+  <style id="repro-fix-style" is:inline media="not all">
+    @media (max-width: 640px) {
+      :root {
+        --fw-player-width: 90px;
+        --fw-player-height: 160px;
+        --fw-player-margin: 8px;
+      }
+    }
+  </style>
+</Lab>
+
+<style>
+  .ticket {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 8px 16px;
+    margin: 20px 0 24px;
+  }
+  .ticket dt {
+    font-weight: 700;
+  }
+  .ticket dd {
+    margin: 0;
+  }
+</style>
+
+<script>
+  const style = document.getElementById('repro-fix-style') as HTMLStyleElement;
+  document.querySelectorAll<HTMLButtonElement>('[data-size]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-size]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      style.media = btn.dataset.size === 'small' ? 'all' : 'not all';
+    }),
+  );
+</script>

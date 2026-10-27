@@ -1,0 +1,57 @@
+---
+import { playlistSlots } from '../site.config';
+---
+
+<dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+  <form method="dialog">
+    <div class="dialog-body">
+      <h2 id="settings-title">Demo settings</h2>
+      <p class="muted small">
+        Point this site at any Firework channel without editing code. Settings are saved in this browser only.
+        URL parameters such as <code>?channel=</code> win over saved settings for one page view.
+      </p>
+      <div class="field">
+        <label for="set-channel">Channel name</label>
+        <input id="set-channel" name="channel" autocomplete="off" spellcheck="false" />
+        <span class="hint">Leave empty to use the sandbox channel from src/site.config.ts.</span>
+      </div>
+      <p class="eyebrow">Playlist per slot</p>
+      <div class="settings-grid">
+        {
+          playlistSlots.map(({ slot, label, usedOn }) => (
+            <div class="field">
+              <label for={`set-pl-${slot}`}>{label}</label>
+              <input id={`set-pl-${slot}`} name={`pl-${slot}`} autocomplete="off" spellcheck="false" />
+              <span class="hint">{usedOn}</span>
+            </div>
+          ))
+        }
+      </div>
+      <div class="settings-grid">
+        <div class="field">
+          <label for="set-fw-mode">Firework SDK</label>
+          <select id="set-fw-mode" name="fwMode">
+            <option value="on">Load normally (fwn.js)</option>
+            <option value="lazy">Lazy (fwn-async.js)</option>
+            <option value="off">Off (baseline for page speed)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="set-debug">
+            <input id="set-debug" name="debug" type="checkbox" /> Show the debug overlay on every page
+          </label>
+          <span class="hint">Or add <code>?debug</code> to any URL.</span>
+        </div>
+      </div>
+      <p class="note note-info small">
+        Viewing a customer's channel? Purchase tracking switches off automatically, so test orders never reach their
+        analytics. Keep customer channel names out of this public repo.
+      </p>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost btn-small" value="reset">Reset to defaults</button>
+      <button class="btn btn-ghost btn-small" value="cancel">Cancel</button>
+      <button class="btn btn-small" value="save">Save and reload</button>
+    </div>
+  </form>
+</dialog>

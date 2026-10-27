@@ -1,0 +1,36 @@
+---
+import Learn from '../../layouts/Learn.astro';
+
+const pages = Object.values(
+  import.meta.glob<{ frontmatter: { title: string; description: string; order?: number }; url: string }>('./*.md', { eager: true }),
+).sort((a, b) => (a.frontmatter.order ?? 99) - (b.frontmatter.order ?? 99));
+---
+
+<Learn title="Learn Firework" description="Short, public-safe notes on Firework's products and integrations, written while onboarding. Each page links to the lab where you can try it.">
+  <ul class="learn-list">
+    {
+      pages.map((p) => (
+        <li>
+          <a href={p.url}>{p.frontmatter.title}</a>
+          <span class="muted"> · {p.frontmatter.description}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <h2>About this demo</h2>
+  <p>
+    Fjordbloom is a fictional Nordic skincare brand. The site exists to learn Firework, reproduce customer issues, and
+    run demos and mock pitches. Product images and videos are AI-generated or illustrated, and nothing is for sale.
+  </p>
+  <p>
+    Everything here is built from Firework's public documentation. Internal processes, customer names and credentials
+    never go into this repository.
+  </p>
+</Learn>
+
+<style>
+  .learn-list li {
+    margin-bottom: 10px;
+  }
+</style>

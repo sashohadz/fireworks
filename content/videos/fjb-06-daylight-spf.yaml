@@ -1,0 +1,28 @@
+id: fjb-06-daylight-spf
+title: Daylight Mineral Fluid SPF 50
+description: A weightless mineral sunscreen with a sheer tint and no white cast.
+kind: short
+purpose: Product short for SPF. Carousel, grid and product page; last step in the routine.
+products: [FJB-107]
+hashtags: [spf, suncare]
+playlists: [carousel, grid, deck]
+voiceover:
+  en: The last step, every morning. Mineral SPF fifty with a sheer tint, so there is no white cast.
+scenes:
+  - type: clip
+    product: FJB-107
+    image: lifestyle-1
+    keyframe: The sand-coloured tube standing on a sunlit granite rock by a calm Nordic sea, bright midday light and soft shadows.
+    motion: Slow pull-back from the tube to reveal sparkling water behind it.
+    seconds: 5
+    caption: SPF 50, no white cast
+  - type: clip
+    product: FJB-107
+    image: packshot
+    keyframe: A single smooth stroke of sheer peach-tinted fluid on a pale ceramic tile beside the tube, soft sunlight.
+    motion: Sunlight slowly sweeps across the glossy stroke of fluid.
+    seconds: 5
+    caption: Last step, every morning
+  - type: price
+    product: FJB-107
+    seconds: 3

@@ -1,0 +1,99 @@
+---
+import FwWidget from '../../components/FwWidget.astro';
+import Base from '../../layouts/Base.astro';
+import { products } from '../../lib/catalog';
+
+const storeFaqs = [
+  { q: 'Where do you ship?', a: 'We ship to every EU country, Norway, Switzerland and the UK. Orders leave our Copenhagen warehouse within 1 to 2 working days.' },
+  { q: 'How much is shipping?', a: 'Shipping is free on orders from €50. Below that, standard shipping costs €4.90.' },
+  { q: 'Can I return a product?', a: 'Yes. Unopened products can be returned within 30 days. Opened products can be returned within 14 days if they did not suit your skin.' },
+  { q: 'Are your products vegan?', a: 'Yes. Every Fjordbloom product is vegan and cruelty-free. Our lip balm uses candelilla wax instead of beeswax.' },
+  { q: 'Which products suit sensitive skin?', a: 'Start with Cloud Milk Cleanser, Arctic Barrier Day Cream and Daylight Mineral Fluid SPF 50. All three are fragrance-free.' },
+  { q: 'What is the right order for a routine?', a: 'Morning: cleanser, toner, serum, day cream, then SPF. Evening: cleanser, toner, serum, then night cream.' },
+  { q: 'Can I combine vitamin C with niacinamide?', a: 'Yes. Apply Birch Sap Hydra Serum first, wait a minute, then Cloudberry Vitamin C Glow Serum.' },
+  { q: 'Do you offer samples?', a: 'The Discovery Set contains four minis and is the best way to try the full ritual.' },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: storeFaqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+
+<Base title="Help and FAQ" description="Answers about shipping, returns, routines and ingredients." jsonLd={jsonLd}>
+  <section class="section-tight">
+    <div class="container help">
+      <p class="eyebrow">Help</p>
+      <h1>How can we help?</h1>
+      <p class="lede">
+        These pages double as training material for AVA, Firework's AI shopping assistant, alongside the FAQs on every
+        product page.
+      </p>
+      <nav class="chip-row" aria-label="Help topics">
+        <a class="chip" href="/help/shipping-returns">Shipping and returns</a>
+        <a class="chip" href="/help/ingredients">Ingredient glossary</a>
+        <a class="chip" href="#product-faqs">Product questions</a>
+      </nav>
+
+      <h2>Frequently asked questions</h2>
+      <div class="accordion">
+        {
+          storeFaqs.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <div>
+                <p>{f.a}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+
+      <h2>Ask AVA</h2>
+      <div class="fw-placeholder">
+        <p class="fw-placeholder-title">AVA, the AI shopping assistant (Week 2)</p>
+        <p>
+          AVA is set up in Business Portal and trained on the catalog plus these help pages. Its embed code goes into
+          <code>src/site.config.ts</code> during the Week 2 AVA session.
+        </p>
+      </div>
+
+      <h2>How-to videos</h2>
+      <FwWidget tag="fw-embed-feed" slot="howto" label="How-to videos" attrs={{ mode: 'row' }} />
+
+      <h2 id="product-faqs">Product questions</h2>
+      <ul class="product-faq-links">
+        {
+          products.map((p) => (
+            <li>
+              <a href={`/products/${p.handle}#faq-heading`}>{p.shortName}</a>
+              <span class="muted small"> · {p.faqs.length} answers</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .help {
+    max-width: 900px;
+  }
+  .help h2 {
+    margin-top: 48px;
+  }
+  .help nav {
+    margin: 20px 0 8px;
+  }
+  .product-faq-links {
+    columns: 2;
+    padding-left: 1.1em;
+  }
+  @media (max-width: 640px) {
+    .product-faq-links {
+      columns: 1;
+    }
+  }
+</style>

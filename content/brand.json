@@ -1,0 +1,19 @@
+{
+  "name": "Fjordbloom",
+  "tagline": "Nordic botanicals, gentle by design.",
+  "origin": "Copenhagen, Denmark",
+  "currency": "EUR",
+  "locales": ["en", "de", "fr"],
+  "palette": {
+    "ink": "#14212B",
+    "paper": "#F7F5F0",
+    "mist": "#E6EBE8",
+    "fjord": "#2F5D73",
+    "cloudberry": "#E8913A",
+    "heather": "#8C6D8F",
+    "moss": "#5B6B4F"
+  },
+  "voice": "Calm, precise and quietly confident. Short sentences. Sensory but never exaggerated. No medical claims.",
+  "visualStyle": "Scandinavian minimal product photography: soft natural daylight, pale birch wood, frosted glass, wet stone and sea mist, a muted palette with cloudberry-orange accents, generous negative space, photorealistic.",
+  "disclaimer": "Fjordbloom is a fictional brand created for Firework product demos. Nothing on this site is for sale and no orders are fulfilled."
+}

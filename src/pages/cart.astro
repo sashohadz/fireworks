@@ -1,0 +1,120 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Your bag">
+  <section class="section-tight">
+    <div class="container cart-page">
+      <h1>Your bag</h1>
+      <div id="cart-root" aria-live="polite"><p class="muted">Loading your bag…</p></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .cart-page {
+    max-width: 900px;
+  }
+  :global(.cart-line) {
+    display: grid;
+    grid-template-columns: 88px 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  :global(.cart-line img) {
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+  :global(.qty) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  :global(.qty button) {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    cursor: pointer;
+    font: inherit;
+  }
+  :global(.cart-totals) {
+    margin-left: auto;
+    max-width: 360px;
+    padding-top: 20px;
+  }
+  :global(.cart-totals div) {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  :global(.cart-totals .grand) {
+    font-weight: 700;
+    font-size: 1.15rem;
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+  }
+</style>
+
+<script>
+  import { getCart, onCartChange, setQuantity } from '../scripts/cart';
+  import { FREE_SHIPPING_FROM, priceCart } from '../scripts/order';
+  import { fetchProducts, formatEur } from '../scripts/products-client';
+
+  const root = document.getElementById('cart-root')!;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  async function render() {
+    const lines = getCart();
+    if (lines.length === 0) {
+      root.innerHTML = '<p>Your bag is empty.</p><p><a class="btn" href="/shop">Browse products</a></p>';
+      return;
+    }
+    const [products, totals] = await Promise.all([fetchProducts(), priceCart(lines)]);
+    const rows = totals.lines
+      .map((l) => {
+        const product = products.find((p) => p.id === l.productId)!;
+        const unit = product.units.find((u) => u.id === l.unitId)!;
+        return `<div class="cart-line">
+          <img src="${esc(new URL(unit.image).pathname)}" alt="" width="88" height="88">
+          <div>
+            <a href="${esc(new URL(unit.url).pathname + new URL(unit.url).search)}"><strong>${esc(product.name)}</strong></a>
+            <div class="small muted">${esc(unit.name)} · ${esc(unit.id)}${unit.available ? '' : ' · <strong>sold out</strong>'}</div>
+            <div class="qty" role="group" aria-label="Quantity for ${esc(product.name)}">
+              <button type="button" data-unit="${esc(l.unitId)}" data-delta="-1" aria-label="Decrease">−</button>
+              <span>${l.quantity}</span>
+              <button type="button" data-unit="${esc(l.unitId)}" data-delta="1" aria-label="Increase">+</button>
+              <button type="button" data-unit="${esc(l.unitId)}" data-remove aria-label="Remove">×</button>
+            </div>
+          </div>
+          <div class="price">${formatEur(l.price * l.quantity)}</div>
+        </div>`;
+      })
+      .join('');
+    root.innerHTML = `${rows}
+      <div class="cart-totals">
+        <div><span>Subtotal</span><span>${formatEur(totals.subtotal)}</span></div>
+        <div><span>Shipping</span><span>${totals.shipping === 0 ? 'Free' : formatEur(totals.shipping)}</span></div>
+        <div class="grand"><span>Total</span><span>${formatEur(totals.total)}</span></div>
+        <p class="small muted">Free shipping from ${formatEur(FREE_SHIPPING_FROM)}. Demo store: no payment is taken.</p>
+        <a class="btn" href="/checkout" style="width:100%">Checkout</a>
+      </div>`;
+  }
+
+  root.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-unit]');
+    if (!btn) return;
+    const unitId = btn.dataset.unit!;
+    const line = getCart().find((l) => l.unitId === unitId);
+    if (!line) return;
+    if (btn.dataset.remove !== undefined) setQuantity(unitId, 0);
+    else setQuantity(unitId, Math.max(0, line.quantity + Number(btn.dataset.delta)));
+  });
+
+  onCartChange(() => void render());
+  void render();
+</script>

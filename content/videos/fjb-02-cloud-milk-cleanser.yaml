@@ -1,0 +1,29 @@
+id: fjb-02-cloud-milk-cleanser
+title: Cloud Milk Cleanser
+description: A cushiony milk cleanser that lifts sunscreen and city grime without the tight feeling.
+kind: short
+purpose: Product short for the cleanser. Carousel, grid and product page; first step in the routine.
+products: [FJB-101]
+hashtags: [cleanser, sensitiveskin]
+playlists: [carousel, grid, deck]
+voiceover:
+  en: Step one, cleanse. Cloud Milk lifts sunscreen and city grime, and leaves skin soft, never tight.
+scenes:
+  - type: clip
+    product: FJB-101
+    image: lifestyle-1
+    keyframe: The milky-white pump bottle on a pale stone bathroom shelf with soft steam rising behind it, gentle morning light.
+    motion: Gentle sideways dolly past the bottle as wisps of steam drift upwards.
+    seconds: 5
+    caption: Lifts SPF and city grime
+  - type: clip
+    product: FJB-101
+    image: packshot
+    keyframe: Close-up of a swirl of silky white cleansing milk on a pale ceramic dish next to the pump bottle.
+    motion: The milky texture slowly swirls and folds in on itself in soft light.
+    seconds: 5
+    caption: Soft, never tight
+  - type: price
+    product: FJB-101
+    unit: FJB-101-150ML
+    seconds: 3

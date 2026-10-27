@@ -1,0 +1,55 @@
+{
+  "name": "fjordbloom-firework-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fjordbloom: a fictional skincare store and lab for learning, demoing and troubleshooting Firework shoppable video, livestream and AVA integrations.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "validate": "tsx scripts/validate-content.ts",
+    "lint:secrets": "secretlint --maskSecrets \"**/*\"",
+    "gen:placeholders": "tsx scripts/gen/placeholders.ts",
+    "gen:images": "tsx scripts/gen/images.ts",
+    "gen:clips": "tsx scripts/gen/clips.ts",
+    "gen:voice": "tsx scripts/gen/voice.ts",
+    "gen:compose": "tsx scripts/gen/compose.ts",
+    "gen:live-show": "tsx scripts/gen/live-show.ts",
+    "fw:checklist": "tsx scripts/firework/checklist.ts",
+    "test:smoke": "playwright test",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "node scripts/hooks/pre-commit.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "astro": "^7.4.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@fal-ai/client": "^1.10.1",
+    "@playwright/test": "^1.64.1",
+    "@secretlint/secretlint-rule-preset-recommend": "^13.1.0",
+    "@types/node": "^26.6.5",
+    "secretlint": "^13.1.0",
+    "sharp": "^0.35.5",
+    "simple-git-hooks": "^2.14.0",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "yaml": "^2.9.1"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true,
+    "simple-git-hooks@2.14.0": true
+  }
+}

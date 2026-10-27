@@ -1,0 +1,4 @@
+# Demo store. Pages also send X-Robots-Tag: noindex so they stay out of search results.
+# Crawling stays allowed so Firework services (feed import, AVA product-page crawling) can read the site.
+User-agent: *
+Allow: /

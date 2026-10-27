@@ -1,0 +1,277 @@
+/* Lab pages: tools for learning and reproducing Firework integrations. */
+.lab-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 36px;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+.lab-nav {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  font-size: 0.92rem;
+}
+
+.lab-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+}
+
+.lab-nav li a {
+  display: block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.lab-nav li a[aria-current='page'] {
+  background: var(--ink);
+  color: #fff;
+}
+
+.lab-nav li a:hover:not([aria-current='page']) {
+  background: var(--mist);
+}
+
+.lab-nav-title {
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 6px;
+}
+
+.lab-content h2 {
+  margin-top: 32px;
+  font-size: 1.35rem;
+}
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.lab-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.lab-toolbar h2 {
+  margin: 0;
+}
+
+.lab-toolbar > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lab-stage {
+  margin-top: 14px;
+  min-height: 220px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.lab-knobs {
+  position: sticky;
+  top: 88px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+}
+
+.lab-knobs h2 {
+  margin-top: 0;
+}
+
+.knob-group {
+  border: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.knob-group legend {
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+
+.knob {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.knob label {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.knob input,
+.knob select {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  width: 100%;
+}
+
+.knob input.is-set,
+.knob select.is-set {
+  border-color: var(--fjord);
+  background: #fff;
+}
+
+.knob .hint {
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+  line-height: 1.4;
+}
+
+.lab-events {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  max-height: 340px;
+  overflow-y: auto;
+  border-radius: var(--radius-sm);
+  background: #101b23;
+  color: #e6edf1;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.lab-events li {
+  padding: 6px 10px;
+  border-bottom: 1px solid #1d2a33;
+}
+
+.lab-events .t {
+  color: #7f939f;
+  margin-right: 6px;
+}
+
+.lab-events .type {
+  color: #ffd29a;
+}
+
+.lab-events .target {
+  color: #9cc6dc;
+  margin-left: 6px;
+}
+
+.lab-events details summary {
+  cursor: pointer;
+  color: #7f939f;
+}
+
+.lab-events pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 4px 0 0;
+}
+
+.lab-events .empty {
+  color: #7f939f;
+}
+
+.lab-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.lab-card {
+  display: block;
+  padding: 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.lab-card:hover {
+  border-color: var(--ink-faint);
+}
+
+.lab-card code {
+  font-size: 0.8rem;
+}
+
+.lab-card p {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.issue-list li {
+  margin-bottom: 12px;
+}
+
+.repro-frame {
+  border: 2px dashed var(--cloudberry);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.lab-nav,
+.lab-content,
+.lab-grid > * {
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .lab-layout,
+  .lab-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lab-nav,
+  .lab-knobs {
+    position: static;
+    max-height: none;
+  }
+
+  /* On phones the lab menu becomes rows of scrollable chips instead of a long list. */
+  .lab-layout {
+    gap: 12px;
+  }
+
+  .lab-nav-title {
+    display: none;
+  }
+
+  .lab-nav ul {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+
+  .lab-nav li a {
+    white-space: nowrap;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 12px;
+  }
+}

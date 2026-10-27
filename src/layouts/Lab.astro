@@ -1,0 +1,51 @@
+---
+import '../styles/lab.css';
+import { labComponents } from '../lab/registry';
+import Base from './Base.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const current = (href: string) => (path === href ? 'page' : undefined);
+
+const tools = [
+  { href: '/lab', label: 'Lab overview' },
+  { href: '/lab/styling', label: 'Styling playground' },
+  { href: '/lab/issues', label: 'Known-issue repros' },
+];
+---
+
+<Base title={`${title} · Lab`} description={description} eventTap>
+  <div class="container lab-layout">
+    <nav class="lab-nav" aria-label="Lab">
+      <p class="lab-nav-title">Tools</p>
+      <ul>
+        {tools.map((t) => <li><a href={t.href} aria-current={current(t.href)}>{t.label}</a></li>)}
+      </ul>
+      <p class="lab-nav-title">Components</p>
+      <ul>
+        {
+          labComponents.map((c) => (
+            <li>
+              <a href={`/lab/${c.slug}`} aria-current={current(`/lab/${c.slug}`)}>
+                {c.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="lab-nav-title">Data</p>
+      <ul>
+        <li><a href="/feeds/google.xml">Google XML feed</a></li>
+        <li><a href="/feeds/firework-products.csv">Firework CSV</a></li>
+        <li><a href="/api/products.json">Mock commerce API</a></li>
+      </ul>
+    </nav>
+    <div class="lab-content">
+      <slot />
+    </div>
+  </div>
+</Base>

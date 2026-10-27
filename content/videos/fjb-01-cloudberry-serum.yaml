@@ -1,0 +1,29 @@
+id: fjb-01-cloudberry-serum
+title: Cloudberry Vitamin C Glow Serum
+description: Our hero serum. 15% stable vitamin C and Arctic cloudberry for a brighter look in two weeks.
+kind: short
+purpose: Hero product short. Home carousel and Storyblock, shop grid, and the serum's product page.
+products: [FJB-103]
+hashtags: [vitaminc, serum, glow]
+playlists: [carousel, storyblock, grid, deck]
+voiceover:
+  en: Meet our hero serum. Fifteen percent stable vitamin C and Arctic cloudberry, for a brighter look in just two weeks.
+scenes:
+  - type: clip
+    product: FJB-103
+    image: lifestyle-1
+    keyframe: The amber dropper bottle stands on pale birch wood beside a few golden cloudberries, soft morning window light, shallow depth of field.
+    motion: Slow push-in towards the bottle while soft morning light moves across the amber glass.
+    seconds: 5
+    caption: 15% stable vitamin C
+  - type: clip
+    product: FJB-103
+    image: packshot
+    keyframe: Macro close-up of the glass dropper held above the open amber bottle, a single golden serum droplet forming at the tip, dark fjord-blue background.
+    motion: The golden droplet slowly falls and catches the light while the camera stays steady.
+    seconds: 5
+    caption: Brighter-looking skin in two weeks
+  - type: price
+    product: FJB-103
+    unit: FJB-103-30ML
+    seconds: 3

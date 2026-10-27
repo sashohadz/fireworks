@@ -1,0 +1,73 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Order confirmed">
+  <section class="section-tight">
+    <div class="container confirm">
+      <p class="eyebrow">Thank you</p>
+      <h1>Your demo order is confirmed</h1>
+      <div id="order-root"><p class="muted">Loading order…</p></div>
+
+      <h2>Firework purchase event</h2>
+      <p class="muted">
+        On a real store this page tells Firework about the purchase so Insights can attribute revenue to videos. The
+        payload below uses the unit external IDs from the catalog as <code>sku</code>.
+      </p>
+      <div id="track-status" class="note" aria-live="polite">Waiting for the order…</div>
+      <div class="snippet" style="margin-top:16px">
+        <div class="snippet-head">
+          <span>window._fwn.analytics.purchase(payload)</span>
+          <button type="button" data-copy-target="purchase-payload">Copy</button>
+        </div>
+        <pre><code id="purchase-payload">{}</code></pre>
+      </div>
+      <p class="small muted">
+        Docs: <a href="https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2/tracking/purchase">Purchase tracking</a>.
+        Check the browser's network tab for the <code>user:purchase</code> request.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .confirm {
+    max-width: 860px;
+  }
+</style>
+
+<script>
+  import { markTracked, readLastOrder } from '../../scripts/order';
+  import { formatEur } from '../../scripts/products-client';
+  import { effectiveSettings } from '../../scripts/settings';
+  import { purchasePayload, trackPurchase } from '../../scripts/tracking';
+
+  const root = document.getElementById('order-root')!;
+  const status = document.getElementById('track-status')!;
+  const payloadEl = document.getElementById('purchase-payload')!;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  async function main() {
+    const last = readLastOrder();
+    if (!last) {
+      root.innerHTML = '<p>No recent demo order in this tab. <a href="/shop">Start shopping</a>.</p>';
+      status.textContent = 'No order, so no purchase event.';
+      return;
+    }
+    const { order } = last;
+    root.innerHTML = `<p>Order <strong>${esc(order.id)}</strong> · total <strong>${formatEur(order.total)}</strong></p>
+      <ul>${order.lines.map((l) => `<li>${l.quantity} × ${esc(l.name)} (${esc(l.unitName)}) · <code>${esc(l.unitId)}</code></li>`).join('')}</ul>`;
+    payloadEl.textContent = JSON.stringify(purchasePayload(order), null, 2);
+
+    if (last.tracked) {
+      status.textContent = 'The purchase event for this order was already sent. Reloading does not send it twice.';
+      return;
+    }
+    status.textContent = 'Sending purchase event…';
+    const result = await trackPurchase(order, effectiveSettings());
+    if (result.status === 'sent') markTracked();
+    status.textContent = `${result.status === 'sent' ? 'Sent' : result.status === 'skipped' ? 'Not sent' : 'Could not send'}: ${result.reason}.`;
+  }
+
+  void main();
+</script>

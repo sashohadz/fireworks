@@ -1,0 +1,28 @@
+id: fjb-03-glacier-toner
+title: Glacier Water Essence Toner
+description: A watery essence with three weights of hyaluronic acid that preps skin for serum.
+kind: short
+purpose: Product short for the toner. Carousel, grid and product page.
+products: [FJB-102]
+hashtags: [toner, hydration]
+playlists: [carousel, grid, deck]
+voiceover:
+  en: Glacier Water floods skin with hydration. Three weights of hyaluronic acid, pressed in with your palms.
+scenes:
+  - type: clip
+    product: FJB-102
+    image: lifestyle-2
+    keyframe: The ice-blue frosted bottle resting on a slab of clear glacier ice, cold mist drifting around it, pale blue light.
+    motion: Slow orbit around the bottle as cold mist rolls across the ice.
+    seconds: 5
+    caption: Three weights of hyaluronic acid
+  - type: clip
+    product: FJB-102
+    image: packshot
+    keyframe: Clear essence droplets splashing onto a still pool of water beside the ice-blue bottle, crisp backlight.
+    motion: Droplets land in slow motion and send gentle ripples across the water.
+    seconds: 5
+    caption: Press it in, don't swipe
+  - type: price
+    product: FJB-102
+    seconds: 3

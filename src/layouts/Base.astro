@@ -1,0 +1,57 @@
+---
+import '@fontsource-variable/fraunces';
+import '@fontsource-variable/inter';
+import '../styles/global.css';
+import DemoBanner from '../components/DemoBanner.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import SettingsDialog from '../components/SettingsDialog.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Lab pages record fw:* events from the first moment, before the SDK loads. */
+  eventTap?: boolean;
+  jsonLd?: unknown;
+  bodyClass?: string;
+}
+
+const {
+  title,
+  description = 'Fjordbloom is a fictional Nordic skincare store used to demo and troubleshoot Firework shoppable video.',
+  eventTap = false,
+  jsonLd,
+  bodyClass,
+} = Astro.props;
+const fullTitle = title === 'Fjordbloom' ? 'Fjordbloom · Firework demo store' : `${title} · Fjordbloom`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#F7F5F0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <slot name="head" />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  </head>
+  <body data-event-tap={eventTap ? 'on' : undefined} class={bodyClass}>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <DemoBanner />
+    <div id="override-banner" hidden></div>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <SettingsDialog />
+    <script>
+      import { boot } from '../scripts/boot';
+      boot();
+    </script>
+  </body>
+</html>

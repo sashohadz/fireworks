@@ -1,0 +1,68 @@
+---
+/**
+ * Renders one Firework web component exactly as a customer would paste it.
+ * With no channel configured, it renders a placeholder that src/scripts/firework-loader.ts
+ * turns into the real element once a channel is set in Settings or the URL.
+ */
+import { firework, type PlaylistSlot } from '../site.config';
+
+type FwTag = 'fw-embed-feed' | 'fw-storyblock' | 'fw-player-deck' | 'fw-herounit' | 'fw-player';
+
+interface Props {
+  tag: FwTag;
+  /** Which playlist from site.config.ts this widget uses. */
+  slot?: PlaylistSlot;
+  /** Set false for feeds that must not get a playlist, such as skus or hashtag feeds. */
+  usePlaylist?: boolean;
+  attrs?: Record<string, string | number | boolean | undefined>;
+  label?: string;
+  class?: string;
+  style?: string;
+}
+
+const { tag, slot, usePlaylist = true, attrs = {}, label, class: className, style } = Astro.props;
+
+const ownAttrs: Record<string, string> = {};
+for (const [name, value] of Object.entries(attrs)) {
+  if (value !== undefined && value !== '') ownAttrs[name] = String(value);
+}
+
+const channel = firework.channel;
+const playlist = usePlaylist && slot ? firework.playlists[slot] : '';
+const liveAttrs: Record<string, string> = {
+  ...(channel ? { channel } : {}),
+  ...(playlist ? { playlist } : {}),
+  ...ownAttrs,
+};
+const Tag = tag;
+---
+
+{
+  channel ? (
+    <Tag
+      data-fw-managed="true"
+      data-fw-slot={slot}
+      data-fw-use-playlist={usePlaylist ? undefined : 'false'}
+      class={className}
+      style={style}
+      {...liveAttrs}
+    ></Tag>
+  ) : (
+    <div
+      class:list={['fw-placeholder', className]}
+      style={style}
+      data-fw-managed="true"
+      data-fw-slot={slot}
+      data-fw-use-playlist={usePlaylist ? undefined : 'false'}
+      data-fw-tag={tag}
+      data-fw-attrs={JSON.stringify(ownAttrs)}
+    >
+      <p class="fw-placeholder-title">{label ?? tag}</p>
+      <p>
+        The Firework <code>&lt;{tag}&gt;</code> widget renders here once a channel is set.
+        Open <button type="button" class="link-btn" data-open-settings>Settings</button> or add
+        <code>?channel=your_channel</code> to the URL.
+      </p>
+    </div>
+  )
+}

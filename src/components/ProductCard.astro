@@ -1,0 +1,40 @@
+---
+import {
+  formatPrice,
+  hasPriceRange,
+  isOnSale,
+  isProductAvailable,
+  minPrice,
+  productImages,
+  productPath,
+  type Product,
+} from '../lib/catalog';
+
+interface Props {
+  product: Product;
+}
+const { product } = Astro.props;
+const image = productImages(product)[0];
+const sale = isOnSale(product);
+const available = isProductAvailable(product);
+const compare = product.units.find((u) => u.compareAtPrice)?.compareAtPrice;
+const lowStock = available && product.units.some((u) => u.stock > 0 && u.stock <= 5);
+---
+
+<a class="product-card" href={productPath(product)} data-category={product.category}>
+  <div class="product-card-media">
+    <img src={image} alt={product.name} width="600" height="600" loading="lazy" decoding="async" />
+    <div class="product-card-badges">
+      {sale && <span class="badge badge-sale">Sale</span>}
+      {!available && <span class="badge badge-out">Sold out</span>}
+      {lowStock && <span class="badge badge-low">Low stock</span>}
+    </div>
+  </div>
+  <span class="product-card-name">{product.name}</span>
+  <span class="product-card-meta">{product.category}{product.units.length > 1 ? ` · ${product.units.length} options` : ''}</span>
+  <span class="price">
+    {hasPriceRange(product) ? 'From ' : ''}
+    <span class:list={[sale && 'price-sale']}>{formatPrice(minPrice(product))}</span>
+    {compare && <span class="price-compare">{formatPrice(compare)}</span>}
+  </span>
+</a>

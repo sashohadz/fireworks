@@ -1,0 +1,164 @@
+---
+import FwWidget from '../components/FwWidget.astro';
+import ProductCard from '../components/ProductCard.astro';
+import Base from '../layouts/Base.astro';
+import { brand, getProduct, productImages, products } from '../lib/catalog';
+
+const featured = products.filter((p) => p.featured);
+const hero = getProduct('FJB-103')!;
+const heroImages = productImages(hero);
+const heroImage = heroImages[1] ?? heroImages[0];
+const ritual = ['FJB-101', 'FJB-103', 'FJB-107'].map((id) => getProduct(id)!);
+---
+
+<Base title="Fjordbloom">
+  <section class="home-hero">
+    <div class="container home-hero-inner">
+      <div>
+        <p class="eyebrow">Nordic skincare · {brand.origin}</p>
+        <h1>{brand.tagline}</h1>
+        <p class="lede">
+          Cloudberry, birch sap and sea kelp, made into a calm three-step ritual. Watch it, then shop it without
+          leaving the video.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="/shop">Shop the ritual</a>
+          <a class="btn btn-ghost" href="/live">Watch live shopping</a>
+        </div>
+      </div>
+      <img src={heroImage} alt={`${hero.name} on pale birch wood`} width="600" height="750" fetchpriority="high" />
+    </div>
+  </section>
+
+  <section class="section-tight" aria-labelledby="live-heading">
+    <div class="container">
+      <p class="eyebrow">Live from Copenhagen</p>
+      <h2 id="live-heading">Join the next live shopping show</h2>
+      <FwWidget tag="fw-herounit" slot="hero" label="Hero unit: livestream countdown, live or replay" attrs={{ height: '70vh' }} />
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ritual-heading">
+    <div class="container split">
+      <div>
+        <p class="eyebrow">Shoppable Storyblock</p>
+        <h2 id="ritual-heading">The three-step morning ritual</h2>
+        <p>Cleanse, brighten, protect. Tap a product in the video to add it to your bag without leaving the page.</p>
+        <ol class="ritual">
+          {
+            ritual.map((p) => (
+              <li>
+                <a href={`/products/${p.handle}`}>{p.shortName}</a>
+                <span class="muted small">{p.summary}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <FwWidget tag="fw-storyblock" slot="storyblock" label="Storyblock" attrs={{ height: '640px', name: 'home-storyblock' }} />
+    </div>
+  </section>
+
+  <section class="section-tight" aria-labelledby="best-heading">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Bestsellers</p>
+          <h2 id="best-heading">Loved across Europe</h2>
+        </div>
+        <a href="/shop">Shop all products</a>
+      </div>
+      <div class="product-grid">{featured.map((p) => <ProductCard product={p} />)}</div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="watch-heading">
+    <div class="container">
+      <p class="eyebrow">Carousel</p>
+      <h2 id="watch-heading">Watch and shop</h2>
+      <FwWidget tag="fw-embed-feed" slot="carousel" label="Carousel" attrs={{ mode: 'row', open_in: 'default', placement: 'middle' }} />
+    </div>
+  </section>
+
+  <section class="section-tight values" aria-label="Brand values">
+    <div class="container values-grid">
+      <div><h3>Gentle by design</h3><p class="muted">Every formula is fragrance-conscious and pH-balanced.</p></div>
+      <div><h3>Nordic botanicals</h3><p class="muted">Cloudberry, lingonberry, birch sap and sea kelp.</p></div>
+      <div><h3>Vegan and cruelty-free</h3><p class="muted">No animal ingredients, no animal testing.</p></div>
+    </div>
+  </section>
+
+  <section class="section-tight" aria-labelledby="floating-heading">
+    <div class="container">
+      <p class="eyebrow">Floating player</p>
+      <h2 id="floating-heading" class="visually-hidden">Floating player</h2>
+      <p class="muted small">
+        The floating player starts pinned in the bottom-right corner. Its placeholder shows here until a channel is set.
+      </p>
+      <FwWidget tag="fw-player" slot="floating" label="Floating player (pinned)" attrs={{ mode: 'pinned', player_placement: 'bottom-right' }} />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .home-hero {
+    padding: clamp(32px, 6vw, 72px) 0;
+    background: linear-gradient(180deg, var(--mist), var(--paper));
+  }
+  .home-hero-inner {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(24px, 5vw, 64px);
+    align-items: center;
+  }
+  .home-hero-inner img {
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(24px, 5vw, 64px);
+    align-items: center;
+  }
+  .ritual {
+    padding-left: 1.2em;
+  }
+  .ritual li {
+    margin-bottom: 10px;
+  }
+  .ritual a {
+    font-weight: 600;
+    display: block;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .values {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 820px) {
+    .home-hero-inner,
+    .split,
+    .values-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

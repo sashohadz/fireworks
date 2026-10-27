@@ -1,0 +1,32 @@
+id: fjb-09-brand-hero
+title: Fjordbloom. Nordic botanicals, gentle by design.
+description: The brand film. Cleanser, vitamin C serum and SPF in a calm Nordic morning.
+kind: hero
+purpose: Brand video for the Hero unit and home page; the opener in pitches.
+products: [FJB-103, FJB-101, FJB-107]
+hashtags: [brand]
+playlists: [hero, storyblock, floating]
+model: kling
+voiceover:
+  en: Fjordbloom. Nordic botanicals, gentle by design. Cloudberry, birch sap and sea kelp, made into a calm morning ritual.
+scenes:
+  - type: title
+    text: Fjordbloom
+    subtext: Nordic botanicals, gentle by design.
+    seconds: 3
+  - type: clip
+    product: FJB-103
+    image: lifestyle-1
+    keyframe: The amber serum bottle on a weathered wooden jetty above a still fjord at sunrise, mountains softly reflected in the water.
+    motion: Slow aerial-style drift from the fjord towards the bottle on the jetty as morning mist lifts.
+    seconds: 5
+  - type: clip
+    product: FJB-101
+    image: packshot
+    keyframe: Three skincare products, the milky-white pump bottle in front, arranged on a pale birch tray by a bright window with sheer curtains moving.
+    motion: Gentle dolly along the birch tray as the curtains sway in a soft breeze.
+    seconds: 5
+  - type: title
+    text: Shop the ritual
+    subtext: Tap any product to add it to your bag.
+    seconds: 3

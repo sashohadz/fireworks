@@ -1,0 +1,375 @@
+---
+import FwWidget from '../../components/FwWidget.astro';
+import Base from '../../layouts/Base.astro';
+import {
+  absoluteUrl,
+  brand,
+  defaultUnit,
+  formatPrice,
+  productImages,
+  productPath,
+  products,
+  unitImage,
+  type Product,
+} from '../../lib/catalog';
+
+export function getStaticPaths() {
+  return products.map((product) => ({ params: { handle: product.handle }, props: { product } }));
+}
+
+interface Props {
+  product: Product;
+}
+const { product } = Astro.props;
+const images = productImages(product);
+const unit = defaultUnit(product);
+const site = Astro.site;
+const units = product.units.map((u) => ({
+  id: u.id,
+  name: u.name,
+  price: u.price,
+  compareAtPrice: u.compareAtPrice ?? null,
+  stock: u.stock,
+  image: unitImage(product, u),
+}));
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    sku: product.id,
+    description: product.summary,
+    brand: { '@type': 'Brand', name: brand.name },
+    image: images.map((i) => absoluteUrl(i, site)),
+    offers: product.units.map((u) => ({
+      '@type': 'Offer',
+      sku: u.id,
+      price: u.price.toFixed(2),
+      priceCurrency: 'EUR',
+      availability: u.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      url: absoluteUrl(productPath(product, u), site),
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: product.faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<Base title={product.shortName} description={product.summary} jsonLd={jsonLd}>
+  <div class="container section-tight">
+    <nav class="breadcrumb small" aria-label="Breadcrumb">
+      <a href="/shop">Shop</a> <span aria-hidden="true">/</span>
+      <a href={`/shop#${encodeURIComponent(product.category)}`}>{product.category}</a> <span aria-hidden="true">/</span>
+      <span aria-current="page">{product.shortName}</span>
+    </nav>
+
+    <div class="pdp" data-product-id={product.id} data-units={JSON.stringify(units)}>
+      <div class="pdp-gallery">
+        <img id="pdp-main-image" src={unitImage(product, unit)} alt={product.name} width="800" height="800" />
+        {
+          images.length > 1 && (
+            <div class="pdp-thumbs">
+              {images.map((src, i) => (
+                <button type="button" class="pdp-thumb" data-src={src} aria-label={`Show image ${i + 1}`}>
+                  <img src={src} alt="" width="120" height="120" loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
+      <div class="pdp-info">
+        <p class="eyebrow">{product.category}</p>
+        <h1 class="pdp-title">{product.name}</h1>
+        <p class="lede">{product.summary}</p>
+        <p class="pdp-price">
+          <span id="pdp-price" class:list={['price', unit.compareAtPrice && 'price-sale']}>{formatPrice(unit.price)}</span>
+          <span id="pdp-compare" class="price-compare" hidden={!unit.compareAtPrice}>
+            {unit.compareAtPrice ? formatPrice(unit.compareAtPrice) : ''}
+          </span>
+        </p>
+
+        <fieldset class="variant-picker">
+          <legend>{unit.option.name}: <strong id="pdp-variant-name">{unit.name}</strong></legend>
+          <div class="chip-row">
+            {
+              product.units.map((u) => (
+                <label class:list={['chip', 'variant-chip', u.stock === 0 && 'is-sold-out']}>
+                  <input type="radio" name="variant" value={u.id} checked={u.id === unit.id} class="visually-hidden" />
+                  {u.swatch && <span class="swatch" style={`background:${u.swatch}`}></span>}
+                  {u.name}
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <p id="pdp-stock" class="small" aria-live="polite"></p>
+        <div class="pdp-buy">
+          <label class="visually-hidden" for="pdp-qty">Quantity</label>
+          <input id="pdp-qty" class="qty-input" type="number" min="1" max="10" value="1" inputmode="numeric" />
+          <button id="pdp-add" class="btn" type="button">Add to bag</button>
+        </div>
+
+        <ul class="pdp-highlights">
+          {product.highlights.map((h) => <li>{h}</li>)}
+        </ul>
+
+        <div class="accordion">
+          <details open>
+            <summary>Description</summary>
+            <div><p>{product.description}</p></div>
+          </details>
+          <details>
+            <summary>How to use</summary>
+            <div><p>{product.howToUse}</p></div>
+          </details>
+          <details>
+            <summary>Ingredients</summary>
+            <div><p>{product.ingredients}</p></div>
+          </details>
+          <details>
+            <summary>Skin types</summary>
+            <div><p>{product.skinTypes.join(', ')}</p></div>
+          </details>
+        </div>
+        <p class="small muted ids">
+          Product external ID <code>{product.id}</code> · unit <code id="pdp-unit-id">{unit.id}</code>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <section class="section-tight" aria-labelledby="videos-heading">
+    <div class="container split-pdp">
+      <div>
+        <p class="eyebrow">See it in action</p>
+        <h2 id="videos-heading">Videos featuring {product.shortName}</h2>
+        <p>
+          This Storyblock uses <code>skus="{product.id}"</code>, so it only shows videos tagged with this product. It
+          stays empty if the external IDs in Firework don't match the catalog.
+        </p>
+        <a class="small" href="/lab/pdp-videos">How product-page videos work</a>
+      </div>
+      <FwWidget
+        tag="fw-storyblock"
+        usePlaylist={false}
+        label="Product videos (skus filter)"
+        attrs={{ skus: product.id, height: '560px', name: `pdp-${product.id}` }}
+      />
+    </div>
+  </section>
+
+  <section class="section-tight" aria-labelledby="deck-heading">
+    <div class="container">
+      <p class="eyebrow">Player Deck</p>
+      <h2 id="deck-heading">More from Fjordbloom TV</h2>
+      <FwWidget tag="fw-player-deck" slot="deck" label="Player Deck" />
+    </div>
+  </section>
+
+  <section class="section-tight" aria-labelledby="faq-heading">
+    <div class="container faq">
+      <h2 id="faq-heading">Questions about {product.shortName}</h2>
+      <div class="accordion">
+        {
+          product.faqs.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <div>
+                <p>{f.a}</p>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .breadcrumb {
+    margin-bottom: 20px;
+    color: var(--ink-faint);
+  }
+  .pdp {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(24px, 5vw, 64px);
+    align-items: start;
+  }
+  .pdp-gallery img#pdp-main-image {
+    border-radius: var(--radius);
+    background: var(--surface);
+    width: 100%;
+  }
+  .pdp-thumbs {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .pdp-thumb {
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    width: 76px;
+    cursor: pointer;
+    background: var(--surface);
+  }
+  .pdp-title {
+    font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+    overflow-wrap: anywhere;
+  }
+  .pdp-price {
+    font-size: 1.35rem;
+  }
+  .variant-picker {
+    border: none;
+    padding: 0;
+    margin: 18px 0 8px;
+  }
+  .variant-picker legend {
+    margin-bottom: 10px;
+    font-size: 0.92rem;
+  }
+  .variant-chip:has(input:checked) {
+    border-color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  .variant-chip:has(input:focus-visible) {
+    outline: 3px solid var(--cloudberry);
+    outline-offset: 2px;
+  }
+  .variant-chip.is-sold-out {
+    color: var(--ink-faint);
+    text-decoration: line-through;
+  }
+  .swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 1px solid rgb(0 0 0 / 0.15);
+  }
+  .pdp-buy {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0 22px;
+  }
+  .qty-input {
+    width: 76px;
+    font: inherit;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    text-align: center;
+  }
+  .pdp-buy .btn {
+    flex: 1;
+  }
+  .pdp-highlights {
+    padding-left: 1.1em;
+    margin: 0 0 22px;
+    color: var(--ink-soft);
+  }
+  .ids {
+    margin-top: 18px;
+  }
+  .split-pdp {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: clamp(24px, 5vw, 64px);
+    align-items: center;
+  }
+  .faq {
+    max-width: 820px;
+  }
+  @media (max-width: 820px) {
+    .pdp,
+    .split-pdp {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  import { addToCart } from '../../scripts/cart';
+  import { formatEur } from '../../scripts/products-client';
+  import { toast } from '../../scripts/ui';
+
+  interface UnitData {
+    id: string;
+    name: string;
+    price: number;
+    compareAtPrice: number | null;
+    stock: number;
+    image: string;
+  }
+
+  const root = document.querySelector<HTMLElement>('.pdp')!;
+  const productId = root.dataset.productId!;
+  const units = JSON.parse(root.dataset.units ?? '[]') as UnitData[];
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const addButton = $<HTMLButtonElement>('pdp-add');
+  let current = units.find((u) => (document.querySelector<HTMLInputElement>('input[name="variant"]:checked')?.value ?? '') === u.id) ?? units[0]!;
+
+  function render(unit: UnitData, updateUrl: boolean) {
+    current = unit;
+    $('pdp-price').textContent = formatEur(unit.price);
+    $('pdp-price').classList.toggle('price-sale', unit.compareAtPrice !== null);
+    const compare = $('pdp-compare');
+    compare.hidden = unit.compareAtPrice === null;
+    compare.textContent = unit.compareAtPrice === null ? '' : formatEur(unit.compareAtPrice);
+    $('pdp-variant-name').textContent = unit.name;
+    $('pdp-unit-id').textContent = unit.id;
+    $<HTMLImageElement>('pdp-main-image').src = unit.image;
+    const stock = $('pdp-stock');
+    if (unit.stock === 0) stock.textContent = 'Sold out. This option cannot be added to the bag.';
+    else if (unit.stock <= 5) stock.textContent = `Only ${unit.stock} left.`;
+    else stock.textContent = 'In stock. Ships in 1 to 2 working days.';
+    addButton.disabled = unit.stock === 0;
+    addButton.textContent = unit.stock === 0 ? 'Sold out' : 'Add to bag';
+    if (updateUrl) {
+      const url = new URL(location.href);
+      url.searchParams.set('variant', unit.id);
+      history.replaceState(null, '', url);
+    }
+  }
+
+  document.querySelectorAll<HTMLInputElement>('input[name="variant"]').forEach((input) =>
+    input.addEventListener('change', () => {
+      const unit = units.find((u) => u.id === input.value);
+      if (unit) render(unit, true);
+    }),
+  );
+
+  document.querySelectorAll<HTMLButtonElement>('.pdp-thumb').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      $<HTMLImageElement>('pdp-main-image').src = btn.dataset.src!;
+    }),
+  );
+
+  addButton.addEventListener('click', () => {
+    if (current.stock === 0) return;
+    const qty = Math.max(1, Math.min(10, Number($<HTMLInputElement>('pdp-qty').value) || 1));
+    addToCart(productId, current.id, qty);
+    toast(`Added ${qty} × ${current.name} to your bag`);
+  });
+
+  const fromUrl = new URLSearchParams(location.search).get('variant');
+  const initial = units.find((u) => u.id === fromUrl);
+  if (initial) {
+    const radio = document.querySelector<HTMLInputElement>(`input[name="variant"][value="${CSS.escape(initial.id)}"]`);
+    if (radio) radio.checked = true;
+  }
+  render(initial ?? current, false);
+</script>
