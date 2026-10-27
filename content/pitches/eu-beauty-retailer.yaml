@@ -11,6 +11,7 @@ goal: Show how shoppable short video and live shopping fit their store, and agre
 
 before:
   - Make sure the livestream playlist has an upcoming show or a replay, so the hero unit and the Live page have content.
+  - For the showroom step, add a one-time restream that starts a few minutes into the call, so Copilot can answer live.
   - Empty the demo bag, so the checkout step starts clean.
   - Open Business Portal in a second tab with the video library, one video's tagged products and Insights ready.
   - Share only the demo tab. Keep these notes in a separate window that you don't share.
@@ -26,7 +27,7 @@ discovery:
 
 steps:
   - title: Agenda and discovery
-    minutes: 5
+    minutes: 4
     show:
       - Keep the home page on screen while you talk.
     say:
@@ -81,6 +82,17 @@ steps:
       - A prerecorded first show needs no studio and no live host.
     ask: Who on your team could host a monthly show?
 
+  - title: Always-on showroom with an AI co-host
+    path: /showroom
+    minutes: 2
+    show:
+      - The next-session line and the hero unit with the daily restream.
+      - If a session is running, type a question in the chat, such as "Is the serum vegan?", and wait for the AI reply.
+    say:
+      - One recorded show runs again every evening, so there is a live moment without a host or a studio.
+      - AI Copilot answers the chat from the brand's product and policy knowledge, the same knowledge as AVA.
+    ask: How many questions does your team answer by hand today?
+
   - title: Checkout and measurement
     path: /cart
     minutes: 3
@@ -92,7 +104,7 @@ steps:
       - The event carries the order ID, amounts and product SKUs, not the shopper's name or address.
 
   - title: Behind the scenes in Business Portal
-    minutes: 3
+    minutes: 2
     show:
       - Switch to the Business Portal tab. Show the video library, a video's tagged products, a playlist and Insights.
     say:
