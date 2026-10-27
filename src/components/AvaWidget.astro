@@ -1,0 +1,17 @@
+---
+/**
+ * AVA, Firework's AI shopping assistant, exactly as Business Portal's embed code renders it.
+ * The script is added by src/scripts/firework-loader.ts, once per page and only when Firework is on.
+ *   layout="faq"     Product FAQ Widget. Pass the product ID as sku on product pages (not a size or shade ID).
+ *   layout="button"  General Button that opens the chat.
+ */
+import { ava } from '../site.config';
+
+interface Props {
+  layout: 'faq' | 'button';
+  sku?: string;
+}
+const { layout, sku } = Astro.props;
+---
+
+{ava.assistantId && <fw-ava domain_assistant_id={ava.assistantId} layout={layout} sku={sku} />}

@@ -1,4 +1,5 @@
 ---
+import AvaWidget from '../../components/AvaWidget.astro';
 import FwWidget from '../../components/FwWidget.astro';
 import Base from '../../layouts/Base.astro';
 import { products } from '../../lib/catalog';
@@ -42,14 +43,12 @@ const jsonLd = {
         }
       </div>
 
-      <h2>Ask AVA</h2>
-      <div class="fw-placeholder">
-        <p class="fw-placeholder-title">AVA, the AI shopping assistant</p>
-        <p>
-          AVA's General Button goes here once it is set up in Business Portal. The
-          <a href="/lab/ava">AVA setup kit</a> has the knowledge files and settings.
-        </p>
-      </div>
+      <h2>Ask our AI product expert</h2>
+      <p>Ask about routines, ingredients, shipping or returns. Answers come from our product pages and policies.</p>
+      <div class="ava-button"><AvaWidget layout="button" /></div>
+      <p class="small muted" data-demo-chrome>
+        AVA's General Button. Its knowledge comes from the <a href="/lab/ava">AVA setup kit</a>.
+      </p>
 
       <h2>How-to videos</h2>
       <FwWidget tag="fw-embed-feed" slot="howto" label="How-to videos" attrs={{ mode: 'row' }} />
@@ -75,6 +74,10 @@ const jsonLd = {
   }
   .help h2 {
     margin-top: 48px;
+  }
+  .ava-button {
+    display: block;
+    margin: 16px 0 8px;
   }
   .help nav {
     margin: 20px 0 8px;

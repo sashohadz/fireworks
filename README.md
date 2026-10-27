@@ -14,11 +14,11 @@ Nothing here is for sale. Products, images and videos are illustrated or AI-gene
 | Area | Path | What it shows |
 |---|---|---|
 | Storefront | `/`, `/shop`, `/products/*`, `/cart` | Hero unit, Storyblock, carousel, grid, Player Deck, floating player, product-page videos via `skus`, cart and purchase tracking |
-| Live and Showroom | `/live`, `/showroom` | Livestream with replays (Showroom and AVA arrive in Week 2) |
+| Live and Showroom | `/live`, `/showroom` | Livestream with replays (Showroom arrives in Week 2) |
 | OBS overlays | `/live/overlays` | Browser-source overlays at 720x1280 (name strap, product spotlight, giveaway, starting soon) and the OBS settings Firework needs |
 | Pitch mode | `/pitch` | Presents the store as a customer demo: demo tools hidden, presenter notes in a second window |
 | Lab | `/lab` | One page per component with attribute knobs, the exact embed code, CSS variables, an event log and known tickets. Also an accessibility check with axe-core and a shadow-DOM focus tracker |
-| AVA | `/lab/ava`, `/knowledge/*` | AVA setup kit: embed plan, knowledge files built from the catalog and help pages, suggested settings and a Playground test sheet |
+| AVA | `/products/*`, `/help`, `/lab/ava`, `/knowledge/*` | AVA's Product FAQ Widget on every product page and its General Button on Help. The setup kit has the embed plan, knowledge files built from the catalog and help pages, suggested settings and a Playground test sheet |
 | Learn | `/learn` | Short, public-safe notes on Firework products and integrations, including a tickable go-live checklist |
 | Data | `/feeds/google.xml`, `/feeds/firework-products.csv`, `/api/products.json` | Product feeds for Firework import and a mock commerce API |
 
@@ -95,7 +95,7 @@ Netlify builds from `netlify.toml`: `npm run build`, publish `dist`. Pull reques
 src/pages/          storefront, lab, learn, feeds and mock API
 src/lab/registry.ts components, attributes, CSS variables, events and known tickets
 src/scripts/        Firework loader, settings, event tap, debug overlay, cart, tracking, pitch mode, overlays, a11y
-src/site.config.ts  public Firework IDs: channel and playlists
+src/site.config.ts  public Firework IDs: channel, playlists and the AVA assistant
 content/            catalog, brand, video specs, pitch scripts, spend ledger
 scripts/gen/        image, clip, voice and video generation
 scripts/firework/   Business Portal checklist (API scripts come later)

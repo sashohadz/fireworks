@@ -1,7 +1,7 @@
 // Applies demo overrides to the Firework widgets on the page, then loads the Firework SDK once.
 // Widgets are rendered by src/components/FwWidget.astro with data-fw-managed. When no channel is
 // configured they render as placeholders and are turned into real elements here if a channel is set.
-import { firework } from '../site.config';
+import { ava, firework } from '../site.config';
 import { playlistFor, type EffectiveSettings } from './settings';
 
 const MANAGED = '[data-fw-managed]';
@@ -94,4 +94,18 @@ export function loadFireworkSdk(settings: EffectiveSettings): void {
   }
   add(firework.scripts.module, { type: 'module' });
   add(firework.scripts.nomodule, { nomodule: '' });
+}
+
+/**
+ * AVA has its own script. It also creates window._fwn, so ?fw=off skips it just like the video SDK.
+ * It only loads on pages that have an <fw-ava> element.
+ */
+export function loadAvaScript(settings: EffectiveSettings): void {
+  if (settings.fwMode === 'off' || !ava.assistantId) return;
+  if (!document.querySelector('fw-ava') || document.querySelector('script[data-ava-sdk]')) return;
+  const s = document.createElement('script');
+  s.src = `${ava.script}?business_id=${encodeURIComponent(ava.businessId)}`;
+  s.async = true;
+  s.dataset.avaSdk = 'true';
+  document.head.appendChild(s);
 }
