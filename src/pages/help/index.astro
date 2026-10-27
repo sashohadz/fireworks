@@ -2,17 +2,9 @@
 import FwWidget from '../../components/FwWidget.astro';
 import Base from '../../layouts/Base.astro';
 import { products } from '../../lib/catalog';
+import { storeFaqs } from '../../lib/help-content';
 
-const storeFaqs = [
-  { q: 'Where do you ship?', a: 'We ship to every EU country, Norway, Switzerland and the UK. Orders leave our Copenhagen warehouse within 1 to 2 working days.' },
-  { q: 'How much is shipping?', a: 'Shipping is free on orders from €50. Below that, standard shipping costs €4.90.' },
-  { q: 'Can I return a product?', a: 'Yes. Unopened products can be returned within 30 days. Opened products can be returned within 14 days if they did not suit your skin.' },
-  { q: 'Are your products vegan?', a: 'Yes. Every Fjordbloom product is vegan and cruelty-free. Our lip balm uses candelilla wax instead of beeswax.' },
-  { q: 'Which products suit sensitive skin?', a: 'Start with Cloud Milk Cleanser, Arctic Barrier Day Cream and Daylight Mineral Fluid SPF 50. All three are fragrance-free.' },
-  { q: 'What is the right order for a routine?', a: 'Morning: cleanser, toner, serum, day cream, then SPF. Evening: cleanser, toner, serum, then night cream.' },
-  { q: 'Can I combine vitamin C with niacinamide?', a: 'Yes. Apply Birch Sap Hydra Serum first, wait a minute, then Cloudberry Vitamin C Glow Serum.' },
-  { q: 'Do you offer samples?', a: 'The Discovery Set contains four minis and is the best way to try the full ritual.' },
-];
+
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -52,10 +44,10 @@ const jsonLd = {
 
       <h2>Ask AVA</h2>
       <div class="fw-placeholder">
-        <p class="fw-placeholder-title">AVA, the AI shopping assistant (Week 2)</p>
+        <p class="fw-placeholder-title">AVA, the AI shopping assistant</p>
         <p>
-          AVA is set up in Business Portal and trained on the catalog plus these help pages. Its embed code goes into
-          <code>src/site.config.ts</code> during the Week 2 AVA session.
+          AVA's General Button goes here once it is set up in Business Portal. The
+          <a href="/lab/ava">AVA setup kit</a> has the knowledge files and settings.
         </p>
       </div>
 

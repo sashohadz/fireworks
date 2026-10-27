@@ -18,6 +18,7 @@ Nothing here is for sale. Products, images and videos are illustrated or AI-gene
 | OBS overlays | `/live/overlays` | Browser-source overlays at 720x1280 (name strap, product spotlight, giveaway, starting soon) and the OBS settings Firework needs |
 | Pitch mode | `/pitch` | Presents the store as a customer demo: demo tools hidden, presenter notes in a second window |
 | Lab | `/lab` | One page per component with attribute knobs, the exact embed code, CSS variables, an event log and known tickets. Also an accessibility check with axe-core and a shadow-DOM focus tracker |
+| AVA | `/lab/ava`, `/knowledge/*` | AVA setup kit: embed plan, knowledge files built from the catalog and help pages, suggested settings and a Playground test sheet |
 | Learn | `/learn` | Short, public-safe notes on Firework products and integrations, including a tickable go-live checklist |
 | Data | `/feeds/google.xml`, `/feeds/firework-products.csv`, `/api/products.json` | Product feeds for Firework import and a mock commerce API |
 

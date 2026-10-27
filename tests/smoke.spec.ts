@@ -30,6 +30,7 @@ const pages = [
   '/learn/debugging',
   '/learn/go-live-checklist',
   '/lab/accessibility',
+  '/lab/ava',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -65,6 +66,20 @@ test.describe('data endpoints', () => {
     const csv = await (await request.get('/feeds/firework-products.csv')).text();
     expect(csv.startsWith('Name (required),Category (optional)')).toBe(true);
     expect(csv.trim().split('\n')).toHaveLength(20);
+  });
+
+  test('AVA knowledge files match the catalog and help pages', async ({ request }) => {
+    const faq = await (await request.get('/knowledge/store-faq.txt')).text();
+    expect(faq).toContain('Q: Where do you ship?');
+    const serum = await request.get('/knowledge/products/FJB-103.txt');
+    expect(serum.headers()['content-type']).toContain('text/plain');
+    const text = await serum.text();
+    expect(text).toContain('Product ID: FJB-103');
+    expect(text).toMatch(/Product page: https?:\/\/[^ ]+\/products\/cloudberry-vitamin-c-serum/);
+    const shipping = await (await request.get('/knowledge/shipping-and-returns.txt')).text();
+    expect(shipping).toContain('Rose Quartz Gua Sha');
+    const csv = await (await request.get('/knowledge/ava-test-questions.csv')).text();
+    expect(csv.startsWith('"Area","Question","Expected","Source","Result","Notes"')).toBe(true);
   });
 
   test('mock api returns the catalog', async ({ request }) => {

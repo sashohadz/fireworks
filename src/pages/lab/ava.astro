@@ -1,0 +1,148 @@
+---
+import { loadSpecs } from '../../../scripts/gen/lib/specs';
+import Lab from '../../layouts/Lab.astro';
+import { knowledgeFiles, starterQuestions, suggestedSettings, testQuestions } from '../../lib/ava-knowledge';
+import { products } from '../../lib/catalog';
+
+const files = knowledgeFiles(Astro.site?.toString());
+const brandFiles = files.filter((f) => f.section === 'Brand');
+const productFiles = new Map(files.filter((f) => f.productId).map((f) => [f.productId!, f]));
+const tests = testQuestions();
+
+// Product demo videos: the single-product shorts in content/videos, rendered to out/videos.
+const { videos } = loadSpecs();
+const demoVideo = new Map(videos.filter((v) => v.products.length === 1).map((v) => [v.products[0]!, `${v.id}.en.mp4`]));
+const sharedVideos = videos.filter((v) => v.products.length > 1);
+
+const embeds = [
+  {
+    name: 'Product FAQ Widget',
+    where: 'Every product page, above "Questions about …".',
+    how: 'It finds the product by SKU. Use the product ID, such as FJB-103, not a size or shade ID. Turn on AI-generated questions, and pick the Inline entry point so answers stay on the page.',
+  },
+  {
+    name: 'General Button',
+    where: 'The "Ask AVA" section of the Help page. Optionally the bag page, for last questions before checkout.',
+    how: 'Button label "Ask our skin guide". It opens the chat.',
+  },
+];
+
+const steps = [
+  'In Business Portal, open AI Video Assistant and click Create New Assistant. Use the suggested name, description and language below, choose the Fjordbloom store, and upload an avatar.',
+  'Open Linked Products, click Add Products+, choose the store and select all 12 products. AVA crawls each product page as products are added, so it learns the descriptions, how-to, ingredients and FAQs.',
+  'Open the Knowledge tab. In the Brand section on the left, add the four brand files below.',
+  'Optional: for each product, click + Add Resources and add its product file as a Product Manual and its video as a Product Demo Video. Check the crawl result first; the files help most when it looks thin.',
+  'Click Publish Pending Resources. New resources stay pending until then.',
+  'Open the Playground and work through the test sheet. When an answer is wrong, fix the knowledge, publish and ask again.',
+  'Under Settings, set the personality, welcome message and disclaimer. Then Preview and Publish on the Overview tab.',
+  'Under Embed, configure the Product FAQ Widget and the General Button, click Save and copy each embed code for the site.',
+];
+---
+
+<Lab title="AVA setup kit" description="Train and embed AVA, Firework's AI shopping assistant, for the Fjordbloom store.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>AVA setup kit</h1>
+  <p class="lede">
+    Everything to set up AVA, Firework's AI shopping assistant, for Fjordbloom: which embed goes where, knowledge files
+    built from the catalog, suggested settings and a test sheet for the Playground.
+  </p>
+
+  <h2>Which embeds to use</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Embed</th><th>Where</th><th>How to set it up</th></tr></thead>
+      <tbody>{embeds.map((e) => <tr><td><strong>{e.name}</strong></td><td>{e.where}</td><td>{e.how}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p class="small muted">
+    A product with no active AVA hides the FAQ widget on its own, so one template works for every product page.
+  </p>
+
+  <h2>Set it up in Business Portal</h2>
+  <ol class="ava-steps">{steps.map((s) => <li>{s}</li>)}</ol>
+
+  <h2>Knowledge files</h2>
+  <p>
+    Built from the catalog and help pages on every deploy, so the site and AVA give the same answers. Prices and stock are
+    left out on purpose, because AVA reads them from the synced catalog. After catalog changes, upload the files again.
+    Any file can also be added as a Webpage resource with its URL.
+  </p>
+  <h3>Brand section</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>File</th><th>Resource type</th></tr></thead>
+      <tbody>
+        {brandFiles.map((f) => <tr><td><a href={`/knowledge/${f.path}`} download>{f.path}</a></td><td>{f.resourceType}</td></tr>)}
+      </tbody>
+    </table>
+  </div>
+  <h3>Per product (optional)</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Product</th><th>Product Manual</th><th>Product Demo Video</th></tr></thead>
+      <tbody>
+        {
+          products.map((p) => {
+            const f = productFiles.get(p.id)!;
+            const video = demoVideo.get(p.id);
+            return (
+              <tr>
+                <td>
+                  {p.name} <span class="small muted">{p.id}</span>
+                </td>
+                <td>
+                  <a href={`/knowledge/${f.path}`} download>{f.path.replace('products/', '')}</a>
+                </td>
+                <td>{video ? <code>out/videos/{video}</code> : <span class="muted">No single-product video</span>}</td>
+              </tr>
+            );
+          })
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">
+    Videos are local files from the generation pipeline, not part of the site.
+    {sharedVideos.length > 0 && <>Videos with several products can go in as Other Video: {sharedVideos.map((v) => `${v.id} (${v.products.join(', ')})`).join('; ')}.</>}
+  </p>
+
+  <h2>Suggested settings</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+      <tbody>{suggestedSettings.map((s) => <tr><td>{s.setting}</td><td>{s.value}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p><strong>Starter questions</strong> for the Product FAQ Widget. Business Portal allows six, each up to 60 characters.</p>
+  <ol>{starterQuestions.map((q) => <li>{q}</li>)}</ol>
+
+  <h2>Playground test sheet</h2>
+  <p>
+    Ask each question in the Playground and compare the answer. Guardrail rows check behaviour, not exact words.
+    <a href="/knowledge/ava-test-questions.csv" download>Download as CSV</a> to track results in a spreadsheet.
+  </p>
+  <div class="table-wrap">
+    <table class="table ava-tests">
+      <thead><tr><th>Area</th><th>Question</th><th>Expected</th></tr></thead>
+      <tbody>{tests.map((t) => <tr><td>{t.area}</td><td>{t.question}</td><td>{t.expected}<div class="small muted">{t.source}</div></td></tr>)}</tbody>
+    </table>
+  </div>
+
+  <p class="small muted">
+    Help center:
+    <a href="https://firework.com/help/setup-and-display-ai-virtual-assistant-ava-new">Set up AVA 4.0</a> ·
+    <a href="https://firework.com/help/how-to-embed-ava-on-your-website-new-ui">Embed AVA 4.0</a> ·
+    <a href="https://firework.com/help/embedding-ai-faq-within-the-product-detail-page">AI FAQ on product pages</a> ·
+    <a href="https://firework.com/help/full-page-pdp-crawling">Product page crawling</a> ·
+    <a href="https://firework.com/help/add-multiple-products-for-ava">Add products to AVA</a>
+  </p>
+</Lab>
+
+<style>
+  .ava-steps li {
+    margin-bottom: 8px;
+  }
+  .ava-tests td:first-child {
+    white-space: nowrap;
+  }
+</style>
