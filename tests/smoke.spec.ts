@@ -83,7 +83,7 @@ test('cart to order confirmation', async ({ page }) => {
   await page.waitForURL('**/order/confirmed');
   await expect(page.locator('#order-root')).toContainText('FJB-DEMO-');
   await expect(page.locator('#purchase-payload')).toContainText('"sku": "FJB-103-30ML"');
-  // No sandbox channel is configured (or the SDK is off), so nothing may be sent.
+  // The SDK is off, so nothing may be sent to the sandbox channel's analytics.
   await expect(page.locator('#track-status')).toContainText('Not sent');
 });
 
@@ -107,6 +107,13 @@ test.describe('firework sdk (network)', () => {
     );
     const types = await page.evaluate(() => (window.__fjb?.events as { type: string }[]).map((e) => e.type));
     expect(types).toContain('fw:storyblock:render');
+  });
+
+  test('a product without tagged videos hides its Storyblock', async ({ page }) => {
+    // FJB-111 has no video in content/videos, so the sandbox returns no feed for skus="FJB-111".
+    await page.goto('/products/rose-quartz-gua-sha');
+    await expect(page.locator('.fw-failed-note')).toContainText('skus="FJB-111"', { timeout: 30_000 });
+    await expect(page.locator('fw-storyblock[skus="FJB-111"]')).toBeHidden();
   });
 
   test('fw=off skips the SDK', async ({ page }) => {
