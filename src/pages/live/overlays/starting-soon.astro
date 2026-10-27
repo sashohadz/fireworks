@@ -1,0 +1,44 @@
+---
+import LogoMark from '../../../components/LogoMark.astro';
+import Overlay from '../../../layouts/Overlay.astro';
+---
+
+<Overlay title="Starting soon" opaque>
+  <div class="ov soon">
+    <LogoMark size={96} />
+    <p class="soon-kicker" data-param="kicker">Starting soon</p>
+    <h1 class="soon-title" data-param="title">Fjordbloom Live</h1>
+    <p class="soon-sub" data-param="subtitle" data-optional>The Nordic glow edit</p>
+    <p class="soon-clock" id="soon-clock" hidden></p>
+  </div>
+</Overlay>
+
+<script>
+  // ?at=HH:MM counts down to that local time today (or tomorrow if it has passed).
+  // ?minutes=N counts down from when the source loads. Without either, no clock is shown.
+  const q = new URLSearchParams(location.search);
+  const clock = document.getElementById('soon-clock')!;
+  let target = 0;
+  const at = q.get('at')?.match(/^(\d{1,2}):(\d{2})$/);
+  const minutes = Number(q.get('minutes'));
+  if (at) {
+    const t = new Date();
+    t.setHours(Number(at[1]), Number(at[2]), 0, 0);
+    if (t.getTime() < Date.now() - 60_000) t.setDate(t.getDate() + 1);
+    target = t.getTime();
+  } else if (Number.isFinite(minutes) && minutes > 0) {
+    target = Date.now() + minutes * 60_000;
+  }
+  if (target) {
+    clock.hidden = false;
+    const tick = () => {
+      const s = Math.max(0, Math.round((target - Date.now()) / 1000));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = String(s % 60).padStart(2, '0');
+      clock.textContent = s === 0 ? 'Starting now' : h > 0 ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
+    };
+    tick();
+    window.setInterval(tick, 1000);
+  }
+</script>

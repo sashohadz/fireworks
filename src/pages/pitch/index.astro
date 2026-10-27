@@ -1,0 +1,90 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPitches } from '../../lib/pitches';
+
+const pitches = getPitches();
+const firstPath = (id: string) => {
+  const p = pitches.find((x) => x.id === id)!;
+  return p.steps.find((s) => s.path)?.path ?? '/';
+};
+---
+
+<Base title="Pitch mode" description="Present the Fjordbloom store as a customer demo, with presenter notes in a separate window.">
+  <section class="section-tight">
+    <div class="container pitch-index">
+      <p class="eyebrow">Demo tools</p>
+      <h1>Pitch mode</h1>
+      <p class="lede">
+        Present Fjordbloom as if it were the prospect's own store. The shared tab hides every demo tool. Talking points
+        open in a separate window that you keep off the shared screen.
+      </p>
+
+      <h2>How to present</h2>
+      <ol>
+        <li>Click <strong>Start presenting</strong>. This tab becomes the shared tab and opens the first step.</li>
+        <li>Click <strong>Notes</strong> in the small control at the bottom left. Move that window to your other screen.</li>
+        <li>
+          Share only the demo tab. Move between steps with the arrows, the <kbd>[</kbd> and <kbd>]</kbd> keys, or the
+          <strong>Show</strong> buttons in the notes window. <kbd>\</kbd> hides the control.
+        </li>
+        <li>Click <strong>×</strong> in the control, or open any page with <code>?present=off</code>, to leave pitch mode.</li>
+      </ol>
+      <p class="small muted">
+        Pitch mode lasts until you close the tab. It hides the Lab and Learn links, the settings button and the notes
+        that explain the demo. The demo store banner stays, because the store is fictional.
+      </p>
+
+      <h2>Pitches</h2>
+      <div class="pitch-cards">
+        {
+          pitches.map((p) => (
+            <article class="panel pitch-card">
+              <h3>{p.title}</h3>
+              <p class="muted">{p.audience}</p>
+              <p><strong>Goal.</strong> {p.goal}</p>
+              <p class="small muted">
+                {p.length} · {p.steps.length} steps
+              </p>
+              <div class="pitch-card-actions">
+                <a class="btn" href={`${firstPath(p.id)}?present=${p.id}`}>Start presenting</a>
+                <a class="btn btn-ghost" href={`/pitch/${p.id}`}>Read the notes</a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+      <p class="small muted">
+        Pitch scripts live in <code>content/pitches/*.yaml</code>. They are fictional practice material built from
+        Firework's public documentation.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .pitch-index {
+    max-width: 900px;
+  }
+  .pitch-cards {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .pitch-card h3 {
+    margin-top: 0;
+  }
+  .pitch-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 5px;
+    background: var(--surface);
+  }
+</style>

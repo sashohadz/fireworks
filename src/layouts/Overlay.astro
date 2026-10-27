@@ -1,0 +1,42 @@
+---
+/**
+ * OBS browser-source overlays: a transparent 720x1280 canvas, Firework's fixed livestream size.
+ * No site chrome and no Firework SDK. Text comes from URL parameters (see src/scripts/overlay.ts).
+ */
+import '@fontsource-variable/fraunces';
+import '@fontsource-variable/inter';
+import '../styles/overlay.css';
+import { productImages, getProduct } from '../lib/catalog';
+
+interface Props {
+  title: string;
+  /** Full-frame scenes (starting soon) are opaque; the others are transparent. */
+  opaque?: boolean;
+}
+const { title, opaque = false } = Astro.props;
+const sample = productImages(getProduct('FJB-103')!).at(-1);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=720" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · Fjordbloom overlay</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body class="overlay-body">
+    <div class:list={['canvas', { opaque }]} style={`--sample: url('${sample}')`}>
+      <slot />
+      <div class="guides" aria-hidden="true">
+        <div class="guide-zone guide-top"><span>Player header and live badge (approximate)</span></div>
+        <div class="guide-zone guide-bottom"><span>Chat, product cards and controls (approximate)</span></div>
+      </div>
+    </div>
+    <script>
+      import { initOverlay } from '../scripts/overlay';
+      initOverlay();
+    </script>
+  </body>
+</html>

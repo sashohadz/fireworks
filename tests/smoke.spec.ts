@@ -28,6 +28,11 @@ const pages = [
   '/learn/web-components',
   '/learn/products-and-ids',
   '/learn/debugging',
+  '/learn/go-live-checklist',
+  '/lab/accessibility',
+  '/live/overlays',
+  '/pitch',
+  '/pitch/eu-beauty-retailer',
 ];
 
 function collectErrors(page: Page): string[] {
@@ -90,6 +95,54 @@ test('cart to order confirmation', async ({ page }) => {
 test('sold-out variant cannot be added', async ({ page }) => {
   await page.goto('/products/lingonberry-tinted-lip-balm?fw=off&variant=FJB-109-PLUM');
   await expect(page.locator('#pdp-add')).toBeDisabled();
+});
+
+test.describe('demo tools', () => {
+  test('pitch mode hides demo tools and moves between steps', async ({ page }) => {
+    // Keep the SDK off on every page the pitch visits.
+    await page.goto('/?fw=off');
+    await page.evaluate(() => localStorage.setItem('fjb.settings.v1', JSON.stringify({ fwMode: 'off' })));
+    await page.goto('/?present=eu-beauty-retailer');
+    const count = page.locator('.pitch-bar-count');
+    const gear = page.locator('.header-actions [data-open-settings]');
+    await expect(count).toHaveText(/^1\/\d+$/);
+    await expect(page.locator('html')).toHaveAttribute('data-present', 'on');
+    await expect(gear).toBeHidden();
+    await expect(page).not.toHaveURL(/present=/);
+    await page.locator('.pitch-bar [data-pitch="next"]').click();
+    await expect(count).toHaveText(/^2\//);
+    await page.locator('.pitch-bar [data-pitch="next"]').click();
+    await expect(page).toHaveURL(/\/products\/cloudberry-vitamin-c-serum/);
+    await expect(count).toHaveText(/^3\//);
+    await expect(page.locator('p.ids')).toBeHidden();
+    await page.locator('.pitch-bar [data-pitch="exit"]').click();
+    await expect(page.locator('.pitch-bar')).toHaveCount(0);
+    await expect(gear).toBeVisible();
+  });
+
+  test('overlays show URL text as plain text', async ({ page }) => {
+    await page.goto('/live/overlays/announcement/?text=%3Cb%3EHello%3C%2Fb%3E&code=GLOW15');
+    await expect(page.locator('.announce-text')).toHaveText('<b>Hello</b>');
+    await expect(page.locator('.announce-code')).toHaveText('GLOW15');
+    await page.goto('/live/overlays/product/?sku=FJB-106');
+    await expect(page.locator('#spot-name')).toHaveText('Arctic Barrier Day Cream');
+    await expect(page.locator('#spot-compare')).toBeVisible();
+  });
+
+  test('checklist ticks survive a reload', async ({ page }) => {
+    await page.goto('/learn/go-live-checklist?fw=off');
+    await page.locator('label[for="check-0"]').click();
+    await page.reload();
+    await expect(page.locator('#check-0')).toBeChecked();
+    await expect(page.locator('.checklist-progress')).toContainText('1 of');
+  });
+
+  test('accessibility audit runs', async ({ page }) => {
+    await page.goto('/lab/accessibility?fw=off');
+    await page.selectOption('#a11y-scope', 'page');
+    await page.locator('#a11y-run').click();
+    await expect(page.locator('#a11y-summary')).toContainText(/axe-core|rules failed/, { timeout: 30_000 });
+  });
 });
 
 test.describe('firework sdk (network)', () => {
