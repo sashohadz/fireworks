@@ -189,4 +189,18 @@ test.describe('firework sdk (network)', () => {
     await page.waitForTimeout(1500);
     expect(await page.evaluate(() => typeof window._fwn)).toBe('undefined');
   });
+
+  test('fw=off also skips AVA', async ({ page }) => {
+    await page.goto('/products/cloudberry-vitamin-c-serum?fw=off');
+    await page.waitForTimeout(1500);
+    await expect(page.locator('script[data-ava-sdk]')).toHaveCount(0);
+    expect(await page.evaluate(() => typeof window._fwn)).toBe('undefined');
+  });
+
+  test('AVA loads on product pages with the product ID as sku', async ({ page }) => {
+    await page.goto('/products/cloudberry-vitamin-c-serum');
+    await expect(page.locator('fw-ava[layout="faq"]')).toHaveAttribute('sku', 'FJB-103');
+    await expect(page.locator('script[data-ava-sdk]')).toHaveCount(1);
+    await page.waitForFunction(() => Boolean(customElements.get('fw-ava')), null, { timeout: 30_000 });
+  });
 });

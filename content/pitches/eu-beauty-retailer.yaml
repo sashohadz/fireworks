@@ -53,8 +53,10 @@ steps:
       - Scroll to "Videos featuring Cloudberry C Serum". It only shows videos tagged with this product.
       - Open a second product page to show that its videos change on their own.
       - Scroll to the Player Deck below.
+      - In "Questions about Cloudberry C Serum", ask the AI assistant "Can I use it with retinol?".
     say:
       - Tag a product in a video once, and every page for that product shows it. Nobody edits product pages by hand.
+      - AVA, the AI assistant, answers from the product page, the brand's policies and the catalog.
       - Products come from your feed, which Firework syncs on a schedule.
     ask: How does your team add video to product pages today?
 

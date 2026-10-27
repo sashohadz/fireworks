@@ -1,6 +1,9 @@
 ---
 import { loadSpecs } from '../../../scripts/gen/lib/specs';
+import AvaWidget from '../../components/AvaWidget.astro';
+import SnippetPanel from '../../components/SnippetPanel.astro';
 import Lab from '../../layouts/Lab.astro';
+import { ava } from '../../site.config';
 import { knowledgeFiles, starterQuestions, suggestedSettings, testQuestions } from '../../lib/ava-knowledge';
 import { products } from '../../lib/catalog';
 
@@ -8,6 +11,9 @@ const files = knowledgeFiles(Astro.site?.toString());
 const brandFiles = files.filter((f) => f.section === 'Brand');
 const productFiles = new Map(files.filter((f) => f.productId).map((f) => [f.productId!, f]));
 const tests = testQuestions();
+const scriptTag = `<script async type="text/javascript" src="${ava.script}?business_id=${ava.businessId}"></script>`;
+const embedCode = (layout: string, sku?: string) =>
+  `${scriptTag}\n<fw-ava\n  domain_assistant_id="${ava.assistantId}"\n  layout="${layout}"${sku ? `\n  sku="${sku}"` : ''}\n></fw-ava>`;
 
 // Product demo videos: the single-product shorts in content/videos, rendered to out/videos.
 const { videos } = loadSpecs();
@@ -18,7 +24,7 @@ const embeds = [
   {
     name: 'Product FAQ Widget',
     where: 'Every product page, above "Questions about …".',
-    how: 'It finds the product by SKU. Use the product ID, such as FJB-103, not a size or shade ID. Turn on AI-generated questions, and pick the Inline entry point so answers stay on the page.',
+    how: 'It finds the product by SKU. Use the product ID, such as FJB-103, not a size or shade ID. Turn on AI-generated questions so each product page gets its own starter questions, and pick the Inline entry point so answers stay on the page.',
   },
   {
     name: 'General Button',
@@ -55,8 +61,41 @@ const steps = [
     </table>
   </div>
   <p class="small muted">
-    A product with no active AVA hides the FAQ widget on its own, so one template works for every product page.
+    A product with no active AVA hides the FAQ widget on its own, so one template works for every product page. The
+    embed code from Business Portal has no <code>sku</code>; add it in the product page template.
   </p>
+
+  {
+    ava.assistantId ? (
+      <>
+        <h2>Live on this site</h2>
+        <p>
+          The Fjordbloom assistant, as it runs on product pages and the Help page. Pick a product to see its FAQ widget.
+          Add <code>?debug</code> to watch AVA's <code>fw:ava:*</code> events.
+        </p>
+        <div class="field ava-pick">
+          <label for="ava-sku">Product for the FAQ widget</label>
+          <select id="ava-sku">
+            {products.map((p) => (
+              <option value={p.id} selected={p.id === 'FJB-103'}>
+                {p.shortName} ({p.id})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div class="panel ava-live" id="ava-faq-slot">
+          <AvaWidget layout="faq" sku="FJB-103" />
+        </div>
+        <SnippetPanel id="ava-faq-code" title="Product FAQ Widget" code={embedCode('faq', 'FJB-103')} />
+        <div class="panel ava-live">
+          <AvaWidget layout="button" />
+        </div>
+        <SnippetPanel id="ava-button-code" title="General Button" code={embedCode('button')} />
+      </>
+    ) : (
+      <p class="note">AVA is not configured. Add the assistant ID from Business Portal to <code>src/site.config.ts</code>.</p>
+    )
+  }
 
   <h2>Set it up in Business Portal</h2>
   <ol class="ava-steps">{steps.map((s) => <li>{s}</li>)}</ol>
@@ -138,7 +177,30 @@ const steps = [
   </p>
 </Lab>
 
+<script>
+  // Swap the FAQ widget's product. A new element is created, so AVA starts fresh for the new SKU.
+  const select = document.getElementById('ava-sku') as HTMLSelectElement | null;
+  select?.addEventListener('change', () => {
+    const slot = document.getElementById('ava-faq-slot')!;
+    const old = slot.querySelector('fw-ava');
+    if (!old) return;
+    const next = document.createElement('fw-ava');
+    for (const attr of ['domain_assistant_id', 'layout']) next.setAttribute(attr, old.getAttribute(attr) ?? '');
+    next.setAttribute('sku', select.value);
+    old.replaceWith(next);
+    const code = document.getElementById('ava-faq-code')!;
+    code.textContent = (code.textContent ?? '').replace(/sku="[^"]*"/, `sku="${select.value}"`);
+  });
+</script>
+
 <style>
+  .ava-pick {
+    max-width: 360px;
+  }
+  .ava-live {
+    margin: 12px 0;
+    min-height: 60px;
+  }
   .ava-steps li {
     margin-bottom: 8px;
   }

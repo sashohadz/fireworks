@@ -42,6 +42,16 @@ export const firework: FireworkConfig = {
   trackPurchases: true,
 };
 
+/**
+ * AVA, Firework's AI shopping assistant, from Business Portal's Embed code. Both IDs are public: they
+ * appear in the HTML of every page with AVA. Leave assistantId empty to turn AVA off.
+ */
+export const ava = {
+  businessId: 'gYx0PO',
+  assistantId: 'oBWN2g',
+  script: 'https://asset.fwscripts.com/js/ava.js',
+};
+
 export const playlistSlots: { slot: PlaylistSlot; label: string; usedOn: string }[] = [
   { slot: 'hero', label: 'Hero unit (livestream playlist)', usedOn: 'Home, Live' },
   { slot: 'storyblock', label: 'Storyblock', usedOn: 'Home' },
