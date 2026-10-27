@@ -31,7 +31,7 @@ npm ci
 npm run dev          # http://localhost:4321
 ```
 
-Widgets show placeholders until a channel is set. Click the gear icon and enter a channel name, or add `?channel=your_channel` to the URL.
+Widgets load the Fjordbloom sandbox channel and playlists from `src/site.config.ts`. To see a different channel, click the gear icon or add `?channel=your_channel` to the URL.
 
 ## Use it with your own sandbox
 

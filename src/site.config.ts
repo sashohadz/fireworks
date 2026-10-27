@@ -12,7 +12,7 @@
 export type PlaylistSlot = 'hero' | 'storyblock' | 'carousel' | 'grid' | 'deck' | 'floating' | 'live' | 'howto';
 
 export interface FireworkConfig {
-  /** Channel name (handle) of the sandbox business. Empty until the sandbox channel exists. */
+  /** Channel name (handle) of the sandbox business, as in the `channel` attribute of Business Portal embed code. */
   channel: string;
   /** Playlist ID per page slot. An empty slot falls back to the whole channel. */
   playlists: Record<PlaylistSlot, string>;
@@ -23,15 +23,15 @@ export interface FireworkConfig {
 }
 
 export const firework: FireworkConfig = {
-  channel: '',
+  channel: 'sashoo_business',
   playlists: {
-    hero: '', // livestream playlist for the Hero unit on the home and live pages
-    storyblock: '', // home page Storyblock ("morning ritual")
-    carousel: '', // home page carousel ("Watch & shop")
-    grid: '', // shop page grid
-    deck: '', // product page Player Deck
-    floating: '', // floating player on the home page
-    live: '', // replays on the live page
+    hero: '5bJdVa', // livestream playlist for the Hero unit on the home and live pages
+    storyblock: 'gkkORx', // home page Storyblock ("morning ritual")
+    carousel: 'o9XklW', // home page carousel ("Watch & shop")
+    grid: 'o8NbVX', // shop page grid
+    deck: 'o30J7Z', // product page Player Deck
+    floating: 'ojEpYM', // floating player on the home page
+    live: '5x69le', // replays on the live page
     howto: '', // how-to videos on the help pages (Week 2)
   },
   scripts: {

@@ -39,10 +39,40 @@ function materialise(placeholder: HTMLElement, settings: EffectiveSettings): HTM
   return el;
 }
 
+function describeSource(el: HTMLElement): string {
+  for (const attr of ['skus', 'hashtag', 'playlist', 'video']) {
+    const value = el.getAttribute(attr);
+    if (value) return `${attr}="${value}"`;
+  }
+  return `channel="${el.getAttribute('channel') ?? ''}"`;
+}
+
+const watched = new WeakSet<HTMLElement>();
+
+/**
+ * A feed with no content, such as a skus Storyblock for a product without tagged videos, fires
+ * fw:embed-feed:error and otherwise leaves an empty box at the widget's height. Customers usually
+ * hide the container; here the widget is hidden and a note says which source returned nothing.
+ */
+function hideWhenFeedFails(el: HTMLElement): void {
+  if (watched.has(el)) return;
+  watched.add(el);
+  el.addEventListener('fw:embed-feed:error', () => {
+    if (el.classList.contains('fw-failed')) return;
+    el.classList.add('fw-failed');
+    const note = document.createElement('p');
+    note.className = 'fw-failed-note';
+    note.textContent = `Firework returned no videos for ${describeSource(el)}, so this widget is hidden.`;
+    el.after(note);
+  });
+}
+
 export function applyOverrides(settings: EffectiveSettings): void {
   document.querySelectorAll<HTMLElement>(MANAGED).forEach((el) => {
-    if (el.dataset.fwTag) materialise(el, settings);
-    else applyToElement(el, settings);
+    const live = el.dataset.fwTag ? materialise(el, settings) : el;
+    if (!live) return;
+    applyToElement(live, settings);
+    hideWhenFeedFails(live);
   });
 }
 
