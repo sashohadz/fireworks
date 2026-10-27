@@ -12,4 +12,6 @@ export default defineConfig({
   compressHTML: true,
   devToolbar: { enabled: false },
   trailingSlash: 'ignore',
+  // axe-core (about 650 kB) is its own chunk, loaded only when an audit runs on /lab/accessibility.
+  vite: { build: { chunkSizeWarningLimit: 700 } },
 });

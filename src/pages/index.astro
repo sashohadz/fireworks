@@ -92,8 +92,8 @@ const ritual = ['FJB-101', 'FJB-103', 'FJB-107'].map((id) => getProduct(id)!);
     <div class="container">
       <p class="eyebrow">Floating player</p>
       <h2 id="floating-heading" class="visually-hidden">Floating player</h2>
-      <p class="muted small">
-        The floating player starts pinned in the bottom-right corner. Its placeholder shows here until a channel is set.
+      <p class="muted small" data-demo-chrome>
+        The floating player is pinned to the bottom-right corner and stays there while the shopper scrolls.
       </p>
       <FwWidget tag="fw-player" slot="floating" label="Floating player (pinned)" attrs={{ mode: 'pinned', player_placement: 'bottom-right' }} />
     </div>

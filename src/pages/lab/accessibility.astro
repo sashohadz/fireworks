@@ -1,0 +1,184 @@
+---
+import FwWidget from '../../components/FwWidget.astro';
+import Lab from '../../layouts/Lab.astro';
+
+const manual = [
+  ['Keyboard', 'Tab reaches each thumbnail, Enter or Space opens the player, Escape closes it, and focus returns to the thumbnail.'],
+  ['Focus', 'Every focused control has a visible focus ring, also with the brand colours set through CSS variables.'],
+  ['Screen reader', 'VoiceOver or NVDA reads a useful name for thumbnails, the play button and product cards.'],
+  ['Captions', 'Videos with speech have a .vtt caption file and Closed Captioning switched on in Business Portal.'],
+  ['Motion', 'Autoplaying previews are muted. Check whether the customer needs autoplay="false" on some pages.'],
+  ['Zoom', 'At 200% browser zoom and at phone width, widgets stay usable and nothing overlaps.'],
+  ['Contrast', 'Custom colours for buttons, titles and product cards keep a contrast ratio of at least 4.5:1.'],
+];
+---
+
+<Lab title="Accessibility check" description="Audit Firework widgets with axe-core and follow keyboard focus inside their shadow DOM.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>Accessibility check</h1>
+  <p class="lede">
+    Run an automated audit on live Firework widgets, follow keyboard focus inside them, and work through the checks a
+    tool cannot do. Use it for accessibility questions from customers and to compare a customer's styling with the
+    defaults.
+  </p>
+  <div class="note note-info">
+    <p>
+      <strong>Why EU customers ask.</strong> The European Accessibility Act has applied to many e-commerce services in
+      the EU since 28 June 2025. In practice, teams test against EN 301 549, which points to WCAG 2.1 level AA for web
+      content.
+    </p>
+    <p class="small">
+      Automated tools find only part of the problems. Treat a clean audit as a starting point, then do the manual checks
+      below. This page reports what it finds; it is not a compliance statement for Firework.
+    </p>
+  </div>
+
+  <h2>Widgets under test</h2>
+  <p class="small muted">Wait until the videos show, then run the audit. Use the Settings dialog to test another channel.</p>
+  <div class="a11y-widgets" id="a11y-widgets">
+    <FwWidget tag="fw-embed-feed" slot="carousel" label="Carousel" attrs={{ mode: 'row', name: 'a11y-carousel' }} />
+    <FwWidget tag="fw-storyblock" slot="storyblock" label="Storyblock" attrs={{ height: '520px', name: 'a11y-storyblock' }} />
+  </div>
+
+  <h2>Automated audit</h2>
+  <div class="panel a11y-controls">
+    <label for="a11y-scope">Scope</label>
+    <select id="a11y-scope">
+      <option value="widgets">Firework widgets only</option>
+      <option value="page">Whole page</option>
+    </select>
+    <label class="check"><input type="checkbox" id="a11y-bp" /> Include best practices</label>
+    <button type="button" class="btn btn-small" id="a11y-run">Run audit</button>
+  </div>
+  <p id="a11y-summary" class="a11y-summary" aria-live="polite">Not run yet. The audit uses axe-core with the WCAG 2.0, 2.1 and 2.2 A and AA rules.</p>
+  <div class="table-wrap" id="a11y-results-wrap" hidden>
+    <table class="table a11y-table">
+      <thead><tr><th>Impact</th><th>Rule</th><th>WCAG</th><th>Where</th></tr></thead>
+      <tbody id="a11y-results"></tbody>
+    </table>
+  </div>
+
+  <h2>Focus tracker</h2>
+  <p>
+    Click into the page above the widgets, then press <kbd>Tab</kbd>. The tracker follows focus into the widgets' shadow
+    DOM, where the browser's own tools only show the host element.
+  </p>
+  <div class="panel a11y-focus">
+    <p><strong>Now:</strong> <span id="focus-now">Nothing focused yet.</span></p>
+    <ol id="focus-log" class="focus-log" reversed></ol>
+  </div>
+
+  <h2>Manual checks</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Area</th><th>What to check</th></tr></thead>
+      <tbody>{manual.map(([area, what]) => <tr><td>{area}</td><td>{what}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p class="small muted">
+    Sources: <a href="https://eur-lex.europa.eu/eli/dir/2019/882/oj">European Accessibility Act (Directive 2019/882)</a> ·
+    <a href="https://www.w3.org/TR/WCAG21/">WCAG 2.1</a> · <a href="https://github.com/dequelabs/axe-core">axe-core</a> ·
+    <a href="https://firework.com/help/how-to-add-closed-captions-to-your-videos">Closed captions in Firework</a>.
+  </p>
+</Lab>
+
+<script>
+  import { auditWidgets, initFocusTracker } from '../../scripts/a11y';
+  initFocusTracker(document.getElementById('focus-now')!, document.getElementById('focus-log')!);
+  const run = document.getElementById('a11y-run') as HTMLButtonElement;
+  run.addEventListener('click', async () => {
+    run.disabled = true;
+    run.textContent = 'Running…';
+    try {
+      await auditWidgets({
+        scope: (document.getElementById('a11y-scope') as HTMLSelectElement).value as 'widgets' | 'page',
+        bestPractices: (document.getElementById('a11y-bp') as HTMLInputElement).checked,
+        summary: document.getElementById('a11y-summary')!,
+        tbody: document.getElementById('a11y-results')!,
+        wrap: document.getElementById('a11y-results-wrap')!,
+      });
+    } finally {
+      run.disabled = false;
+      run.textContent = 'Run audit again';
+    }
+  });
+</script>
+
+<style>
+  .a11y-widgets {
+    display: grid;
+    gap: 24px;
+  }
+  .a11y-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+  }
+  .a11y-controls select {
+    font: inherit;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .check {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .a11y-summary {
+    margin: 12px 0;
+    font-weight: 500;
+  }
+  .a11y-table td {
+    vertical-align: top;
+  }
+  .a11y-table details {
+    margin-top: 6px;
+  }
+  .a11y-table pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.8rem;
+    background: var(--paper);
+    padding: 8px;
+    border-radius: 6px;
+    margin: 6px 0;
+  }
+  .impact {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: var(--mist);
+  }
+  .impact-critical,
+  .impact-serious {
+    background: #f6d7d3;
+    color: var(--danger);
+  }
+  .impact-moderate {
+    background: var(--warning-bg);
+  }
+  .a11y-focus p {
+    margin-top: 0;
+  }
+  .focus-log {
+    margin: 0;
+    padding-left: 2.6em;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    max-height: 260px;
+    overflow: auto;
+  }
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 5px;
+    background: var(--surface);
+  }
+</style>

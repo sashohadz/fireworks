@@ -1,0 +1,67 @@
+---
+import Overlay from '../../../layouts/Overlay.astro';
+import { defaultUnit, formatPrice, products, unitImage } from '../../../lib/catalog';
+
+// Everything the spotlight needs, chosen at runtime with ?sku=FJB-103 or ?sku=FJB-103-30ML.
+const data = products.map((p) => ({
+  id: p.id,
+  name: p.name,
+  defaultUnit: defaultUnit(p).id,
+  units: p.units.map((u) => ({
+    id: u.id,
+    name: u.name,
+    image: unitImage(p, u),
+    price: formatPrice(u.price),
+    compareAt: u.compareAtPrice !== undefined ? formatPrice(u.compareAtPrice) : null,
+  })),
+}));
+const first = data.find((p) => p.id === 'FJB-103')!;
+const firstUnit = first.units.find((u) => u.id === first.defaultUnit)!;
+---
+
+<Overlay title="Product spotlight">
+  <div class="ov spot pos-middle" data-pos>
+    <img id="spot-img" src={firstUnit.image} alt="" width="340" height="210" />
+    <div class="spot-body">
+      <p class="spot-name" id="spot-name">{first.name}</p>
+      <p class="spot-unit" id="spot-unit">{firstUnit.name}</p>
+      <p class="spot-price" id="spot-price">{firstUnit.price}<s id="spot-compare" hidden></s></p>
+      <p class="spot-note" data-param="note" data-optional>Tap the product card below to shop</p>
+    </div>
+  </div>
+  <script type="application/json" id="spot-data" set:html={JSON.stringify(data).replace(/</g, '\\u003c')} />
+</Overlay>
+
+<script>
+  interface SpotUnit {
+    id: string;
+    name: string;
+    image: string;
+    price: string;
+    compareAt: string | null;
+  }
+  interface SpotProduct {
+    id: string;
+    name: string;
+    defaultUnit: string;
+    units: SpotUnit[];
+  }
+  const q = new URLSearchParams(location.search);
+  const data = JSON.parse(document.getElementById('spot-data')!.textContent ?? '[]') as SpotProduct[];
+  const sku = (q.get('sku') ?? 'FJB-103').trim().toUpperCase();
+  const product = data.find((p) => p.id === sku || p.units.some((u) => u.id === sku));
+  if (product) {
+    const unit = product.units.find((u) => u.id === sku) ?? product.units.find((u) => u.id === product.defaultUnit)!;
+    (document.getElementById('spot-img') as HTMLImageElement).src = unit.image;
+    document.getElementById('spot-name')!.textContent = product.name;
+    document.getElementById('spot-unit')!.textContent = unit.name;
+    const price = document.getElementById('spot-price')!;
+    const compare = document.getElementById('spot-compare')!;
+    price.firstChild!.textContent = unit.price;
+    compare.textContent = unit.compareAt ?? '';
+    compare.hidden = !unit.compareAt;
+    if (q.get('price') === '0') price.hidden = true;
+  } else {
+    document.getElementById('spot-name')!.textContent = `Unknown SKU ${sku}`;
+  }
+</script>

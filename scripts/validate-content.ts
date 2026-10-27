@@ -1,6 +1,7 @@
-// Validates the catalog and video specs. Runs in CI and before any generation.
+// Validates the catalog, video specs and pitch scripts. Runs in CI and before any generation.
 // Usage: npm run validate
 import { imageExists, productImageDir, products } from '../src/lib/catalog';
+import { loadPitches } from '../src/lib/pitches';
 import { loadSpecs } from './gen/lib/specs';
 
 // Importing the catalog already parses it with zod and throws on invalid data.
@@ -16,3 +17,10 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(`Video specs OK: ${videos.length} videos, ${liveShows.length} live show(s).`);
+
+const pitchCheck = loadPitches();
+if (pitchCheck.errors.length) {
+  console.error(`Pitch errors:\n${pitchCheck.errors.map((e) => `  - ${e}`).join('\n')}`);
+  process.exit(1);
+}
+console.log(`Pitches OK: ${pitchCheck.pitches.map((p) => `${p.id} (${p.steps.length} steps)`).join(', ')}.`);

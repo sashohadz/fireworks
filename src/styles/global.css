@@ -2,7 +2,7 @@
 :root {
   --ink: #14212b;
   --ink-soft: #46545e;
-  --ink-faint: #6c7880;
+  --ink-faint: #5a666e;
   --paper: #f7f5f0;
   --surface: #ffffff;
   --mist: #e6ebe8;
@@ -10,7 +10,7 @@
   --fjord: #2f5d73;
   --fjord-dark: #224656;
   --cloudberry: #e8913a;
-  --cloudberry-dark: #b8661f;
+  --cloudberry-dark: #9c5414;
   --heather: #8c6d8f;
   --moss: #5b6b4f;
   --danger: #a33a3a;
@@ -479,7 +479,7 @@ kbd {
 
 .badge-sale {
   background: var(--cloudberry);
-  color: #fff;
+  color: var(--ink);
 }
 
 .badge-out {
@@ -622,6 +622,12 @@ kbd {
   background: var(--surface);
   color: var(--ink);
   width: 100%;
+}
+
+.field input[type='checkbox'],
+.field input[type='radio'] {
+  width: auto;
+  padding: 0;
 }
 
 .field .hint {
@@ -847,4 +853,127 @@ dialog.settings-dialog::backdrop {
   padding: 8px 10px;
   text-align: left;
   vertical-align: top;
+}
+
+/* ---------- pitch mode (src/scripts/pitch.ts) ---------- */
+/* Demo tools and explanatory notes disappear on the shared screen. Mark more with data-demo-chrome. */
+html[data-present] .tool-nav,
+html[data-present] .nav-tool-mobile,
+html[data-present] .header-actions [data-open-settings],
+html[data-present] #override-banner,
+html[data-present] .fw-failed-note,
+html[data-present] [data-demo-chrome] {
+  display: none !important;
+}
+
+.pitch-bar {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(20 33 43 / 0.88);
+  color: #fff;
+  font-size: 0.85rem;
+  box-shadow: var(--shadow);
+  transition: opacity 0.2s;
+}
+
+.pitch-bar.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pitch-bar button {
+  min-width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.pitch-bar button:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+
+.pitch-bar button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pitch-bar button:focus-visible {
+  outline: 2px solid var(--cloudberry);
+  outline-offset: 1px;
+}
+
+.pitch-bar .pitch-bar-text {
+  padding: 0 10px;
+  font-size: 0.85rem;
+}
+
+.pitch-bar-count {
+  min-width: 3.2em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .pitch-bar {
+    left: 8px;
+    bottom: 8px;
+  }
+}
+
+/* ---------- tickable checklists on Learn pages (src/scripts/checklist.ts) ---------- */
+.prose .contains-task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose .task-list-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.prose .task-list-item input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 0.2em;
+  accent-color: var(--fjord);
+}
+
+.prose .task-list-item label {
+  cursor: pointer;
+}
+
+.prose .task-list-item input:checked + label {
+  color: var(--ink-faint);
+}
+
+.checklist-progress {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  margin: 8px 0 20px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--mist);
+  font-size: 0.92rem;
+}
+
+/* The presenter-notes window (/pitch/<id>) is a tool, not a store page. */
+body[data-pitch-notes] .site-header,
+body[data-pitch-notes] .demo-banner,
+body[data-pitch-notes] .site-footer {
+  display: none;
 }

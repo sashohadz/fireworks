@@ -15,8 +15,11 @@ Nothing here is for sale. Products, images and videos are illustrated or AI-gene
 |---|---|---|
 | Storefront | `/`, `/shop`, `/products/*`, `/cart` | Hero unit, Storyblock, carousel, grid, Player Deck, floating player, product-page videos via `skus`, cart and purchase tracking |
 | Live and Showroom | `/live`, `/showroom` | Livestream with replays (Showroom and AVA arrive in Week 2) |
-| Lab | `/lab` | One page per component with attribute knobs, the exact embed code, CSS variables, an event log and known tickets |
-| Learn | `/learn` | Short, public-safe notes on Firework products and integrations |
+| OBS overlays | `/live/overlays` | Browser-source overlays at 720x1280 (name strap, product spotlight, giveaway, starting soon) and the OBS settings Firework needs |
+| Pitch mode | `/pitch` | Presents the store as a customer demo: demo tools hidden, presenter notes in a second window |
+| Lab | `/lab` | One page per component with attribute knobs, the exact embed code, CSS variables, an event log and known tickets. Also an accessibility check with axe-core and a shadow-DOM focus tracker |
+| AVA | `/lab/ava`, `/knowledge/*` | AVA setup kit: embed plan, knowledge files built from the catalog and help pages, suggested settings and a Playground test sheet |
+| Learn | `/learn` | Short, public-safe notes on Firework products and integrations, including a tickable go-live checklist |
 | Data | `/feeds/google.xml`, `/feeds/firework-products.csv`, `/api/products.json` | Product feeds for Firework import and a mock commerce API |
 
 Add `?debug` to any page for the event overlay, Firework's telemetry console and the `debug_fwn` switch.
@@ -46,6 +49,16 @@ You don't need to fork or redeploy. Settings are saved in your browser only.
 | `?a.<attribute>=` and `?css.<variable>=` | Lab pages only. "Copy link to this setup" builds these |
 
 Purchase tracking only fires for the sandbox channel in `src/site.config.ts`. Viewing anyone else's channel never sends test orders to their analytics.
+
+## Present a pitch
+
+Open `/pitch` and click **Start presenting**, or add `?present=<pitch-id>` to any page. Pitch mode lasts for the browser tab. It hides the Lab and Learn links, the settings button and the notes that explain the demo. The demo store banner stays.
+
+- **Step control.** A small control at the bottom left moves between steps. The `[` and `]` keys do the same, and `\` hides it.
+- **Presenter notes.** **Notes** opens `/pitch/<id>` in a separate window. It follows the shared tab, shows the elapsed time, and can send the shared tab to any step.
+- **Leave.** Click **×** in the control, or open any page with `?present=off`.
+
+Pitch scripts are YAML files in `content/pitches/`, checked by `npm run validate`. Keep them public-safe: no prices, customer names or internal figures. Mark other explanatory elements with `data-demo-chrome` to hide them in pitch mode.
 
 ## Generate content
 
@@ -81,9 +94,9 @@ Netlify builds from `netlify.toml`: `npm run build`, publish `dist`. Pull reques
 ```
 src/pages/          storefront, lab, learn, feeds and mock API
 src/lab/registry.ts components, attributes, CSS variables, events and known tickets
-src/scripts/        Firework loader, settings, event tap, debug overlay, cart, tracking
+src/scripts/        Firework loader, settings, event tap, debug overlay, cart, tracking, pitch mode, overlays, a11y
 src/site.config.ts  public Firework IDs: channel and playlists
-content/            catalog, brand, video specs, spend ledger
+content/            catalog, brand, video specs, pitch scripts, spend ledger
 scripts/gen/        image, clip, voice and video generation
 scripts/firework/   Business Portal checklist (API scripts come later)
 tests/              Playwright smoke tests

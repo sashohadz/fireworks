@@ -1,0 +1,268 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPitches, type Pitch } from '../../lib/pitches';
+
+export function getStaticPaths() {
+  return getPitches().map((pitch) => ({ params: { id: pitch.id }, props: { pitch } }));
+}
+
+const { pitch } = Astro.props as { pitch: Pitch };
+const totalMinutes = pitch.steps.reduce((n, s) => n + s.minutes, 0);
+const startPath = pitch.steps.find((s) => s.path)?.path ?? '/';
+---
+
+<Base title={`Notes: ${pitch.title}`} description={pitch.goal} pitchNotes>
+  <section class="section-tight">
+    <div class="container notes" data-pitch-id={pitch.id} data-steps={pitch.steps.length}>
+      <nav class="small muted" aria-label="Breadcrumb"><a href="/pitch">Pitch mode</a> / Presenter notes</nav>
+      <h1>{pitch.title}</h1>
+      <p class="lede">{pitch.goal}</p>
+      <p class="small muted">{pitch.audience} · {pitch.steps.length} steps, {totalMinutes} minutes.</p>
+
+      <div class="notes-status panel" aria-live="polite">
+        <span id="notes-link">Not connected to a shared tab.</span>
+        <span id="notes-clock" class="notes-clock" hidden></span>
+        <a class="btn btn-small" id="notes-start" href={`${startPath}?present=${pitch.id}`} target="fjb-pitch-shared">Open the shared tab</a>
+      </div>
+
+      {
+        pitch.before.length > 0 && (
+          <details class="notes-block" open>
+            <summary>Before the call</summary>
+            <ul>{pitch.before.map((b) => <li>{b}</li>)}</ul>
+          </details>
+        )
+      }
+      {
+        pitch.discovery.length > 0 && (
+          <details class="notes-block">
+            <summary>Discovery questions</summary>
+            <ul>{pitch.discovery.map((q) => <li>{q}</li>)}</ul>
+          </details>
+        )
+      }
+
+      <ol class="notes-steps">
+        {
+          pitch.steps.map((s, i) => (
+            <li class="notes-step" id={`step-${i}`} data-step={i}>
+              <div class="notes-step-head">
+                <h2>
+                  <span class="notes-step-num">{i + 1}</span> {s.title}
+                </h2>
+                <span class="small muted">{s.minutes} min</span>
+              </div>
+              <p class="small muted">
+                {s.path ? <a href={s.path}>{s.path}</a> : 'Outside the site'}
+                <button type="button" class="link-btn notes-go" data-go={i} hidden>
+                  Show on the shared tab
+                </button>
+              </p>
+              <div class="notes-cols">
+                <div>
+                  <p class="notes-label">Show</p>
+                  <ul>{s.show.map((x) => <li>{x}</li>)}</ul>
+                </div>
+                <div>
+                  <p class="notes-label">Say</p>
+                  <ul>{s.say.map((x) => <li>{x}</li>)}</ul>
+                </div>
+              </div>
+              {s.ask && (
+                <p class="notes-ask">
+                  <span class="notes-label">Ask</span> {s.ask}
+                </p>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { PITCH_CHANNEL, type PitchMessage } from '../../scripts/pitch';
+
+  const root = document.querySelector<HTMLElement>('.notes')!;
+  const pitchId = root.dataset.pitchId!;
+  const link = document.getElementById('notes-link')!;
+  const clock = document.getElementById('notes-clock')!;
+  let startedAt = 0;
+  let current = -1;
+
+  const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(PITCH_CHANNEL) : null;
+
+  function highlight(step: number): void {
+    if (step === current) return;
+    current = step;
+    document.querySelectorAll<HTMLElement>('.notes-step').forEach((el) => {
+      const on = Number(el.dataset.step) === step;
+      el.classList.toggle('is-current', on);
+      if (on) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  function tick(): void {
+    if (!startedAt) return;
+    const s = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    clock.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} elapsed`;
+  }
+
+  if (channel) {
+    document.querySelectorAll<HTMLButtonElement>('.notes-go').forEach((btn) => {
+      btn.hidden = false;
+      btn.addEventListener('click', () =>
+        channel.postMessage({ type: 'go', pitch: pitchId, step: Number(btn.dataset.go) } satisfies PitchMessage),
+      );
+    });
+    channel.addEventListener('message', (e: MessageEvent<PitchMessage>) => {
+      const msg = e.data;
+      if (msg?.type !== 'state' || msg.state.pitch !== pitchId) return;
+      if (msg.state.step < 0) {
+        link.textContent = 'The shared tab left pitch mode.';
+        clock.hidden = true;
+        highlight(-1);
+        return;
+      }
+      link.textContent = `Shared tab on step ${msg.state.step + 1} of ${msg.total}.`;
+      startedAt = msg.state.startedAt;
+      clock.hidden = false;
+      tick();
+      highlight(msg.state.step);
+    });
+    channel.postMessage({ type: 'hello' } satisfies PitchMessage);
+    window.setInterval(tick, 1000);
+  } else {
+    link.textContent = 'This browser cannot sync with the shared tab. Use the step links instead.';
+  }
+</script>
+
+<style>
+  .notes {
+    max-width: 760px;
+  }
+  .notes h1 {
+    margin-bottom: 0.2em;
+  }
+  .notes-status {
+    position: sticky;
+    top: 8px;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    margin: 16px 0;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+  .notes-status .btn {
+    margin-left: auto;
+  }
+  .notes-clock {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+  }
+  .notes-block {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    background: var(--surface);
+  }
+  .notes-block summary {
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .notes-steps {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0 0;
+    display: grid;
+    gap: 14px;
+  }
+  .notes-step {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    background: var(--surface);
+    scroll-margin-top: 76px;
+  }
+  .notes-step.is-current {
+    border-color: var(--fjord);
+    box-shadow: 0 0 0 3px rgb(47 93 115 / 0.18);
+  }
+  .notes-step-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .notes-step h2 {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .notes-step-num {
+    display: inline-grid;
+    place-items: center;
+    width: 1.6em;
+    height: 1.6em;
+    margin-right: 4px;
+    border-radius: 50%;
+    background: var(--mist);
+    font-family: var(--font-body);
+    font-size: 0.8em;
+  }
+  .notes-step.is-current .notes-step-num {
+    background: var(--fjord);
+    color: #fff;
+  }
+  .notes-go {
+    margin-left: 10px;
+  }
+  .notes-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .notes-cols ul {
+    padding-left: 1.1em;
+    margin: 0;
+  }
+  .notes-cols li {
+    margin-bottom: 6px;
+  }
+  .notes-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 8px 0 4px;
+  }
+  .notes-ask {
+    margin: 10px 0 0;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--warning-bg);
+  }
+  .notes-ask .notes-label {
+    display: inline;
+    margin-right: 6px;
+  }
+  @media (max-width: 640px) {
+    .notes-cols {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media print {
+    .notes-status,
+    .notes-go {
+      display: none !important;
+    }
+    .notes-step {
+      break-inside: avoid;
+    }
+  }
+</style>

@@ -142,7 +142,7 @@ const jsonLd = [
             <div><p>{product.skinTypes.join(', ')}</p></div>
           </details>
         </div>
-        <p class="small muted ids">
+        <p class="small muted ids" data-demo-chrome>
           Product external ID <code>{product.id}</code> · unit <code id="pdp-unit-id">{unit.id}</code>
         </p>
       </div>
@@ -154,11 +154,11 @@ const jsonLd = [
       <div>
         <p class="eyebrow">See it in action</p>
         <h2 id="videos-heading">Videos featuring {product.shortName}</h2>
-        <p>
+        <p data-demo-chrome>
           This Storyblock uses <code>skus="{product.id}"</code>, so it only shows videos tagged with this product. It
           stays empty if the external IDs in Firework don't match the catalog.
         </p>
-        <a class="small" href="/lab/pdp-videos">How product-page videos work</a>
+        <a class="small" href="/lab/pdp-videos" data-demo-chrome>How product-page videos work</a>
       </div>
       <FwWidget
         tag="fw-storyblock"

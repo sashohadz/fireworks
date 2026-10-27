@@ -3,6 +3,7 @@
 import { mountDebugOverlay } from './debug-overlay';
 import { installEventTap } from './event-tap';
 import { applyOverrides, loadFireworkSdk } from './firework-loader';
+import { initPitchMode } from './pitch';
 import { effectiveSettings } from './settings';
 import { initUi } from './ui';
 
@@ -12,6 +13,7 @@ export function boot(): void {
   if (settings.debug || document.body.dataset.eventTap === 'on') installEventTap();
   applyOverrides(settings);
   initUi(settings);
+  initPitchMode();
   loadFireworkSdk(settings);
   if (settings.debug) mountDebugOverlay(settings);
 }

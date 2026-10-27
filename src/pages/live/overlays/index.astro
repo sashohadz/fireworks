@@ -1,0 +1,330 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { products } from '../../../lib/catalog';
+
+const unitOptions = products.flatMap((p) => p.units.map((u) => ({ value: u.id, label: `${p.shortName} · ${u.name}` })));
+
+interface Field {
+  name: string;
+  label: string;
+  type?: 'text' | 'select' | 'time' | 'number' | 'checkbox';
+  value?: string;
+  options?: { value: string; label: string }[];
+  hint?: string;
+}
+interface OverlayDef {
+  id: string;
+  path: string;
+  title: string;
+  summary: string;
+  fields: Field[];
+}
+
+const position = (value: string): Field => ({
+  name: 'pos',
+  label: 'Position',
+  type: 'select',
+  value,
+  options: [
+    { value: 'top', label: 'Top, under the player header' },
+    { value: 'middle', label: 'Middle' },
+    { value: 'bottom', label: 'Bottom, above the chat area' },
+  ],
+});
+const hold: Field = { name: 'hold', label: 'Hide after (seconds)', type: 'number', hint: 'Empty keeps it on screen.' };
+
+const overlays: OverlayDef[] = [
+  {
+    id: 'name',
+    path: '/live/overlays/name/',
+    title: 'Name strap',
+    summary: 'Introduces the host or a guest at the start of a segment.',
+    fields: [
+      { name: 'title', label: 'Name', value: 'Your host' },
+      { name: 'subtitle', label: 'Line two', value: 'Fjordbloom Live · The Nordic glow edit' },
+      position('top'),
+      hold,
+    ],
+  },
+  {
+    id: 'product',
+    path: '/live/overlays/product/',
+    title: 'Product spotlight',
+    summary: 'Name, size and price of the product in the host’s hands. Prices come from the catalog.',
+    fields: [
+      { name: 'sku', label: 'Product', type: 'select', value: 'FJB-103-30ML', options: unitOptions },
+      { name: 'note', label: 'Call to action', value: 'Tap the product card below to shop' },
+      { name: 'price', label: 'Show the price', type: 'checkbox', value: '1' },
+      position('middle'),
+    ],
+  },
+  {
+    id: 'announcement',
+    path: '/live/overlays/announcement/',
+    title: 'Giveaway or coupon',
+    summary: 'A giveaway, a coupon code or any short announcement.',
+    fields: [
+      { name: 'kicker', label: 'Label', value: 'Giveaway' },
+      { name: 'text', label: 'Text', value: 'Comment your skin type to win the discovery set' },
+      { name: 'code', label: 'Code', value: '', hint: 'Optional, e.g. GLOW15.' },
+      position('top'),
+      hold,
+    ],
+  },
+  {
+    id: 'starting-soon',
+    path: '/live/overlays/starting-soon/',
+    title: 'Starting soon',
+    summary: 'A full-frame holding screen with a countdown. Use it as its own OBS scene before the show.',
+    fields: [
+      { name: 'title', label: 'Show title', value: 'Fjordbloom Live' },
+      { name: 'subtitle', label: 'Line two', value: 'The Nordic glow edit' },
+      { name: 'at', label: 'Count down to (local time)', type: 'time', hint: 'Or leave empty and set minutes.' },
+      { name: 'minutes', label: 'Or count down minutes', type: 'number' },
+    ],
+  },
+];
+
+const obsSettings = [
+  ['Settings, Video', 'Base and output resolution 720x1280, typed in by hand. 30 frames per second.'],
+  ['Settings, Output', 'Output mode Advanced. Rate control CBR. Bitrate your upload speed can carry. Keyframe interval 2.'],
+  ['Settings, Stream', 'Service Custom. Paste the Stream URL and the event’s Stream Key from Business Portal.'],
+  ['Settings, Advanced', 'Turn on dynamic bitrate, so the stream adapts to congestion instead of dropping.'],
+  ['View, Stats', 'Keep it open during the show to spot encoding problems.'],
+];
+---
+
+<Base title="OBS overlays" description="Browser-source overlays for Firework livestreams: name strap, product spotlight, giveaway and starting soon.">
+  <section class="section-tight">
+    <div class="container">
+      <nav class="small muted" aria-label="Breadcrumb"><a href="/live">Live</a> / OBS overlays</nav>
+      <h1>OBS overlay pack</h1>
+      <p class="lede">
+        Four overlays for a Firework livestream, built as OBS browser sources at 720x1280, Firework's livestream size.
+        Change the text here, then copy the URL into OBS.
+      </p>
+      <div class="ov-toggles">
+        <label><input type="checkbox" id="ov-bg" checked /> Sample background</label>
+        <label><input type="checkbox" id="ov-guides" checked /> Player interface guides</label>
+        <label><input type="checkbox" id="ov-hd" /> 1080x1920 canvas</label>
+      </div>
+      <p class="small muted">
+        The guides mark roughly where Firework's player draws its header, chat and product cards over the stream. Check
+        your layout in a test stream before the show, and see Firework's
+        <a href="https://firework.com/help/safe-zone-specifications-for-firework-videos">safe zone specifications</a>.
+      </p>
+
+      <div class="ov-list">
+        {
+          overlays.map((o) => (
+            <article class="ov-card panel" data-overlay={o.path} id={`overlay-${o.id}`}>
+              <div class="ov-preview">
+                <iframe title={`${o.title} preview`} loading="lazy" tabindex="-1" />
+              </div>
+              <div class="ov-form">
+                <h2>{o.title}</h2>
+                <p class="muted">{o.summary}</p>
+                {o.fields.map((f) => (
+                  <div class="field">
+                    {f.type === 'checkbox' ? (
+                      <label class="check">
+                        <input type="checkbox" name={f.name} checked={f.value === '1'} /> {f.label}
+                      </label>
+                    ) : (
+                      <>
+                        <label for={`${o.id}-${f.name}`}>{f.label}</label>
+                        {f.type === 'select' ? (
+                          <select id={`${o.id}-${f.name}`} name={f.name}>
+                            {f.options!.map((opt) => (
+                              <option value={opt.value} selected={opt.value === f.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            id={`${o.id}-${f.name}`}
+                            name={f.name}
+                            type={f.type ?? 'text'}
+                            value={f.value ?? ''}
+                            min={f.type === 'number' ? 0 : undefined}
+                            maxlength={f.type === 'text' || !f.type ? 140 : undefined}
+                          />
+                        )}
+                      </>
+                    )}
+                    {f.hint && <p class="hint">{f.hint}</p>}
+                  </div>
+                ))}
+                <div class="snippet">
+                  <div class="snippet-head">
+                    <span>Browser source URL</span>
+                    <button type="button" data-copy-target={`url-${o.id}`}>Copy</button>
+                  </div>
+                  <pre><code id={`url-${o.id}`} /></pre>
+                </div>
+                <p class="small">
+                  <a class="ov-open" href={o.path} target="_blank" rel="noopener">Open full size</a>
+                </p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container prose">
+      <h2>Add an overlay to OBS</h2>
+      <ol>
+        <li>In the scene with your camera or video, add a source and choose <strong>Browser</strong>.</li>
+        <li>Paste the URL from this page. Set width 720 and height 1280, or 1080 and 1920 with the 1080x1920 option.</li>
+        <li>
+          Tick <strong>Refresh browser when scene becomes active</strong> so the overlay animates in each time you switch
+          to the scene. Tick <strong>Shutdown source when not visible</strong> to save CPU.
+        </li>
+        <li>Keep the overlay above the camera or video source in the source list.</li>
+        <li>Make one scene per moment, for example "Host intro" and "Giveaway", and switch scenes during the show.</li>
+      </ol>
+
+      <h2>OBS settings for Firework</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Where</th><th>Setting</th></tr></thead>
+          <tbody>{obsSettings.map(([where, what]) => <tr><td>{where}</td><td>{what}</td></tr>)}</tbody>
+        </table>
+      </div>
+      <p>
+        Firework's livestream resolution is fixed at 720x1280, so a larger canvas gets cropped. Accounts with 1080p
+        enabled can stream at 1080p. Every event gets its own Stream Key, so copy a fresh one for each show. To finish,
+        stop streaming in OBS, then click End Stream in Assistant Mode.
+      </p>
+
+      <h2>Overlays in a prerecorded stream</h2>
+      <p>
+        A prerecorded stream plays an uploaded MP4, so overlays have to be in the file. Build the scenes in OBS with the
+        video as a media source, use <strong>Start Recording</strong> instead of Start Streaming, and upload the
+        recording as a media asset. Firework accepts MP4 files up to 10 GB. Transcoding takes about 1 to 3 minutes per
+        minute of video, so upload well before the show.
+      </p>
+
+      <h2>Firework's built-in image overlay</h2>
+      <p>
+        Hosts who stream from the Firework Camera App can pin an image overlay during the show instead. The image is a
+        PNG, GIF, BMP or JPEG of 1 MB or less, about 50 pixels high. Its position is set before going live, and it is
+        not clickable. Product cards in the player stay the clickable way to shop.
+      </p>
+      <p class="small muted">
+        Help center:
+        <a href="https://firework.com/help/how-to-go-live-with-third-party-obs">Go live with OBS</a> ·
+        <a href="https://firework.com/help/how-to-stream-a-prerecorded-video">Stream a prerecorded video</a> ·
+        <a href="https://firework.com/help/image-overlay">Image overlay</a> ·
+        <a href="https://firework.com/help/what-are-best-practices-for-live-streaming">Livestream best practices</a>.
+        Before a show, run through the <a href="/learn/go-live-checklist">go-live checklist</a>.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const bg = document.getElementById('ov-bg') as HTMLInputElement;
+  const guides = document.getElementById('ov-guides') as HTMLInputElement;
+  const hd = document.getElementById('ov-hd') as HTMLInputElement;
+
+  function overlayUrl(card: HTMLElement): URL {
+    const url = new URL(card.dataset.overlay!, location.origin);
+    card.querySelectorAll<HTMLInputElement | HTMLSelectElement>('.ov-form [name]').forEach((field) => {
+      if (field instanceof HTMLInputElement && field.type === 'checkbox') {
+        if (!field.checked) url.searchParams.set(field.name, '0');
+        return;
+      }
+      const value = field.value.trim();
+      if (value) url.searchParams.set(field.name, value);
+    });
+    if (hd.checked) url.searchParams.set('hd', '1');
+    return url;
+  }
+
+  const timers = new WeakMap<HTMLElement, number>();
+
+  function update(card: HTMLElement, immediate = false): void {
+    const url = overlayUrl(card);
+    card.querySelector('code')!.textContent = url.toString();
+    card.querySelector<HTMLAnchorElement>('.ov-open')!.href = url.toString();
+    const preview = new URL(url);
+    preview.searchParams.delete('hd');
+    if (bg.checked) preview.searchParams.set('bg', '1');
+    if (guides.checked) preview.searchParams.set('guides', '1');
+    const iframe = card.querySelector('iframe')!;
+    window.clearTimeout(timers.get(card));
+    const load = () => (iframe.src = preview.pathname + preview.search);
+    if (immediate) load();
+    else timers.set(card, window.setTimeout(load, 400));
+  }
+
+  const cards = [...document.querySelectorAll<HTMLElement>('.ov-card')];
+  cards.forEach((card) => {
+    card.addEventListener('input', () => update(card));
+    card.addEventListener('change', () => update(card));
+    update(card, true);
+  });
+  [bg, guides, hd].forEach((box) => box.addEventListener('change', () => cards.forEach((c) => update(c, true))));
+</script>
+
+<style>
+  .ov-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin: 16px 0 4px;
+  }
+  .ov-list {
+    display: grid;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .ov-card {
+    display: grid;
+    grid-template-columns: 252px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .ov-card h2 {
+    margin-top: 0;
+  }
+  /* 720x1280 shown at 35%. */
+  .ov-preview {
+    width: 252px;
+    height: 448px;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: repeating-conic-gradient(#e9e6df 0% 25%, #f7f5f0 0% 50%) 0 0 / 20px 20px;
+  }
+  .ov-preview iframe {
+    width: 720px;
+    height: 1280px;
+    border: 0;
+    transform: scale(0.35);
+    transform-origin: 0 0;
+    pointer-events: none;
+  }
+  .ov-form .snippet pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .check {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-weight: 500;
+  }
+  @media (max-width: 720px) {
+    .ov-card {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .ov-preview {
+      margin: 0 auto;
+    }
+  }
+</style>
