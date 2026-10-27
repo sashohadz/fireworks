@@ -32,7 +32,7 @@ export const firework: FireworkConfig = {
     deck: 'o30J7Z', // product page Player Deck
     floating: 'ojEpYM', // floating player on the home page
     live: '5x69le', // replays on the live page
-    showroom: 'gk9Zyb', // daily restream with AI Copilot on the showroom page
+    showroom: 'vZb4Mw', // daily restream with AI Copilot on the showroom page
     howto: '', // how-to videos on the help pages (Week 2)
   },
   scripts: {
