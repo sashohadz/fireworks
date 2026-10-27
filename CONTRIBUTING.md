@@ -16,6 +16,14 @@ Use the gitignored `private/` folder for local notes that must never be pushed.
 - CI runs secretlint, content validation, the type check and the build on every pull request.
 - If a secret is ever pushed, rotate it immediately. Removing the commit is not enough.
 
+## Security model
+
+- **Public by design.** The channel name, playlist IDs and AVA's business and assistant IDs come from Firework's embed codes and appear in every page's HTML. They let someone show content that is already public, nothing more. Everything else that identifies an account, such as OAuth credentials, stays out of the repo.
+- **The site holds no secrets.** The build reads only the public site URL. Scripts in `scripts/` read `.env`, which is never committed or deployed.
+- **URL parameters are data, never markup.** Lab links only apply attributes and CSS variables that `src/lab/registry.ts` documents for that component, and never `on*` handlers or `javascript:` URLs. Text from the URL goes in with `textContent`, and inline JSON uses `safeJson()` from `src/lib/safe-json.ts`. Keep it that way when adding features.
+- **Other people's channels.** With `?channel=` or Settings pointing at a non-sandbox channel, purchase events are never sent, and the SDK loads with tracking opt-in, so only essential events reach that channel's Insights.
+- **Future server-side secrets** belong in `.env` for local scripts. Don't add them to Netlify environment variables while deploy previews can build pull requests from forks.
+
 ## How to add things
 
 - **A lab component or attribute.** Edit `src/lab/registry.ts`. The lab page, knobs and docs links are generated from it.

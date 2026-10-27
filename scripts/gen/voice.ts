@@ -3,7 +3,7 @@
 // Usage:
 //   npm run gen:voice                       dry run with cost estimate
 //   npm run gen:voice -- --run              generate every missing line
-//   npm run gen:voice -- --run --locale de  German voice-overs (Week 4), where specs have them
+//   npm run gen:voice -- --run --locale de  German voice-overs, where specs have them
 import fs from 'node:fs';
 import { parseArgs } from 'node:util';
 import { voiceFile } from './lib/assets';

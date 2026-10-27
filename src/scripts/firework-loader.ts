@@ -80,12 +80,17 @@ export function loadFireworkSdk(settings: EffectiveSettings): void {
   document.documentElement.dataset.fw = settings.fwMode;
   if (settings.fwMode === 'off') return;
   if (document.querySelector('script[data-fw-sdk]')) return;
+  // On someone else's channel (a teammate's sandbox or a customer repro), keep our visits out of their
+  // Insights as far as the SDK allows: tracking opt-in without consent means only essential requests.
+  // https://docs.firework.com/firework-for-developers/web/integration-guide/privacy-settings/privacy-settings
+  const limitTracking: Record<string, string> =
+    settings.channel && !settings.isSandbox ? { 'data-fwparam_tracking_opt_in': 'true' } : {};
   const add = (src: string, attrs: Record<string, string>) => {
     const s = document.createElement('script');
     s.src = src;
     s.async = true;
     s.dataset.fwSdk = 'true';
-    for (const [k, v] of Object.entries(attrs)) s.setAttribute(k, v);
+    for (const [k, v] of Object.entries({ ...attrs, ...limitTracking })) s.setAttribute(k, v);
     document.head.appendChild(s);
   };
   if (settings.fwMode === 'lazy') {

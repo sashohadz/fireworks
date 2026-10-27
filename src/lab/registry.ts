@@ -111,7 +111,7 @@ const embedFeedEvents = [
 const storyblockEvents = ['fw:storyblock:render', 'fw:storyblock:impression'];
 
 const noCodeWidget = (kind: string) =>
-  `In Business Portal, create a ${kind} widget for the website, choose the channel or playlist, preview it, then copy the embed code into the page. Confirm the exact menu labels during the Week 1 hands-on.`;
+  `In Business Portal, open the playlist, click Add to Site, choose the ${kind} layout and check the preview. Then click Copy Code and paste the code into the page.`;
 
 // ---------- components ----------
 export const labComponents: LabComponent[] = [
@@ -286,7 +286,7 @@ export const labComponents: LabComponent[] = [
       { label: 'Hero unit', url: `${DOCS}/integration-guide/components/hero-unit` },
       { label: 'Enable a Hero Unit (help center)', url: 'https://firework.com/help/enable-a-hero-unit' },
     ],
-    noCode: 'Schedule a livestream in Business Portal, add it to a livestream playlist, then embed the Hero unit with that playlist. Confirm labels during the Week 2 livestream session.',
+    noCode: 'In Business Portal, create a livestream event (Add videos, Create Livestream Event) and add it to a playlist. Then embed the Hero unit with that playlist.',
     knownIssues: [
       { title: 'No countdown shows', body: 'The playlist has no upcoming livestream. Schedule one, or check hero_hide_countdown.' },
       { title: 'Spacing looks off', body: 'Wrap the unit in a container with padding instead of styling the element itself.' },

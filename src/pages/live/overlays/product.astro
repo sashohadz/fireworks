@@ -1,6 +1,7 @@
 ---
 import Overlay from '../../../layouts/Overlay.astro';
 import { defaultUnit, formatPrice, products, unitImage } from '../../../lib/catalog';
+import { safeJson } from '../../../lib/safe-json';
 
 // Everything the spotlight needs, chosen at runtime with ?sku=FJB-103 or ?sku=FJB-103-30ML.
 const data = products.map((p) => ({
@@ -29,7 +30,7 @@ const firstUnit = first.units.find((u) => u.id === first.defaultUnit)!;
       <p class="spot-note" data-param="note" data-optional>Tap the product card below to shop</p>
     </div>
   </div>
-  <script type="application/json" id="spot-data" set:html={JSON.stringify(data).replace(/</g, '\\u003c')} />
+  <script type="application/json" id="spot-data" set:html={safeJson(data)} />
 </Overlay>
 
 <script>

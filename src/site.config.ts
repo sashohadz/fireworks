@@ -33,7 +33,7 @@ export const firework: FireworkConfig = {
     floating: 'ojEpYM', // floating player on the home page
     live: '5x69le', // replays on the live page
     showroom: 'vZb4Mw', // daily restream with AI Copilot on the showroom page
-    howto: '', // how-to videos on the help pages (Week 2)
+    howto: '', // how-to videos on the help pages, once they exist
   },
   scripts: {
     module: 'https://asset.fwcdn3.com/js/module/fwn.js',

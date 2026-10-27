@@ -1,4 +1,5 @@
 ---
+import { safeJson } from '../../lib/safe-json';
 import FwWidget from '../../components/FwWidget.astro';
 import SnippetPanel from '../../components/SnippetPanel.astro';
 import Lab from '../../layouts/Lab.astro';
@@ -52,7 +53,7 @@ const presets = {
   docs: { label: 'Firework defaults (clear all)', vars: {} },
 };
 
-const data = JSON.stringify({ groups, presets }).replace(/</g, '\\u003c');
+const data = safeJson({ groups, presets });
 ---
 
 <Lab title="Styling playground" description="Firework CSS variables, live, with the CSS to copy.">

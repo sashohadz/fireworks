@@ -68,7 +68,7 @@ Products live in `content/catalog/products.json`. Videos are described in `conte
 |---|---|---|
 | Placeholder product images | `npm run gen:placeholders` | Free |
 | AI product images | `npm run gen:images -- --run` | About $1.70 for the catalog |
-| AI video clips | `npm run gen:clips -- --run` | About $10 for the Week 1 set |
+| AI video clips | `npm run gen:clips -- --run` | About $10 for the first ten videos |
 | Voice-over | `npm run gen:voice -- --run` | About $0.10 |
 | Final videos | `npm run gen:compose` | Free (local ffmpeg) |
 | Live show | `npm run gen:live-show` | Free |

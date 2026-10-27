@@ -88,7 +88,7 @@ function initOverrideBanner(settings: EffectiveSettings): void {
     parts.push('No Firework channel is configured yet, so widgets show placeholders.');
   } else if (settings.channelSource === 'url' || settings.channelSource === 'settings') {
     parts.push(`Showing channel “${settings.channel}” from ${settings.channelSource === 'url' ? 'the URL' : 'your saved settings'}.`);
-    if (!settings.isSandbox) parts.push('Purchase tracking is off for non-sandbox channels.');
+    if (!settings.isSandbox) parts.push('Purchase tracking is off and other tracking is limited to essential events, because this is not the sandbox channel.');
   }
   if (settings.pagePlaylist !== null) parts.push(`Playlist forced to “${settings.pagePlaylist || 'whole channel'}”.`);
   if (settings.fwMode !== 'on') parts.push(`Firework SDK mode: ${settings.fwMode}.`);

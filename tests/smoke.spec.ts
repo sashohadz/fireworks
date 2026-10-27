@@ -150,6 +150,18 @@ test.describe('demo tools', () => {
     await expect(page.locator('#showroom-next-text')).toContainText(/Next session|On now/);
   });
 
+  test('lab links only apply documented attributes', async ({ page }) => {
+    const handler = encodeURIComponent("document.body.dataset.poc='ran'");
+    await page.goto(`/lab/carousel-grid?fw=off&a.mode=grid&a.onmouseover=${handler}&a.page_url=javascript:alert(1)&css.--not-a-widget-var=red`);
+    const widget = page.locator('#lab-stage [data-lab]');
+    await expect(widget).toHaveAttribute('mode', 'grid');
+    await expect(widget).not.toHaveAttribute('onmouseover');
+    await expect(widget).not.toHaveAttribute('page_url');
+    await widget.dispatchEvent('mouseover');
+    expect(await page.evaluate(() => document.body.dataset.poc ?? 'not run')).toBe('not run');
+    await expect(page.locator('#lab-snippet')).not.toContainText('--not-a-widget-var');
+  });
+
   test('checklist ticks survive a reload', async ({ page }) => {
     await page.goto('/learn/go-live-checklist?fw=off');
     await page.locator('label[for="check-0"]').click();
@@ -169,6 +181,13 @@ test.describe('demo tools', () => {
 test.describe('firework sdk (network)', () => {
   test.skip(process.env.OFFLINE === '1', 'needs network access to Firework');
   const channel = process.env.TEST_CHANNEL ?? 'firework';
+
+  test('other channels load the SDK with tracking opt-in', async ({ page }) => {
+    await page.goto('/?channel=firework');
+    await expect(page.locator('script[data-fw-sdk][type="module"]')).toHaveAttribute('data-fwparam_tracking_opt_in', 'true');
+    await page.goto('/');
+    await expect(page.locator('script[data-fw-sdk][type="module"]')).not.toHaveAttribute('data-fwparam_tracking_opt_in');
+  });
 
   test('widgets upgrade and fire events', async ({ page }) => {
     await page.goto(`/lab/storyblock?channel=${encodeURIComponent(channel)}`);

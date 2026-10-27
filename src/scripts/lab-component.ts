@@ -10,6 +10,18 @@ import { toast } from './ui';
 const ATTR_PREFIX = 'a.';
 const CSS_PREFIX = 'css.';
 
+/** URL schemes that can run code when a widget follows or loads a URL attribute. */
+const UNSAFE_SCHEME = /^\s*(javascript|data|vbscript):/i;
+
+/**
+ * Which ?a.<name>=<value> parameters a shared link may set. Only attributes the lab documents for this
+ * component, so a crafted link cannot add event handlers such as onmouseover and run script on this site.
+ */
+export function urlAttributeAllowed(component: Pick<LabComponent, 'attrs' | 'initial'>, name: string, value: string): boolean {
+  if (/^on/i.test(name) || UNSAFE_SCHEME.test(value)) return false;
+  return name === 'channel' || name === 'playlist' || Object.hasOwn(component.initial, name) || component.attrs.some((a) => a.name === name);
+}
+
 export function initLabComponent(): void {
   const dataEl = document.getElementById('lab-data');
   if (!dataEl) return;
@@ -35,10 +47,18 @@ export function initLabComponent(): void {
   for (const [key, value] of params) {
     if (key.startsWith(ATTR_PREFIX)) {
       const name = key.slice(ATTR_PREFIX.length);
+      if (!urlAttributeAllowed(component, name, value)) {
+        console.warn(`Lab: ignored ?${key} from the URL. Only documented attributes for <${component.tag}> are applied.`);
+        continue;
+      }
       if (value === '') delete attrs[name];
       else attrs[name] = value;
     }
-    if (key.startsWith(CSS_PREFIX)) cssVars[key.slice(CSS_PREFIX.length)] = value;
+    if (key.startsWith(CSS_PREFIX)) {
+      const name = key.slice(CSS_PREFIX.length);
+      if (component.cssVars.includes(name)) cssVars[name] = value;
+      else console.warn(`Lab: ignored ?${key} from the URL. It is not a CSS variable of <${component.tag}>.`);
+    }
   }
 
   // ---------- rendering ----------
