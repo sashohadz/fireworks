@@ -275,3 +275,64 @@
     padding: 5px 12px;
   }
 }
+
+/* An inline <fw-player> is the Horizontal Player: give it the documented 16:9 box. */
+.lab-stage fw-player:not([mode]) {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+/* Business Portal layout chips on lab component pages */
+.lab-layouts {
+  margin: 8px 0 28px;
+}
+
+.layout-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.layout-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.layout-chip:hover {
+  border-color: var(--fjord);
+}
+
+.layout-chip[aria-pressed='true'] {
+  border-color: var(--fjord);
+  box-shadow: 0 0 0 2px var(--fjord);
+}
+
+.layout-chip-name {
+  font-weight: 600;
+}
+
+.layout-chip-attrs code {
+  font-size: 0.78rem;
+  background: var(--warning-bg);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+.layout-notes {
+  margin: 12px 0 0;
+  padding-left: 1.1em;
+  color: var(--ink-soft);
+}

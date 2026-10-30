@@ -9,7 +9,7 @@
  * use the Settings dialog (gear icon) or URL parameters such as ?channel=my_channel&playlist=abc123.
  */
 
-export type PlaylistSlot = 'hero' | 'storyblock' | 'carousel' | 'grid' | 'deck' | 'floating' | 'live' | 'showroom' | 'howto';
+export type PlaylistSlot = 'hero' | 'storyblock' | 'carousel' | 'grid' | 'deck' | 'floating' | 'live' | 'showroom' | 'horizontal' | 'howto';
 
 export interface FireworkConfig {
   /** Channel name (handle) of the sandbox business, as in the `channel` attribute of Business Portal embed code. */
@@ -33,6 +33,7 @@ export const firework: FireworkConfig = {
     floating: 'ojEpYM', // floating player on the home page
     live: '5x69le', // replays on the live page
     showroom: 'vZb4Mw', // daily restream with AI Copilot on the showroom page
+    horizontal: 'vVOawz', // 16:9 videos for the Horizontal Carousel and Horizontal Player examples in the lab
     howto: '', // how-to videos on the help pages, once they exist
   },
   scripts: {
@@ -73,6 +74,7 @@ export const playlistSlots: { slot: PlaylistSlot; label: string; usedOn: string 
   { slot: 'floating', label: 'Floating player', usedOn: 'Home' },
   { slot: 'live', label: 'Live replays', usedOn: 'Live' },
   { slot: 'showroom', label: 'Showroom restream', usedOn: 'Showroom' },
+  { slot: 'horizontal', label: 'Horizontal videos (16:9)', usedOn: 'Lab: horizontal layouts' },
   { slot: 'howto', label: 'How-to videos', usedOn: 'Help' },
 ];
 

@@ -65,6 +65,7 @@ steps:
     path: /shop
     minutes: 2
     show:
+      - The stories row at the top. It is the same element as the grid, with round thumbnails.
       - The video grid between the product rows.
     say:
       - The same videos again, in a grid that fits a category page.

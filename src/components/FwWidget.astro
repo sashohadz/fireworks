@@ -3,6 +3,8 @@
  * Renders one Firework web component exactly as a customer would paste it.
  * With no channel configured, it renders a placeholder that src/scripts/firework-loader.ts
  * turns into the real element once a channel is set in Settings or the URL.
+ * With defer, it always renders the placeholder; a page script turns it into the element later
+ * (the layout gallery does this as each example scrolls into view).
  */
 import { firework, type PlaylistSlot } from '../site.config';
 
@@ -18,9 +20,10 @@ interface Props {
   label?: string;
   class?: string;
   style?: string;
+  defer?: boolean;
 }
 
-const { tag, slot, usePlaylist = true, attrs = {}, label, class: className, style } = Astro.props;
+const { tag, slot, usePlaylist = true, attrs = {}, label, class: className, style, defer = false } = Astro.props;
 
 const ownAttrs: Record<string, string> = {};
 for (const [name, value] of Object.entries(attrs)) {
@@ -38,7 +41,7 @@ const Tag = tag;
 ---
 
 {
-  channel ? (
+  channel && !defer ? (
     <Tag
       data-fw-managed="true"
       data-fw-slot={slot}
@@ -56,13 +59,22 @@ const Tag = tag;
       data-fw-use-playlist={usePlaylist ? undefined : 'false'}
       data-fw-tag={tag}
       data-fw-attrs={JSON.stringify(ownAttrs)}
+      data-fw-defer={defer ? 'true' : undefined}
     >
       <p class="fw-placeholder-title">{label ?? tag}</p>
-      <p>
-        The Firework <code>&lt;{tag}&gt;</code> widget renders here once a channel is set.
-        Open <button type="button" class="link-btn" data-open-settings>Settings</button> or add
-        <code>?channel=your_channel</code> to the URL.
-      </p>
+      {
+        defer && channel ? (
+          <p>Loads when you scroll here.</p>
+        ) : (
+          <p>
+            The Firework <code>&lt;{tag}&gt;</code> widget renders here once a channel is set. Open{' '}
+            <button type="button" class="link-btn" data-open-settings>
+              Settings
+            </button>{' '}
+            or add <code>?channel=your_channel</code> to the URL.
+          </p>
+        )
+      }
     </div>
   )
 }

@@ -1,5 +1,6 @@
 // Lab component page: attribute knobs, live rebuild, snippet, CSS variables and the event log.
 import type { AttrDef, LabComponent } from '../lab/registry';
+import { detectLayout } from '../lab/layouts';
 import { attrGroups } from '../lab/registry';
 import { fullSnippet } from '../lib/snippet';
 import { formatRecordHtml } from './debug-overlay';
@@ -77,7 +78,29 @@ export function initLabComponent(): void {
       stage.appendChild(el);
     }
     snippet.textContent = fullSnippet(component.tag, current, cssVars);
+    highlightLayout(current);
   }
+
+  // ---------- Business Portal layouts on this element ----------
+  const layoutButtons = [...document.querySelectorAll<HTMLButtonElement>('#lab-layouts [data-layout]')];
+  function highlightLayout(current: Record<string, string>): void {
+    const active = detectLayout(component.tag, current);
+    layoutButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.layout === active)));
+  }
+  layoutButtons.forEach((button) =>
+    button.addEventListener('click', () => {
+      const layout = component.layouts?.find((l) => l.id === button.dataset.layout);
+      if (!layout) return;
+      const next: Record<string, string> = {};
+      if (settings.channel) next.channel = settings.channel;
+      const playlist = playlistFor(settings, layout.slot);
+      if (playlist) next.playlist = playlist;
+      attrs = { ...next, ...layout.attrs };
+      buildKnobs();
+      rebuild();
+      history.replaceState(null, '', shareUrl());
+    }),
+  );
 
   function applyCss(): void {
     for (const name of component.cssVars) {

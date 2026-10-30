@@ -21,6 +21,7 @@ const initialAttrs: Record<string, string> = {
   ...(component.usePlaylist && component.slot && firework.playlists[component.slot] ? { playlist: firework.playlists[component.slot] } : {}),
   ...component.initial,
 };
+const layouts = component.layouts ?? [];
 const labData = safeJson({ component });
 ---
 
@@ -31,6 +32,49 @@ const labData = safeJson({ component });
     <p class="lede">{component.summary}</p>
     <p><strong>When to use it:</strong> {component.whenToUse}</p>
   </header>
+
+  {
+    layouts.length > 0 && (
+      <section class="lab-layouts" aria-labelledby="layouts-heading">
+        <h2 id="layouts-heading">Business Portal layouts on this element</h2>
+        <p class="small muted">
+          {layouts.length > 1
+            ? `These ${layouts.length} layouts are all the same <${component.tag}> element. Only the highlighted attributes change. Pick one to load it.`
+            : `Business Portal's ${layouts[0]!.name} is this <${component.tag}> element with the highlighted attributes.`}{' '}
+          <a href="/lab/layouts">See all 12 layouts side by side</a>
+        </p>
+        <div class="layout-chips" id="lab-layouts" role="group" aria-label="Business Portal layouts">
+          {layouts.map((l) => (
+            <button type="button" class="layout-chip" data-layout={l.id} aria-pressed="false">
+              <span class="layout-chip-name">{l.name}</span>
+              <span class="layout-chip-attrs">
+                {l.key.length ? (
+                  l.key.map((k) => (
+                    <code>
+                      {k}="{k === 'style' ? l.style : l.attrs[k]}"
+                    </code>
+                  ))
+                ) : (
+                  <code>no extra attributes</code>
+                )}
+              </span>
+            </button>
+          ))}
+        </div>
+        {layouts.some((l) => l.note) && (
+          <ul class="layout-notes small">
+            {layouts
+              .filter((l) => l.note)
+              .map((l) => (
+                <li>
+                  <strong>{l.name}:</strong> {l.note}
+                </li>
+              ))}
+          </ul>
+        )}
+      </section>
+    )
+  }
 
   <div class="lab-grid">
     <section aria-labelledby="preview-heading">
