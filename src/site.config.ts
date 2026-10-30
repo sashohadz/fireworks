@@ -33,7 +33,7 @@ export const firework: FireworkConfig = {
     floating: 'ojEpYM', // floating player on the home page
     live: '5x69le', // replays on the live page
     showroom: 'vZb4Mw', // daily restream with AI Copilot on the showroom page
-    horizontal: '', // 16:9 videos for the Horizontal Carousel and Horizontal Player examples in the lab
+    horizontal: 'vVOawz', // 16:9 videos for the Horizontal Carousel and Horizontal Player examples in the lab
     howto: '', // how-to videos on the help pages, once they exist
   },
   scripts: {
