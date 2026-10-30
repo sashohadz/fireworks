@@ -69,11 +69,19 @@ function hideWhenFeedFails(el: HTMLElement): void {
 
 export function applyOverrides(settings: EffectiveSettings): void {
   document.querySelectorAll<HTMLElement>(MANAGED).forEach((el) => {
+    if (el.dataset.fwDefer === 'true') return;
     const live = el.dataset.fwTag ? materialise(el, settings) : el;
     if (!live) return;
     applyToElement(live, settings);
     hideWhenFeedFails(live);
   });
+}
+
+/** Turns a deferred placeholder (FwWidget with defer) into the real widget. The loaded SDK upgrades it. */
+export function materialiseDeferred(placeholder: HTMLElement, settings: EffectiveSettings): HTMLElement | null {
+  const live = materialise(placeholder, settings);
+  if (live) hideWhenFeedFails(live);
+  return live;
 }
 
 export function loadFireworkSdk(settings: EffectiveSettings): void {

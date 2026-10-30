@@ -3,7 +3,7 @@ layout: ../../layouts/Learn.astro
 title: Web components in five minutes
 description: How the Firework script loads, which tag does what, and the attributes that matter most.
 order: 2
-updated: 27 Oct 2026
+updated: 30 Oct 2026
 ---
 
 ## Load the script once
@@ -23,11 +23,32 @@ For a faster first load, `fwn-async.js` (about 1 kB) delays the main script unti
 
 | Tag | Use it for | Try it |
 |---|---|---|
-| `<fw-embed-feed>` | Carousel (`mode="row"`), grid (`mode="grid"`) or a pinned player (`mode="pinned"`) | [Lab](/lab/carousel-grid) |
-| `<fw-storyblock>` | An inline, autoplaying player inside the page | [Lab](/lab/storyblock) |
+| `<fw-embed-feed>` | Carousel, grid, dynamic carousel, horizontal carousel and stories | [Lab](/lab/carousel-grid) |
+| `<fw-storyblock>` | An inline, autoplaying player, or a floating one with `mode="pinned"` | [Lab](/lab/storyblock) |
 | `<fw-player-deck>` | Playing tiles with product cards, as a row or grid | [Lab](/lab/player-deck) |
 | `<fw-herounit>` | Full-width livestream promotion with countdown | [Lab](/lab/hero-unit) |
-| `<fw-player>` | A floating or docked standalone player | [Lab](/lab/floating-player) |
+| `<fw-player>` | A floating standalone player, or an inline 16:9 horizontal player | [Lab](/lab/floating-player) |
+
+## One element, many layouts
+
+Business Portal's Add to Site offers 12 layouts, but they come down to five elements. Most layouts are one element with different attributes. See them all live on [All 12 layouts](/lab/layouts).
+
+| Business Portal layout | Element | Attributes that make it |
+|---|---|---|
+| Carousel | `<fw-embed-feed>` | `mode="row"` (the default) |
+| Grid | `<fw-embed-feed>` | `mode="grid"` |
+| Dynamic Carousel | `<fw-embed-feed>` | `thumbnail_style="dynamic"` |
+| Horizontal Carousel | `<fw-embed-feed>` | `thumbnail_orientation="horizontal"` |
+| Circle Stories | `<fw-embed-feed>` | `thumbnail_shape="circle"`, or `mode="stories"` |
+| Vertical Stories | `<fw-embed-feed>` | `thumbnail_shape="rectangle"` |
+| Player Deck | `<fw-player-deck>` | none |
+| Player Deck Grid | `<fw-player-deck>` | `mode="grid"` |
+| Story Block | `<fw-storyblock>` | none |
+| Floating Player | `<fw-storyblock>` | `mode="pinned"`. The docs also show `<fw-player mode="pinned">` |
+| Horizontal Player | `<fw-player>` | inline, with `style="width: 100%; aspect-ratio: 16/9"` |
+| Hero Unit | `<fw-herounit>` | none |
+
+Player Deck is itself the embed feed with a player-deck layout switched on. The three `thumbnail_*` attributes are not in the developer docs yet; they come from Business Portal's embed code and the SDK. Circle and vertical stories also take `size` (small, medium or large), `pulse_animation` and the CSS variable `--fw-thumbnail-pulse-animation-color`, which the help center documents.
 
 ## Choose the content
 

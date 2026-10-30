@@ -977,3 +977,11 @@ body[data-pitch-notes] .demo-banner,
 body[data-pitch-notes] .site-footer {
   display: none;
 }
+
+/* Circle Stories draw their circle with --fw-thumbnail-border-radius, so the brand-wide value on :root would
+   turn them into rounded squares. Reset it on circle-story feeds so the SDK's own circle applies. */
+fw-embed-feed[thumbnail_shape='circle'],
+fw-embed-feed[mode='stories']:not([thumbnail_shape]),
+fw-stories:not([thumbnail_shape]) {
+  --fw-thumbnail-border-radius: initial;
+}

@@ -81,10 +81,15 @@ export function isFaststart(file: string): boolean {
 }
 
 /** Checks the output against Firework-friendly settings. Returns a list of problems (empty when fine). */
-export async function verifyVideo(file: string): Promise<{ info: ProbeInfo; problems: string[] }> {
+export async function verifyVideo(
+  file: string,
+  expected: { width: number; height: number } = { width: 1080, height: 1920 },
+): Promise<{ info: ProbeInfo; problems: string[] }> {
   const info = await probe(file);
   const problems: string[] = [];
-  if (info.width !== 1080 || info.height !== 1920) problems.push(`size ${info.width}x${info.height}, expected 1080x1920`);
+  if (info.width !== expected.width || info.height !== expected.height) {
+    problems.push(`size ${info.width}x${info.height}, expected ${expected.width}x${expected.height}`);
+  }
   if (info.videoCodec !== 'h264') problems.push(`video codec ${info.videoCodec}, expected h264`);
   if (info.audioCodec !== 'aac') problems.push(`audio codec ${info.audioCodec ?? 'none'}, expected aac`);
   if (Math.round(info.fps) !== 30) problems.push(`${info.fps.toFixed(2)} fps, expected 30`);

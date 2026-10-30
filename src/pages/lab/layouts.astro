@@ -1,0 +1,272 @@
+---
+import FwWidget from '../../components/FwWidget.astro';
+import SnippetPanel from '../../components/SnippetPanel.astro';
+import Lab from '../../layouts/Lab.astro';
+import { elementFamilies, portalLayouts, type PortalLayout } from '../../lab/layouts';
+import { getLabComponent } from '../../lab/registry';
+import { elementSnippet } from '../../lib/snippet';
+import { firework } from '../../site.config';
+
+const channel = firework.channel || 'your_channel';
+const playlistOf = (l: PortalLayout) => firework.playlists[l.slot] ?? '';
+
+const codeFor = (l: PortalLayout) => elementSnippet(l.tag, { channel, playlist: playlistOf(l) || 'PLAYLIST_ID', ...l.attrs });
+
+/** A lab link that loads exactly this layout: its attributes, its playlist, and nothing left over from the page's defaults. */
+function labLink(l: PortalLayout): string {
+  const component = getLabComponent(l.labSlug)!;
+  const params = new URLSearchParams();
+  for (const k of Object.keys(component.initial)) if (!(k in l.attrs)) params.set(`a.${k}`, '');
+  if (l.slot !== component.slot) params.set('a.playlist', playlistOf(l));
+  for (const [k, v] of Object.entries(l.attrs)) params.set(`a.${k}`, v);
+  const query = params.toString();
+  return `/lab/${l.labSlug}${query ? `?${query}` : ''}`;
+}
+
+const keyText = (l: PortalLayout, k: string) => `${k}="${k === 'style' ? l.style : l.attrs[k]}"`;
+
+const sourceLabel: Record<PortalLayout['source'], string> = {
+  docs: 'In the developer docs',
+  help: 'In the help center, not the developer docs',
+  sdk: 'From Business Portal code and the SDK, not documented yet',
+};
+
+const suffixes = [...new Map(portalLayouts.map((l) => [l.configSuffix, l.sdkId])).entries()];
+---
+
+<Lab title="All 12 layouts" description="Every Business Portal layout as a live web example, grouped by the element it really is.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>All 12 Business Portal layouts</h1>
+  <p class="lede">
+    Business Portal's Add to Site offers 12 layouts, but the page only ever gets five Firework elements. Most layouts
+    are the same element with one or two different attributes. Here is each one live, with its code.
+  </p>
+
+  <h2>Five elements, twelve layouts</h2>
+  <div class="table-wrap">
+    <table class="table family-table">
+      <thead><tr><th>Element</th><th>Business Portal layouts</th><th>What changes</th></tr></thead>
+      <tbody>
+        {
+          elementFamilies.map((f) => (
+            <tr>
+              <td>
+                <code class="tag">&lt;{f.tag}&gt;</code>
+              </td>
+              <td>
+                {f.layouts.map((l, i) => (
+                  <>
+                    {i > 0 && ', '}
+                    <a href={`#${l.id}`}>{l.name}</a>
+                  </>
+                ))}
+              </td>
+              <td>
+                {f.layouts.map((l) => (
+                  <div class="family-row">
+                    <span>{l.name}:</span>{' '}
+                    {l.key.length ? l.key.map((k) => <code class="key">{keyText(l, k)}</code>) : <span class="muted">base</span>}
+                  </div>
+                ))}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note note-info">
+    <p><strong>Good to know when reading a customer's code.</strong></p>
+    <ul>
+      <li>
+        Player Deck is the embed feed with a player-deck layout switched on, which is why it accepts every
+        <code>fw-embed-feed</code> attribute.
+      </li>
+      <li>
+        If two layout attributes clash, the SDK picks in this order: <code>thumbnail_style="dynamic"</code>, then a
+        horizontal orientation, then Player Deck, then a stories shape, then <code>mode</code>.
+      </li>
+      <li>
+        The SDK also accepts the aliases <code>&lt;fw-carousel&gt;</code>, <code>&lt;fw-grid&gt;</code> and
+        <code>&lt;fw-stories&gt;</code>.
+      </li>
+      <li>
+        Some sites use a managed embed, <code>&lt;fw-widget widget_config_id="…"&gt;</code>. Its layout comes from
+        Business Portal, and the end of the ID says which one:
+        {suffixes.map(([s, id], i) => (
+          <>
+            {i > 0 && ', '}
+            <code>{s}</code> {id.replace(/_/g, ' ')}
+          </>
+        ))}.
+      </li>
+      <li>
+        <code>thumbnail_style</code>, <code>thumbnail_orientation</code> and <code>thumbnail_shape</code> are not in the
+        developer docs yet. They come from Business Portal's embed code and Firework's SDK, so check behaviour after SDK
+        releases.
+      </li>
+    </ul>
+  </div>
+
+  <div class="layout-list">
+    {
+      portalLayouts.map((l, i) => (
+        <article class="layout-card panel" id={l.id} aria-labelledby={`${l.id}-title`}>
+          <div class="layout-head">
+            <p class="eyebrow">
+              {i + 1} of {portalLayouts.length}
+            </p>
+            <h2 id={`${l.id}-title`}>{l.name}</h2>
+            <p class="layout-element">
+              <code class="tag">&lt;{l.tag}&gt;</code>
+              {l.key.length ? l.key.map((k) => <code class="key">{keyText(l, k)}</code>) : <span class="muted small">no extra attributes</span>}
+            </p>
+            <p>{l.summary}</p>
+            {l.note && <p class="small muted">{l.note}</p>}
+            {l.slot === 'horizontal' && !playlistOf(l) && (
+              <p class="small note">
+                Shows the whole channel until the playlist of 16:9 videos is set, so these thumbnails are vertical
+                videos in a horizontal frame.
+              </p>
+            )}
+            <p class="small">
+              <span class={`source source-${l.source}`}>{sourceLabel[l.source]}</span> ·{' '}
+              <a href={labLink(l)}>Open in the lab with every attribute</a>
+            </p>
+          </div>
+          <div class="layout-live">
+            {l.onDemand ? (
+              <div class="layout-ondemand">
+                <p class="small muted">Floats over the page, so it only appears when you ask for it.</p>
+                <button type="button" class="btn btn-small" data-floating={l.id} data-tag={l.tag} data-slot={l.slot} data-attrs={JSON.stringify(l.attrs)}>
+                  Show the floating player
+                </button>
+              </div>
+            ) : (
+              <FwWidget tag={l.tag} slot={l.slot} attrs={l.attrs} style={l.style} label={l.name} defer />
+            )}
+          </div>
+          <SnippetPanel id={`code-${l.id}`} title="Embed code" code={codeFor(l)} />
+        </article>
+      ))
+    }
+  </div>
+  <p class="small muted">
+    Sources: <a href="https://firework.com/help/embed-videos-on-your-web-page">Embedding playlists on your website</a> ·
+    <a href="https://docs.firework.com/firework-for-developers/web/integration-guide/components">Web components</a> ·
+    Firework's web SDK. The SDK script is on the page once; see the
+    <a href="/learn/web-components">web components</a> notes.
+  </p>
+</Lab>
+
+<script>
+  import { materialiseDeferred } from '../../scripts/firework-loader';
+  import { effectiveSettings, playlistFor } from '../../scripts/settings';
+
+  const settings = effectiveSettings();
+
+  // Turn each example into the real element shortly before it scrolls into view.
+  const placeholders = [...document.querySelectorAll<HTMLElement>('.layout-live [data-fw-defer="true"]')];
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          io.unobserve(entry.target);
+          materialiseDeferred(entry.target as HTMLElement, settings);
+        }
+      },
+      { rootMargin: '300px 0px' },
+    );
+    placeholders.forEach((p) => io.observe(p));
+  } else {
+    placeholders.forEach((p) => materialiseDeferred(p, settings));
+  }
+
+  // Floating layouts: create the element on request, remove it on the second click.
+  document.querySelectorAll<HTMLButtonElement>('[data-floating]').forEach((button) => {
+    let live: HTMLElement | null = null;
+    button.addEventListener('click', () => {
+      if (live) {
+        live.remove();
+        live = null;
+        button.textContent = 'Show the floating player';
+        return;
+      }
+      if (!settings.channel) return;
+      const el = document.createElement(button.dataset.tag!);
+      el.setAttribute('channel', settings.channel);
+      const playlist = playlistFor(settings, button.dataset.slot);
+      if (playlist) el.setAttribute('playlist', playlist);
+      for (const [k, v] of Object.entries(JSON.parse(button.dataset.attrs ?? '{}') as Record<string, string>)) el.setAttribute(k, v);
+      document.body.appendChild(el);
+      live = el;
+      button.textContent = 'Remove the floating player';
+    });
+  });
+</script>
+
+<style>
+  .family-table td {
+    vertical-align: top;
+  }
+  .family-row {
+    margin-bottom: 4px;
+  }
+  .tag {
+    font-weight: 600;
+  }
+  .key {
+    font-size: 0.8rem;
+    background: var(--warning-bg);
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 4px;
+    white-space: nowrap;
+  }
+  .layout-list {
+    display: grid;
+    gap: 24px;
+    margin: 28px 0;
+  }
+  .layout-card {
+    display: grid;
+    gap: 14px;
+  }
+  .layout-card h2 {
+    margin: 0;
+  }
+  .layout-head p {
+    margin: 6px 0;
+  }
+  .layout-element {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .layout-live {
+    min-height: 120px;
+    min-width: 0;
+  }
+  .layout-live :global(fw-player:not([mode])) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+  .layout-ondemand {
+    display: grid;
+    place-items: start;
+    gap: 8px;
+    padding: 16px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .source {
+    font-weight: 600;
+  }
+  .source-sdk {
+    color: var(--cloudberry-dark);
+  }
+</style>

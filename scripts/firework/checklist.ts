@@ -7,6 +7,7 @@ import path from 'node:path';
 import { getProduct, products } from '../../src/lib/catalog';
 import { playlistSlots } from '../../src/site.config';
 import { posterFile, subtitleFile, videoFile } from '../gen/lib/assets';
+import { HORIZONTAL_SOURCES, horizontalPosterFile, horizontalSubtitleFile, horizontalVideoFile } from '../gen/lib/horizontal';
 import { fail } from '../gen/lib/cli';
 import { OUT } from '../gen/lib/paths';
 import { allHashtags, loadSpecs, type AnySpec } from '../gen/lib/specs';
@@ -20,6 +21,8 @@ const playlistName: Record<string, string> = {
   deck: 'Fjordbloom · Product pages (Player Deck)',
   floating: 'Fjordbloom · Floating player',
   live: 'Fjordbloom · Live replays',
+  showroom: 'Fjordbloom · Showroom (restream)',
+  horizontal: 'Fjordbloom · Horizontal (16:9)',
   howto: 'Fjordbloom · How-to',
 };
 
@@ -40,7 +43,7 @@ lines.push(`- Alternative for practice: the CSV batch import with \`${site}/feed
 
 lines.push(`## 2. Create the playlists`, '', '| Slot | Suggested name | Videos |', '|---|---|---|');
 for (const { slot, usedOn } of playlistSlots) {
-  const ids = all.filter((s) => s.playlists.includes(slot)).map((s) => s.id);
+  const ids = slot === 'horizontal' ? HORIZONTAL_SOURCES.map((id) => `${id} (16:9)`) : all.filter((s) => s.playlists.includes(slot)).map((s) => s.id);
   lines.push(`| ${slot} (${usedOn}) | ${playlistName[slot]} | ${ids.length ? ids.join(', ') : 'none yet'} |`);
 }
 lines.push('');
@@ -70,6 +73,20 @@ lines.push(`## 5. Wire up the site`, '');
 lines.push('- [ ] Test first without code: open the site, click the gear icon, and enter the channel name and playlist IDs.');
 lines.push('- [ ] Then copy them into `src/site.config.ts`, commit, and let Netlify deploy.');
 lines.push('- [ ] Check each page with `?debug` and confirm `fw:*` events appear. Product pages should show the right videos through `skus`.');
+
+lines.push('', `## 6. Horizontal videos (16:9)`, '');
+lines.push('For the Horizontal Carousel and Horizontal Player examples in the lab. Render them with `npm run gen:horizontal`.', '');
+for (const id of HORIZONTAL_SOURCES) {
+  const spec = videos.find((v) => v.id === id);
+  if (!spec) continue;
+  lines.push(`### ${id} (16:9)`, '');
+  lines.push(`- [ ] File: \`${rel(horizontalVideoFile(id))}\`${status(horizontalVideoFile(id))}`);
+  lines.push(`- Poster: \`${rel(horizontalPosterFile(id))}\` · Subtitles: \`${rel(horizontalSubtitleFile(id))}\``);
+  lines.push(`- Caption: ${spec.title} (16:9)`);
+  lines.push(`- Tag products: ${spec.products.map((pid) => `${pid} ${getProduct(pid)!.name}`).join('; ')}`);
+  lines.push(`- Playlist: ${playlistName.horizontal}`, '');
+}
+lines.push('- [ ] Send the playlist ID, or set it as `horizontal` in `src/site.config.ts`.');
 
 fs.mkdirSync(OUT, { recursive: true });
 const file = path.join(OUT, 'upload-checklist.md');

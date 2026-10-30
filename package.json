@@ -21,6 +21,7 @@
     "gen:voice": "tsx scripts/gen/voice.ts",
     "gen:compose": "tsx scripts/gen/compose.ts",
     "gen:live-show": "tsx scripts/gen/live-show.ts",
+    "gen:horizontal": "tsx scripts/gen/horizontal.ts",
     "fw:checklist": "tsx scripts/firework/checklist.ts",
     "test:smoke": "playwright test",
     "prepare": "simple-git-hooks"

@@ -31,6 +31,7 @@ const pages = [
   '/learn/go-live-checklist',
   '/lab/accessibility',
   '/lab/ava',
+  '/lab/layouts',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -160,6 +161,34 @@ test.describe('demo tools', () => {
     await widget.dispatchEvent('mouseover');
     expect(await page.evaluate(() => document.body.dataset.poc ?? 'not run')).toBe('not run');
     await expect(page.locator('#lab-snippet')).not.toContainText('--not-a-widget-var');
+  });
+
+  test('the layout gallery shows all 12 Business Portal layouts', async ({ page }) => {
+    await page.goto('/lab/layouts?fw=off');
+    const cards = page.locator('.layout-card');
+    await expect(cards).toHaveCount(12);
+    for (const name of ['Dynamic Carousel', 'Horizontal Carousel', 'Circle Stories', 'Vertical Stories', 'Horizontal Player', 'Player Deck Grid']) {
+      await expect(page.locator('.layout-card h2', { hasText: name })).toHaveCount(1);
+    }
+    await expect(page.locator('#dynamic_carousel .key')).toContainText('thumbnail_style="dynamic"');
+    await expect(page.locator('#code-dynamic_carousel')).toContainText('thumbnail_style="dynamic"');
+    await expect(page.locator('#code-horizontal_player')).toContainText('aspect-ratio: 16/9');
+  });
+
+  test('layout chips switch the lab widget to another Business Portal layout', async ({ page }) => {
+    await page.goto('/lab/carousel-grid?fw=off');
+    await expect(page.locator('#lab-layouts [data-layout="carousel_row"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.locator('#lab-layouts [data-layout="dynamic_carousel"]').click();
+    await expect(page.locator('#lab-stage [data-lab]')).toHaveAttribute('thumbnail_style', 'dynamic');
+    await expect(page.locator('#lab-layouts [data-layout="dynamic_carousel"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.goto('/lab/carousel-grid?fw=off&a.thumbnail_shape=circle');
+    await expect(page.locator('#lab-stage [data-lab]')).toHaveAttribute('thumbnail_shape', 'circle');
+    await expect(page.locator('#lab-layouts [data-layout="circle_stories"]')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('the shop page has a circle stories row', async ({ page }) => {
+    await page.goto('/shop?fw=off');
+    await expect(page.locator('fw-embed-feed[thumbnail_shape="circle"]')).toHaveCount(1);
   });
 
   test('checklist ticks survive a reload', async ({ page }) => {

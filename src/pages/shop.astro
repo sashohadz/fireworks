@@ -13,6 +13,13 @@ const categories = [...new Set(products.map((p) => p.category))];
       <p class="eyebrow">Shop</p>
       <h1>Everything Fjordbloom</h1>
       <p class="lede">Twelve products, including a few deliberate edge cases: a sale, a sold-out tool, a six-shade balm and a very long product name.</p>
+      <div class="shop-stories">
+        <FwWidget tag="fw-embed-feed" slot="carousel" label="Circle Stories" attrs={{ mode: 'row', thumbnail_shape: 'circle', size: 'small' }} />
+        <p class="small muted" data-demo-chrome>
+          Circle Stories: the same <code>&lt;fw-embed-feed&gt;</code> as the grid below, with <code>thumbnail_shape="circle"</code>.
+          <a href="/lab/layouts#circle_stories">All 12 layouts</a>
+        </p>
+      </div>
       <div class="chip-row filters" role="group" aria-label="Filter by category">
         <button type="button" class="chip" aria-pressed="true" data-filter="all">All</button>
         {categories.map((c) => <button type="button" class="chip" aria-pressed="false" data-filter={c}>{c}</button>)}
@@ -35,6 +42,12 @@ const categories = [...new Set(products.map((p) => p.category))];
 <style>
   .filters {
     margin: 24px 0 28px;
+  }
+  .shop-stories {
+    margin: 20px 0 8px;
+  }
+  .shop-stories p {
+    margin-top: 6px;
   }
 </style>
 

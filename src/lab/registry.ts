@@ -1,6 +1,7 @@
 // Single source of truth for the lab: every Firework web component we demo, with its documented
 // attributes, CSS variables, events, docs links and known support tickets.
 // Sources: https://docs.firework.com/firework-for-developers/web/integration-guide (Oct 2026).
+import { portalLayouts, type PortalLayout } from './layouts';
 import type { PlaylistSlot } from '../site.config';
 
 export type AttrType = 'text' | 'number' | 'boolean' | 'enum';
@@ -25,6 +26,8 @@ export interface KnownIssue {
 }
 
 export interface LabComponent {
+  /** Business Portal layouts built on this element, from src/lab/layouts.ts. Filled in below. */
+  layouts?: PortalLayout[];
   slug: string;
   title: string;
   tag: 'fw-embed-feed' | 'fw-storyblock' | 'fw-player-deck' | 'fw-herounit' | 'fw-player';
@@ -117,17 +120,21 @@ const noCodeWidget = (kind: string) =>
 export const labComponents: LabComponent[] = [
   {
     slug: 'carousel-grid',
-    title: 'Carousel and grid',
+    title: 'Carousel, grid and stories',
     tag: 'fw-embed-feed',
-    summary: 'A row of vertical video thumbnails (carousel) or a responsive grid. Clicking a thumbnail opens the player.',
+    summary: 'One element behind six Business Portal layouts: carousel, grid, dynamic carousel, horizontal carousel, circle stories and vertical stories. Clicking a thumbnail opens the player.',
     whenToUse: 'Home pages, category pages and campaign landing pages. The most common first integration.',
     slot: 'carousel',
     usePlaylist: true,
     initial: { mode: 'row' },
     attrs: [
       ...sourceAttrs,
-      { name: 'mode', type: 'enum', group: 'Layout', values: ['row', 'grid', 'pinned'], default: 'row', description: 'row is the carousel, grid is the grid, pinned starts as a floating player.' },
-      { name: 'size', type: 'enum', group: 'Layout', values: ['medium', 'large'], default: 'large', description: 'Thumbnail size. Ignored in grid mode.' },
+      { name: 'mode', type: 'enum', group: 'Layout', values: ['row', 'grid', 'pinned', 'stories'], default: 'row', description: 'row is the carousel, grid is the grid, pinned starts as a floating player. stories is a shortcut for circle stories.' },
+      { name: 'size', type: 'enum', group: 'Layout', values: ['small', 'medium', 'large'], default: 'large', description: 'Thumbnail size. Ignored in grid mode. small is mostly used for stories.' },
+      { name: 'thumbnail_style', type: 'enum', group: 'Layout', values: ['video', 'dynamic'], default: 'video', description: 'dynamic is the Dynamic Carousel: columns follow the container width. Not in the developer docs yet.' },
+      { name: 'thumbnail_orientation', type: 'enum', group: 'Layout', values: ['vertical', 'horizontal'], default: 'vertical', description: 'horizontal is the Horizontal Carousel, for 16:9 videos. Not in the developer docs yet.' },
+      { name: 'thumbnail_shape', type: 'enum', group: 'Layout', values: ['circle', 'rectangle', 'square'], description: 'circle is Circle Stories, rectangle is Vertical Stories. Ignored with thumbnail_style="dynamic" or a horizontal orientation.' },
+      { name: 'pulse_animation', type: 'boolean', group: 'Layout', default: 'true', description: 'The pulsing ring on story thumbnails.' },
       { name: 'placement', type: 'enum', group: 'Layout', values: ['top', 'middle', 'bottom'], description: 'Informational: where on the page the widget sits.' },
       { name: 'open_in', type: 'enum', group: 'Layout', values: ['default', '_modal', '_self', '_blank'], default: 'default', description: 'Where the player opens on thumbnail click.' },
       { name: 'max_videos', type: 'number', group: 'Layout', description: 'Maximum videos in grid mode. 0 means infinite scroll.' },
@@ -154,6 +161,7 @@ export const labComponents: LabComponent[] = [
       '--fw-title-color',
       '--fw-ad-badge-background',
       '--fw-ad-badge-font-color',
+      '--fw-thumbnail-pulse-animation-color',
     ],
     events: embedFeedEvents,
     docs: [
@@ -162,12 +170,13 @@ export const labComponents: LabComponent[] = [
       { label: 'Player attributes', url: `${DOCS}/integration-guide/player/player-attributes` },
       { label: 'Styling', url: `${DOCS}/integration-guide/styling` },
     ],
-    noCode: noCodeWidget('carousel or grid'),
+    noCode: noCodeWidget('carousel, grid, dynamic carousel, horizontal carousel or stories'),
     knownIssues: [
       { title: 'Widget needs a double click', body: 'Usually the FastClick library on the site. Remove it, or add class="needsclick" to the Firework widget.', docs: `${DOCS}/faq-and-troubleshooting` },
       { title: 'Grid shows a different number of videos than max_videos or paginate_by', body: 'Both numbers are approximate on purpose, so no thumbnail is left alone on the last row.' },
       { title: 'Videos open in a new tab', body: 'Widgets inside iframes, AMP or Google Ad Manager ignore open_in and always open fw.tv in a new tab.' },
       { title: 'Display ads between grid rows', body: 'Put an element with slot="grid-row-2" (any row index) inside <fw-embed-feed> to span that row.' },
+      { title: 'Circle Stories show as rounded squares', body: 'A site-wide --fw-thumbnail-border-radius, for example on :root, also shapes story thumbnails. Reset it on the stories element: fw-embed-feed[thumbnail_shape="circle"] { --fw-thumbnail-border-radius: initial; }' },
     ],
   },
   {
@@ -294,10 +303,10 @@ export const labComponents: LabComponent[] = [
   },
   {
     slug: 'floating-player',
-    title: 'Floating player',
+    title: 'Player: floating and horizontal',
     tag: 'fw-player',
-    summary: 'A standalone player that can start pinned in a corner of the screen, or dock while the shopper scrolls.',
-    whenToUse: 'Site-wide video presence without taking page space. The docs recommend Storyblock if all videos are vertical.',
+    summary: 'A standalone player. With mode="pinned" it floats in a corner; inline, at 16:9, it is the Horizontal Player.',
+    whenToUse: 'Site-wide video presence without taking page space, or one horizontal video inside the page. The docs recommend Storyblock if all videos are vertical.',
     slot: 'floating',
     usePlaylist: true,
     initial: { mode: 'pinned', player_placement: 'bottom-right' },
@@ -315,7 +324,7 @@ export const labComponents: LabComponent[] = [
       { label: 'Floating player', url: `${DOCS}/integration-guide/components/channel-button` },
       { label: 'Player attributes', url: `${DOCS}/integration-guide/player/player-attributes` },
     ],
-    noCode: noCodeWidget('floating player'),
+    noCode: noCodeWidget('floating player or horizontal player'),
     knownIssues: [
       { title: 'Floating player is too big on mobile', body: 'The default size is chosen so IAB video ads fit. Shrink it with --fw-player-width and --fw-player-height in a media query, knowing ads may break.', repro: '/lab/issues/floating-player-mobile', docs: `${DOCS}/faq-and-troubleshooting` },
       { title: 'Player covers the chat or cookie widget', body: 'Move it with player_placement and player_margin.' },
@@ -350,6 +359,8 @@ export const labComponents: LabComponent[] = [
     ],
   },
 ];
+
+for (const c of labComponents) c.layouts = portalLayouts.filter((l) => l.labSlug === c.slug);
 
 export const getLabComponent = (slug: string) => labComponents.find((c) => c.slug === slug);
 
