@@ -1,0 +1,306 @@
+---
+import SnippetPanel from '../../components/SnippetPanel.astro';
+import Lab from '../../layouts/Lab.astro';
+import { arrowPath, arrowStyles, arrowSvg } from '../../lab/arrows';
+import { elementSnippet } from '../../lib/snippet';
+import { firework } from '../../site.config';
+
+const origin = (Astro.site ?? new URL('http://localhost:4321')).origin;
+const first = arrowStyles[0]!;
+const initialCode = elementSnippet('fw-embed-feed', {
+  channel: firework.channel || 'your_channel',
+  playlist: firework.playlists.carousel || 'PLAYLIST_ID',
+  mode: 'row',
+  ui_asset_next: `${origin}${arrowPath(first.id, 'next')}`,
+  ui_asset_previous: `${origin}${arrowPath(first.id, 'previous')}`,
+});
+
+const otherIcons = [
+  ['ui_asset_back', 'Back button'],
+  ['ui_asset_close', 'Close button'],
+  ['ui_asset_play, ui_asset_pause', 'Play and pause'],
+  ['ui_asset_muted, ui_asset_unmuted', 'Sound off and on'],
+  ['ui_asset_fullscreen', 'Fullscreen'],
+  ['ui_asset_menu', 'More-actions menu'],
+  ['ui_asset_closed_captions_enabled, ui_asset_closed_captions_disabled', 'Captions on and off'],
+  ['ui_asset_shopping_bag, ui_asset_shopping_cart', 'Bag and cart'],
+  ['ui_asset_product_tag', 'Product tag on carousel thumbnails'],
+  ['ui_asset_reaction, ui_asset_reaction_animation', 'Livestream reaction, and its Lottie animation'],
+];
+---
+
+<Lab title="Custom arrows" description="Replace Firework's carousel and player arrows with your own SVG icons, and see the code.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>Custom arrows</h1>
+  <p class="lede">
+    The arrows on a Firework carousel, and the previous and next buttons in the player, can be any SVG. Two attributes
+    point to the icons: <code>ui_asset_next</code> and <code>ui_asset_previous</code>. Pick a style to see it live.
+  </p>
+
+  <h2>Pick an arrow style</h2>
+  <div class="arrow-picker" role="radiogroup" aria-label="Arrow style">
+    <button type="button" class="arrow-option" role="radio" aria-checked="false" data-arrow="default">
+      <span class="arrow-preview arrow-preview-default" aria-hidden="true">Default</span>
+      <span class="arrow-name">Firework default</span>
+      <span class="arrow-badge">No attributes</span>
+    </button>
+    {
+      arrowStyles.map((s, i) => (
+        <button type="button" class="arrow-option" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-arrow={s.id} title={s.description}>
+          <span class="arrow-preview" aria-hidden="true">
+            <span set:html={arrowSvg(s, 'previous')} />
+            <span set:html={arrowSvg(s, 'next')} />
+          </span>
+          <span class="arrow-name">{s.name}</span>
+          <span class={`arrow-badge arrow-badge-${s.colour}`}>{s.colour === 'theme' ? 'Follows widget colour' : 'Own colours'}</span>
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="arrow-controls">
+    <label class="check"><input type="checkbox" id="arrow-show" checked /> Show carousel arrows (<code>nav_arrows</code>)</label>
+  </div>
+
+  <h2>Live carousel</h2>
+  <p class="small muted">
+    The next arrow is on the right. Scroll the row to bring up the previous arrow. Open a video to see the player's
+    previous and next buttons use the same icons.
+  </p>
+  <div id="arrow-stage" class="arrow-stage">
+    <div class="fw-placeholder">
+      <p class="fw-placeholder-title">Carousel with custom arrows</p>
+      <p>Loads once the Firework script is ready. Set a channel in Settings if nothing appears.</p>
+    </div>
+  </div>
+
+  <SnippetPanel id="arrow-code" title="Embed code" code={initialCode} />
+  <p class="small" id="arrow-downloads">
+    Download: <a id="arrow-dl-next" href={arrowPath(first.id, 'next')} download>next arrow</a> ·
+    <a id="arrow-dl-previous" href={arrowPath(first.id, 'previous')} download>previous arrow</a>
+  </p>
+
+  <details class="panel arrow-own">
+    <summary>Try a customer's own SVG</summary>
+    <p class="small muted">
+      For reproducing a ticket. These URLs stay on this page: they are not added to the address bar or to shared links.
+      Only use SVGs from a host you trust, because Firework puts the SVG's markup into the page.
+    </p>
+    <div class="field">
+      <label for="own-next">Next arrow URL</label>
+      <input id="own-next" type="url" placeholder="https://cdn.example.com/icons/next.svg" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label for="own-previous">Previous arrow URL</label>
+      <input id="own-previous" type="url" placeholder="https://cdn.example.com/icons/previous.svg" autocomplete="off" spellcheck="false" />
+    </div>
+    <button type="button" class="btn btn-small" id="own-apply">Use these URLs</button>
+    <p class="small" id="own-status" aria-live="polite"></p>
+  </details>
+
+  <h2>How it works</h2>
+  <ol>
+    <li>Make two icons, next and previous. A square 24 by 24 <code>viewBox</code> works well.</li>
+    <li>
+      Draw with <code>currentColor</code> if the arrow should follow the widget's colours, or with fixed colours to
+      keep your brand colours.
+    </li>
+    <li>
+      Host them at public URLs. The host must allow the store's domain in CORS, because the Firework script downloads
+      the files from the shopper's browser.
+    </li>
+    <li>
+      Add <code>ui_asset_next</code> and <code>ui_asset_previous</code> to the embed. The carousel arrows and the
+      player's previous and next buttons both change.
+    </li>
+    <li>To remove the carousel arrows completely, set <code>nav_arrows="false"</code>.</li>
+  </ol>
+  <p>
+    SVG files are placed into the widget, which is why <code>currentColor</code> works. PNG or JPG icons also work, but
+    they show as background images and can't take the widget's colour.
+  </p>
+
+  <h3>Other icons you can replace</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Attribute</th><th>Icon</th></tr></thead>
+      <tbody>{otherIcons.map(([attr, what]) => <tr><td><code>{attr}</code></td><td>{what}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <p class="small muted">
+    Source: <a href="https://docs.firework.com/firework-for-developers/web/integration-guide/player/player-attributes/appearance-configuration">Player appearance: custom UI icons</a>.
+    The arrows here are served from <code>/arrows/</code> with CORS, so you can reuse them in CodePen or a demo.
+  </p>
+</Lab>
+
+<script>
+  import { arrowPath, arrowStyles } from '../../lab/arrows';
+  import { elementSnippet } from '../../lib/snippet';
+  import { effectiveSettings, playlistFor } from '../../scripts/settings';
+
+  const settings = effectiveSettings();
+  const stage = document.getElementById('arrow-stage')!;
+  const code = document.getElementById('arrow-code')!;
+  const show = document.getElementById('arrow-show') as HTMLInputElement;
+  const options = [...document.querySelectorAll<HTMLButtonElement>('[data-arrow]')];
+  const ids = new Set(arrowStyles.map((s) => s.id));
+
+  const requested = new URLSearchParams(location.search).get('arrow') ?? '';
+  let style = requested === 'default' || ids.has(requested) ? requested : arrowStyles[0]!.id;
+  let own: { next: string; previous: string } | null = null;
+
+  const absolute = (path: string) => new URL(path, location.origin).href;
+
+  function attributes(): Record<string, string> {
+    const a: Record<string, string> = { channel: settings.channel || 'your_channel', mode: 'row' };
+    const playlist = playlistFor(settings, 'carousel');
+    if (playlist) a.playlist = playlist;
+    if (!show.checked) a.nav_arrows = 'false';
+    if (own) {
+      a.ui_asset_next = own.next;
+      a.ui_asset_previous = own.previous;
+    } else if (style !== 'default') {
+      a.ui_asset_next = absolute(arrowPath(style, 'next'));
+      a.ui_asset_previous = absolute(arrowPath(style, 'previous'));
+    }
+    return a;
+  }
+
+  function render(): void {
+    const a = attributes();
+    options.forEach((o) => o.setAttribute('aria-checked', String(!own && o.dataset.arrow === style)));
+    code.textContent = elementSnippet('fw-embed-feed', a);
+    const downloads = document.getElementById('arrow-downloads')!;
+    downloads.hidden = Boolean(own) || style === 'default';
+    if (!downloads.hidden) {
+      (document.getElementById('arrow-dl-next') as HTMLAnchorElement).href = arrowPath(style, 'next');
+      (document.getElementById('arrow-dl-previous') as HTMLAnchorElement).href = arrowPath(style, 'previous');
+    }
+    if (settings.channel && settings.fwMode !== 'off') {
+      const el = document.createElement('fw-embed-feed');
+      for (const [k, v] of Object.entries(a)) el.setAttribute(k, v);
+      stage.replaceChildren(el);
+    }
+    const url = new URL(location.href);
+    url.searchParams.set('arrow', style);
+    history.replaceState(null, '', url);
+  }
+
+  options.forEach((o) =>
+    o.addEventListener('click', () => {
+      style = o.dataset.arrow!;
+      own = null;
+      document.getElementById('own-status')!.textContent = '';
+      render();
+    }),
+  );
+  show.addEventListener('change', render);
+
+  document.getElementById('own-apply')!.addEventListener('click', () => {
+    const status = document.getElementById('own-status')!;
+    const read = (id: string) => (document.getElementById(id) as HTMLInputElement).value.trim();
+    const next = read('own-next');
+    const previous = read('own-previous') || next;
+    const ok = (v: string) => {
+      try {
+        return ['https:', 'http:'].includes(new URL(v).protocol);
+      } catch {
+        return false;
+      }
+    };
+    if (!ok(next) || !ok(previous)) {
+      status.textContent = 'Enter full http or https URLs.';
+      return;
+    }
+    own = { next, previous };
+    status.textContent = 'Using your URLs. If the arrows stay default, check the host allows this site in CORS.';
+    render();
+  });
+
+  render();
+</script>
+
+<style>
+  .arrow-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin: 12px 0 16px;
+  }
+  .arrow-option {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .arrow-option:hover {
+    border-color: var(--fjord);
+  }
+  .arrow-option[aria-checked='true'] {
+    border-color: var(--fjord);
+    box-shadow: 0 0 0 2px var(--fjord);
+  }
+  .arrow-preview {
+    display: flex;
+    gap: 8px;
+    color: var(--fjord);
+  }
+  .arrow-preview > span {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px rgb(20 33 43 / 0.18);
+  }
+  .arrow-preview :global(svg) {
+    width: 22px;
+    height: 22px;
+  }
+  .arrow-preview-default {
+    display: grid;
+    place-items: center;
+    height: 40px;
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+  }
+  .arrow-name {
+    font-weight: 600;
+  }
+  .arrow-badge {
+    font-size: 0.75rem;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--mist);
+  }
+  .arrow-badge-fixed {
+    background: var(--warning-bg);
+  }
+  .arrow-controls {
+    margin-bottom: 8px;
+  }
+  .check {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .arrow-stage {
+    min-height: 140px;
+    margin: 12px 0 20px;
+  }
+  .arrow-own {
+    margin: 20px 0;
+  }
+  .arrow-own summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+</style>

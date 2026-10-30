@@ -64,8 +64,9 @@ const data = safeJson({ groups, presets });
     without custom code.
   </p>
   <p class="note small">
-    Fonts, colours, radii and thumbnail sizes are documented CSS variables. Custom carousel arrow icons are not in the
-    styling docs, so check with the team how the weekly task expects them to be done.
+    Fonts, colours, radii and thumbnail sizes are CSS variables. Arrow icons are not: they are the
+    <code>ui_asset_next</code> and <code>ui_asset_previous</code> attributes, pointing to SVG files. Try them on
+    <a href="/lab/arrows">Custom arrows</a>.
   </p>
 
   <div class="chip-row" id="presets" role="group" aria-label="Presets">
