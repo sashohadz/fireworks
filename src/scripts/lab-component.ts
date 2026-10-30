@@ -1,5 +1,6 @@
 // Lab component page: attribute knobs, live rebuild, snippet, CSS variables and the event log.
 import type { AttrDef, LabComponent } from '../lab/registry';
+import { ARROW_FILE } from '../lab/arrows';
 import { detectLayout } from '../lab/layouts';
 import { attrGroups } from '../lab/registry';
 import { fullSnippet } from '../lib/snippet';
@@ -18,8 +19,20 @@ const UNSAFE_SCHEME = /^\s*(javascript|data|vbscript):/i;
  * Which ?a.<name>=<value> parameters a shared link may set. Only attributes the lab documents for this
  * component, so a crafted link cannot add event handlers such as onmouseover and run script on this site.
  */
+/** True for this site's own arrow files, e.g. /arrows/chevron-next.svg. */
+export function isOwnArrowFile(value: string): boolean {
+  try {
+    const url = new URL(value, location.origin);
+    return url.origin === location.origin && ARROW_FILE.test(url.pathname) && !url.search && !url.hash;
+  } catch {
+    return false;
+  }
+}
+
 export function urlAttributeAllowed(component: Pick<LabComponent, 'attrs' | 'initial'>, name: string, value: string): boolean {
   if (/^on/i.test(name) || UNSAFE_SCHEME.test(value)) return false;
+  // Firework injects ui_asset_* SVG markup into the page, so a link may only use this site's own arrow files.
+  if (/^ui_asset_/i.test(name) && value !== '' && !isOwnArrowFile(value)) return false;
   return name === 'channel' || name === 'playlist' || Object.hasOwn(component.initial, name) || component.attrs.some((a) => a.name === name);
 }
 

@@ -32,6 +32,7 @@ const pages = [
   '/lab/accessibility',
   '/lab/ava',
   '/lab/layouts',
+  '/lab/arrows',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -184,6 +185,25 @@ test.describe('demo tools', () => {
     await page.goto('/lab/carousel-grid?fw=off&a.thumbnail_shape=circle');
     await expect(page.locator('#lab-stage [data-lab]')).toHaveAttribute('thumbnail_shape', 'circle');
     await expect(page.locator('#lab-layouts [data-layout="circle_stories"]')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('custom arrows: picking a style sets both arrow attributes', async ({ page, request }) => {
+    const svg = await request.get('/arrows/chevron-next.svg');
+    expect(svg.headers()['content-type']).toContain('image/svg+xml');
+    await page.goto('/lab/arrows?fw=off');
+    await expect(page.locator('[data-arrow]')).toHaveCount(7);
+    await page.locator('[data-arrow="fjord-circle"]').click();
+    await expect(page.locator('[data-arrow="fjord-circle"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('#arrow-code')).toContainText('/arrows/fjord-circle-next.svg');
+    await expect(page.locator('#arrow-code')).toContainText('/arrows/fjord-circle-previous.svg');
+    await expect(page).toHaveURL(/arrow=fjord-circle/);
+  });
+
+  test('lab links only accept this site\'s own arrow files', async ({ page }) => {
+    await page.goto('/lab/carousel-grid?fw=off&a.ui_asset_next=https://example.com/x.svg&a.ui_asset_previous=/arrows/chevron-previous.svg');
+    const widget = page.locator('#lab-stage [data-lab]');
+    await expect(widget).not.toHaveAttribute('ui_asset_next');
+    await expect(widget).toHaveAttribute('ui_asset_previous', '/arrows/chevron-previous.svg');
   });
 
   test('the shop page has a circle stories row', async ({ page }) => {

@@ -74,6 +74,8 @@ const playerAttrs: AttrDef[] = [
   { name: 'reset_transform', type: 'enum', group: 'Player', values: ['fullscreen', 'always', 'never'], description: 'Removes CSS transforms from ancestors while the player is open. Fixes docked players that scroll with the page.' },
   { name: 'share', type: 'enum', group: 'Player', values: ['hash', 'query', 'false'], description: 'How share links point back to your page. false hides sharing.' },
   { name: 'share_template', type: 'text', group: 'Player', description: 'Base URL for share links, used with share.' },
+  { name: 'ui_asset_next', type: 'text', group: 'Styling attributes', description: 'URL of a custom next arrow, used by carousel arrows and the player. SVG, public and CORS-enabled. Lab links only keep this site\'s /arrows/ files.' },
+  { name: 'ui_asset_previous', type: 'text', group: 'Styling attributes', description: 'URL of a custom previous arrow. Same rules as ui_asset_next. See /lab/arrows.' },
 ];
 
 const stylingAttrs: AttrDef[] = [
@@ -135,6 +137,7 @@ export const labComponents: LabComponent[] = [
       { name: 'thumbnail_orientation', type: 'enum', group: 'Layout', values: ['vertical', 'horizontal'], default: 'vertical', description: 'horizontal is the Horizontal Carousel, for 16:9 videos. Not in the developer docs yet.' },
       { name: 'thumbnail_shape', type: 'enum', group: 'Layout', values: ['circle', 'rectangle', 'square'], description: 'circle is Circle Stories, rectangle is Vertical Stories. Ignored with thumbnail_style="dynamic" or a horizontal orientation.' },
       { name: 'pulse_animation', type: 'boolean', group: 'Layout', default: 'true', description: 'The pulsing ring on story thumbnails.' },
+      { name: 'nav_arrows', type: 'boolean', group: 'Layout', default: 'true', description: 'Shows the previous and next arrows on the row. Customise them with ui_asset_next and ui_asset_previous.' },
       { name: 'placement', type: 'enum', group: 'Layout', values: ['top', 'middle', 'bottom'], description: 'Informational: where on the page the widget sits.' },
       { name: 'open_in', type: 'enum', group: 'Layout', values: ['default', '_modal', '_self', '_blank'], default: 'default', description: 'Where the player opens on thumbnail click.' },
       { name: 'max_videos', type: 'number', group: 'Layout', description: 'Maximum videos in grid mode. 0 means infinite scroll.' },
@@ -176,6 +179,7 @@ export const labComponents: LabComponent[] = [
       { title: 'Grid shows a different number of videos than max_videos or paginate_by', body: 'Both numbers are approximate on purpose, so no thumbnail is left alone on the last row.' },
       { title: 'Videos open in a new tab', body: 'Widgets inside iframes, AMP or Google Ad Manager ignore open_in and always open fw.tv in a new tab.' },
       { title: 'Display ads between grid rows', body: 'Put an element with slot="grid-row-2" (any row index) inside <fw-embed-feed> to span that row.' },
+      { title: 'Custom arrow does not show', body: 'Check that ui_asset_next and ui_asset_previous point to public SVG files whose host allows the site in CORS, and that nav_arrows is not false. PNG or JPG arrows show as background images and ignore the widget colour.', repro: '/lab/arrows', docs: `${DOCS}/integration-guide/player/player-attributes/appearance-configuration` },
       { title: 'Circle Stories show as rounded squares', body: 'A site-wide --fw-thumbnail-border-radius, for example on :root, also shapes story thumbnails. Reset it on the stories element: fw-embed-feed[thumbnail_shape="circle"] { --fw-thumbnail-border-radius: initial; }' },
     ],
   },
@@ -228,6 +232,7 @@ export const labComponents: LabComponent[] = [
       ...sourceAttrs,
       { name: 'mode', type: 'enum', group: 'Layout', values: ['row', 'grid'], default: 'row', description: 'row is the deck, grid is Player Deck Grid.' },
       { name: 'size', type: 'enum', group: 'Layout', values: ['medium', 'large'], default: 'large', description: 'Thumbnail size in deck mode only.' },
+      { name: 'nav_arrows', type: 'boolean', group: 'Layout', default: 'true', description: 'Shows the previous and next arrows on the deck.' },
       { name: 'max_videos', type: 'number', group: 'Layout', description: 'Caps how many videos load. In grid mode they load in chunks.' },
       { name: 'paginate_by', type: 'number', group: 'Layout', description: 'Grid only: rows behind a Load more button. Approximate.' },
       { name: 'title', type: 'text', group: 'Layout', description: 'Grid only: heading above the unit.' },

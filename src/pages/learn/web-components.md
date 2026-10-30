@@ -67,6 +67,7 @@ When a source comes back empty, `priority` decides the fallback order.
 - **Autoplay and captions:** `autoplay` and `captions`, both on by default.
 - **Floating player:** `player_placement`, `player_margin` and `dock`.
 - **Theming:** CSS variables such as `--fw-thumbnail-border-radius` and `--fw-cta-button-background`, plus `ui_*` attributes such as `ui_primary_color`. Try them in the [styling playground](/lab/styling).
+- **Icons and arrows:** `ui_asset_next`, `ui_asset_previous` and the other `ui_asset_*` attributes take SVG URLs. Switch between six arrow styles on [Custom arrows](/lab/arrows).
 
 ## Listen to events
 

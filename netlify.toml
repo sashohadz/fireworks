@@ -29,3 +29,11 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Cache-Control = "public, max-age=300"
+
+# Custom arrow SVGs for ui_asset_next and ui_asset_previous. Firework fetches them with CORS,
+# and teammates can reuse them on other sites.
+[[headers]]
+  for = "/arrows/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
