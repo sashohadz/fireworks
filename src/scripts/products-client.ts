@@ -1,4 +1,7 @@
 // Client-side access to the mock commerce API (/api/products.json), memoised per page view.
+// The price-drop and sold-out switches from /lab/shopping change the data here, so the player, bag and checkout agree.
+import { applyScenario, readSwitches } from '../lab/shopping';
+
 export interface ApiUnit {
   id: string;
   name: string;
@@ -16,6 +19,7 @@ export interface ApiProduct {
   id: string;
   handle: string;
   name: string;
+  summary: string;
   category: string;
   url: string;
   image: string;
@@ -34,7 +38,7 @@ export function fetchProducts(): Promise<ApiProduct[]> {
       if (!r.ok) throw new Error(`Mock API returned ${r.status}`);
       return r.json() as Promise<{ products: ApiProduct[] }>;
     })
-    .then((data) => data.products);
+    .then((data) => applyScenario(data.products, readSwitches()));
   return cache;
 }
 

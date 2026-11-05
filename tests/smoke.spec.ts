@@ -33,6 +33,7 @@ const pages = [
   '/lab/ava',
   '/lab/layouts',
   '/lab/arrows',
+  '/lab/shopping',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -112,6 +113,129 @@ test('cart to order confirmation', async ({ page }) => {
 test('sold-out variant cannot be added', async ({ page }) => {
   await page.goto('/products/lingonberry-tinted-lip-balm?fw=off&variant=FJB-109-PLUM');
   await expect(page.locator('#pdp-add')).toBeDisabled();
+});
+
+type HookName = 'onProductsLoaded' | 'onWidgetProductsLoaded' | 'onCartDisplayed' | 'onCartUpdated';
+interface FakeShopping {
+  config?: { url?: string; currency?: string };
+  hooks: Partial<Record<HookName, (arg?: unknown) => Promise<unknown>>>;
+}
+interface BuiltProduct {
+  name?: string;
+  variants: { extId: string; price: number; originalPrice: number; isAvailable: boolean; url: string }[];
+}
+
+/**
+ * Stands in for window._fwn.shopping before the page loads, so the shopping hooks can be called directly. The
+ * product factory records what the integration builds instead of creating real Firework products.
+ */
+function installFakeShopping(): void {
+  const record = () => {
+    const out: Record<string, unknown> = {};
+    const builder: Record<string, (arg: unknown) => unknown> = new Proxy(
+      {},
+      {
+        get: (_target, key: string) => (arg: unknown) => {
+          if (key === 'variant' || key === 'image') {
+            const child = record();
+            (arg as (b: unknown) => void)(child.builder);
+            if (key === 'image') out.image = child.out;
+            else out.variants = [...((out.variants as unknown[] | undefined) ?? []), child.out];
+          } else out[key] = arg;
+          return builder;
+        },
+      },
+    );
+    return { builder, out };
+  };
+  const fake: FakeShopping = { hooks: {} };
+  // Typed loosely: each hook only stores its callback for callHook.
+  const hook = (name: HookName) =>
+    ((cb: (arg?: unknown) => Promise<unknown>) => {
+      fake.hooks[name] = cb;
+    }) as never;
+  (window as unknown as { __fake: FakeShopping }).__fake = fake;
+  window._fwn = {
+    shopping: {
+      configureCart: (config) => (fake.config = config),
+      onProductsLoaded: hook('onProductsLoaded'),
+      onWidgetProductsLoaded: hook('onWidgetProductsLoaded'),
+      onCartDisplayed: hook('onCartDisplayed'),
+      onCartUpdated: hook('onCartUpdated'),
+      productFactory: (build) => {
+        const r = record();
+        build(r.builder as never);
+        return r.out;
+      },
+    },
+  };
+}
+
+async function withFakeShopping(page: Page): Promise<void> {
+  await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.abort());
+  await page.addInitScript(installFakeShopping);
+}
+
+const callHook = (page: Page, name: HookName, arg?: unknown) =>
+  page.evaluate(([n, a]) => (window as unknown as { __fake: FakeShopping }).__fake.hooks[n]!(a), [name, arg] as const);
+
+const cartUpdate = (unitId: string, quantity: number, previousQuantity = 0) => ({
+  product: { product_ext_id: unitId.split('-').slice(0, 2).join('-') },
+  productUnit: { unit_ext_id: unitId },
+  quantity,
+  previousQuantity,
+});
+
+test.describe('shopping integration', () => {
+  test('hydration sends the store\'s prices and links, and Add to Bag fills the site\'s bag', async ({ page }) => {
+    await withFakeShopping(page);
+    await page.goto('/lab/shopping/?shopping=');
+    await page.waitForFunction(() => Boolean((window as unknown as { __fake: FakeShopping }).__fake.hooks.onCartUpdated));
+    const config = await page.evaluate(() => (window as unknown as { __fake: FakeShopping }).__fake.config);
+    expect(config?.url).toMatch(/\/cart$/);
+
+    const hydrated = (await callHook(page, 'onProductsLoaded', { products: [{ product_ext_id: 'FJB-103' }, { product_ext_id: 'NOT-OURS' }] })) as BuiltProduct[];
+    expect(hydrated).toHaveLength(1);
+    expect(hydrated[0]!.variants[0]).toMatchObject({ extId: 'FJB-103-15ML', price: 29, originalPrice: 29, isAvailable: true });
+    expect(hydrated[0]!.variants[0]!.url.startsWith(new URL(page.url()).origin)).toBe(true);
+
+    expect(await callHook(page, 'onCartUpdated', cartUpdate('FJB-101-150ML', 2))).toBe(2);
+    await expect(page.locator('[data-cart-count]').first()).toHaveText('2');
+    await expect(page.locator('#shop-bag')).toContainText('from the video');
+
+    const items = (await callHook(page, 'onCartDisplayed')) as { unitId: string; quantity: number; product: BuiltProduct }[];
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ unitId: 'FJB-101-150ML', quantity: 2 });
+    expect(items[0]!.product.name).toBe('Cloud Milk Cleanser');
+    await expect(page.locator('#shop-log tr')).toHaveCount(4);
+  });
+
+  test('failure switches come from a fixed list and change the store\'s answers', async ({ page }) => {
+    await withFakeShopping(page);
+    await page.goto('/lab/shopping/?shopping=sold-out,price-drop,%3Cscript%3E');
+    expect(await page.evaluate(() => sessionStorage.getItem('fjb.shopping.v1'))).toBe('sold-out,price-drop');
+    await expect(page.locator('#override-banner')).toContainText('Everything sold out');
+    await page.waitForFunction(() => Boolean((window as unknown as { __fake: FakeShopping }).__fake.hooks.onCartUpdated));
+    const hydrated = (await callHook(page, 'onProductsLoaded', { products: [{ product_ext_id: 'FJB-103' }] })) as BuiltProduct[];
+    expect(hydrated[0]!.variants[0]).toMatchObject({ price: 23.2, originalPrice: 29, isAvailable: false });
+    await expect(callHook(page, 'onCartUpdated', cartUpdate('FJB-101-150ML', 1))).rejects.toThrow(/sold out/);
+
+    await page.goto('/lab/shopping/?shopping=limit');
+    await page.waitForFunction(() => Boolean((window as unknown as { __fake: FakeShopping }).__fake.hooks.onCartUpdated));
+    expect(await callHook(page, 'onCartUpdated', cartUpdate('FJB-101-150ML', 5))).toBe(2);
+
+    await page.goto('/lab/shopping/?shopping=');
+    expect(await page.evaluate(() => sessionStorage.getItem('fjb.shopping.v1'))).toBeNull();
+    await expect(page.locator('#override-banner')).toBeHidden();
+  });
+
+  test('stays off on other channels', async ({ page }) => {
+    await withFakeShopping(page);
+    await page.goto('/lab/shopping/?channel=firework');
+    await expect(page.locator('#shop-status')).toContainText('Off');
+    expect(await page.evaluate(() => Object.keys((window as unknown as { __fake: FakeShopping }).__fake.hooks))).toEqual([]);
+    await expect(page.locator('script[data-fw-sdk][type="module"]')).not.toHaveAttribute('data-fwparam_shopping_cart_style');
+  });
 });
 
 test.describe('demo tools', () => {
@@ -256,6 +380,17 @@ test.describe('firework sdk (network)', () => {
     await page.goto('/products/rose-quartz-gua-sha');
     await expect(page.locator('.fw-failed-note')).toContainText('skus="FJB-111"', { timeout: 30_000 });
     await expect(page.locator('fw-storyblock[skus="FJB-111"]')).toBeHidden();
+  });
+
+  test('the shopping hooks run with the real SDK', async ({ page }) => {
+    // The sandbox channel, because the integration only runs there.
+    await page.goto('/lab/shopping/?shopping=');
+    await expect(page.locator('script[data-fw-sdk][type="module"]')).toHaveAttribute('data-fwparam_shopping_cart_style', 'bag');
+    await page.waitForFunction(
+      () => ((window.__fjb?.shopping as { log: { hook: string; error: boolean }[] } | undefined)?.log ?? []).some((e) => /ProductsLoaded/.test(e.hook) && !e.error),
+      null,
+      { timeout: 30_000 },
+    );
   });
 
   test('fw=off skips the SDK', async ({ page }) => {

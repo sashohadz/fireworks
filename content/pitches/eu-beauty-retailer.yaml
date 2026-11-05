@@ -13,6 +13,7 @@ before:
   - Make sure the livestream playlist has an upcoming show or a replay, so the hero unit and the Live page have content.
   - For the showroom step, add a one-time restream that starts a few minutes into the call, so Copilot can answer live.
   - Empty the demo bag, so the checkout step starts clean.
+  - Check that no shopping failure switches are on. The banner at the top of the page lists them.
   - Open Business Portal in a second tab with the video library, one video's tagged products and Insights ready.
   - Share only the demo tab. Keep these notes in a separate window that you don't share.
   - Turn off notifications on the computer you share from.
@@ -41,9 +42,11 @@ steps:
     show:
       - Scroll to the Storyblock and let a video play with sound off.
       - Point at the product cards inside the video, then tap one to show the product.
+      - Tap Add to Bag. The player's cart opens, and the bag count in the store's header goes up.
       - Scroll on to the carousel. It uses the same video library in another layout.
     say:
       - Shoppers watch and shop in one place, without leaving the page.
+      - The video uses the store's own prices, stock and bag, so the item is already there at checkout.
       - One video library feeds the home page, category pages and product pages.
       - Videos start muted, as browsers require for autoplay, and shoppers turn sound on with one tap.
 
@@ -98,7 +101,7 @@ steps:
     path: /cart
     minutes: 3
     show:
-      - Check out with the item in the bag. The checkout never asks for payment details.
+      - Check out with the item added from the video. The checkout never asks for payment details.
       - On the confirmation page, point at the purchase event and its payload.
     say:
       - The order page tells Firework what was bought, so Insights can link sales to videos and shows.

@@ -3,7 +3,7 @@ layout: ../../layouts/Learn.astro
 title: Products and IDs
 description: How a catalog gets into Firework, and why one consistent external ID saves most product tickets.
 order: 3
-updated: 27 Oct 2026
+updated: 5 Nov 2026
 ---
 
 ## The data model in one picture
@@ -34,6 +34,7 @@ This site generates the first two from one catalog file:
 | CSV | Product External ID, Product Unit External ID | `FJB-103`, `FJB-103-30ML` |
 | API | `external_id`, `product_units[].external_id` | `FJB-103`, `FJB-103-30ML` |
 | Product page widget | `skus` | `FJB-103` |
+| Hydration and cart sync | `product_ext_id`, `unit_ext_id` | `FJB-103`, `FJB-103-30ML` |
 | Purchase event | `line_items[].sku` | `FJB-103-30ML` |
 
 ## Tickets this explains
@@ -41,6 +42,6 @@ This site generates the first two from one catalog file:
 - **"The product page shows no videos."** The `skus` value does not match the product's external ID in Firework, or no published video is tagged with that product.
 - **"Products appear twice."** Two import paths used different IDs for the same product.
 - **"Revenue is not attributed."** The purchase `sku` values do not match units or products Firework knows.
-- **"Prices in the player are wrong."** The feed has not synced yet. Product hydration fixes this by asking the merchant's own API at play time.
+- **"Prices in the player are wrong."** The feed has not synced yet. Product hydration fixes this by asking the merchant's own API at play time. See it run, and break it on purpose, in the [shopping lab](/lab/shopping).
 
 Sources: [Importing products](https://docs.firework.com/firework-for-developers/additional-resources/importing-products-to-firework), [XML auto-sync](https://firework.com/help/xml-auto-sync), [Products API](https://docs.firework.com/firework-for-developers/api/products), [Purchase tracking](https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2/tracking/purchase).
