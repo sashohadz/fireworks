@@ -81,6 +81,7 @@ export function toApiProduct(p: Product, site: string | URL | undefined) {
     id: p.id,
     handle: p.handle,
     name: p.name,
+    summary: p.summary,
     category: p.category,
     url: absoluteUrl(productPath(p), site),
     image: absoluteUrl(productImages(p)[0]!, site),

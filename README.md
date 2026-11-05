@@ -14,6 +14,7 @@ Nothing here is for sale. Products, images and videos are illustrated or AI-gene
 | Area | Path | What it shows |
 |---|---|---|
 | Storefront | `/`, `/shop`, `/products/*`, `/cart` | Hero unit, Storyblock, carousel, grid, Player Deck, floating player, product-page videos via `skus`, cart and purchase tracking |
+| Shopping integration | every page, `/lab/shopping` | Shopping Integration V2: the player shows prices and stock from the mock API, and Add to Bag in the player fills the site's bag. Failure switches reproduce shopping tickets |
 | Live and Showroom | `/live`, `/showroom` | Live: the hosted show, its countdown and replays. Showroom: a daily restream with AI Copilot answering the chat, and the next session in the visitor's time zone |
 | OBS overlays | `/live/overlays` | Browser-source overlays at 720x1280 (name strap, product spotlight, giveaway, starting soon) and the OBS settings Firework needs |
 | Pitch mode | `/pitch` | Presents the store as a customer demo: demo tools hidden, presenter notes in a second window |
@@ -49,8 +50,9 @@ You don't need to fork or redeploy. Settings are saved in your browser only.
 | `?playlist=` | Forces one playlist on every widget of the page |
 | `?fw=off` or `?fw=lazy` | Skip the SDK, or load it with `fwn-async.js` |
 | `?a.<attribute>=` and `?css.<variable>=` | Lab pages only. "Copy link to this setup" builds these |
+| `?shopping=` | Shopping failure switches for the tab, such as `?shopping=slow,sold-out`. `?shopping=` turns them off |
 
-Purchase tracking only fires for the sandbox channel in `src/site.config.ts`. Viewing anyone else's channel never sends test orders to their analytics.
+Purchase tracking and the shopping integration only run for the sandbox channel in `src/site.config.ts`. Viewing anyone else's channel never sends test orders to their analytics.
 
 ## Present a pitch
 

@@ -1,0 +1,341 @@
+---
+import FwWidget from '../../components/FwWidget.astro';
+import SnippetPanel from '../../components/SnippetPanel.astro';
+import Lab from '../../layouts/Lab.astro';
+import { integrationSnippet, shoppingSwitches } from '../../lab/shopping';
+import { elementSnippet } from '../../lib/snippet';
+import { firework, repoUrl } from '../../site.config';
+
+const DOCS = 'https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2';
+const elementCode = elementSnippet('fw-storyblock', {
+  channel: firework.channel || 'your_channel',
+  playlist: firework.playlists.storyblock || 'PLAYLIST_ID',
+  shopping_cart_style: 'bag',
+});
+
+// Checked with the live SDK on 5 November 2026. Keep to what was actually observed.
+const findings = [
+  'onCartUpdated gets one object: { product, productUnit, quantity, previousQuantity, video }. The API reference lists separate arguments, but its code example is right.',
+  'quantity is the new total for that item, not the change. The player shows the quantity you return, so returning less is how a store caps quantities.',
+  'If onCartUpdated throws, the player shows "Failed to update cart" with your error message, and its cart stays as it was.',
+  'If hydration throws, shoppers see no error. The player keeps the Business Portal data. The docs say an error dialog appears.',
+  'Hydrating price without originalPrice shows a sale, with the Business Portal price crossed out. Send both.',
+  'onCartDisplayed runs when the player loads and each time the shopper taps the bag icon, so keep it fast or cache the cart. It does not run when the player opens its cart by itself after Add to Bag. An item added on the site since then shows up once the shopper taps the bag icon.',
+  'A Storyblock calls both hydration hooks: onWidgetProductsLoaded once for the widget, then onProductsLoaded for each video.',
+  'While hydration is pending, the player shows the Business Portal price, then switches to the store\'s price when the hook returns.',
+  'Check out in the player\'s cart opens the url from configureCart in the same tab.',
+  'configureCart\'s addToCartText still works but logs a deprecation warning. The SDK points to shopping_cart_style="bag" on the widget, which the web docs don\'t list yet.',
+];
+
+const shopNowReasons = [
+  'configureCart never ran. The script checked window._fwn.shopping before the SDK loaded and did not wait for fw:ready. Look for configureCart in the hook log, or for the hooks in the console.',
+  'The product has no External ID in Business Portal, so the store can\'t match it.',
+  'The price is hidden in Business Portal. The button then says View More.',
+  'The docs also list a product URL on a different domain from the page. In our tests, this site on localhost with production product URLs still showed Add to Bag, so check the first three first.',
+];
+---
+
+<Lab title="Shopping integration" description="Firework's Shopping Integration V2 on this store: hydration, two-way bag sync and failure switches for tickets.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>Shopping integration</h1>
+  <p class="lede">
+    The player can show the store's own prices and stock, and its Add to Bag button can fill the store's own bag. This
+    site runs Firework's Shopping Integration V2 on every page. Use the switches below to reproduce the tickets it causes.
+  </p>
+  <p id="shop-status" class="note note-info" aria-live="polite">Checking the integration…</p>
+
+  <div class="lab-grid">
+    <section aria-labelledby="try-heading">
+      <h2 id="try-heading">Try it</h2>
+      <ol>
+        <li>Tap a product in the video, then <strong>Add to Bag</strong>. The site's bag and the count in the header update.</li>
+        <li>Add the toner from the site's bag panel, then tap the bag icon in the player. The player's cart lists it too.</li>
+        <li>Turn on a failure switch, apply it, and try again.</li>
+      </ol>
+      <div class="lab-stage">
+        <FwWidget tag="fw-storyblock" slot="storyblock" attrs={{ height: '600px' }} label="Storyblock with tagged products" />
+      </div>
+    </section>
+
+    <aside class="panel shop-bag" aria-labelledby="bag-heading">
+      <h2 id="bag-heading">The site's bag</h2>
+      <p class="small muted">The store's own cart. Lines changed from the video are marked.</p>
+      <ul id="shop-bag" class="shop-bag-lines" aria-live="polite"><li class="muted">Loading…</li></ul>
+      <p><button type="button" class="btn btn-small btn-ghost" id="shop-add-toner">Add Glacier Water Toner</button></p>
+      <p class="small"><a href="/cart">Open the bag page</a> · <a href="/checkout">Checkout</a></p>
+    </aside>
+  </div>
+
+  <h2 id="switches-heading">Failure switches</h2>
+  <p>
+    Each switch makes the store behave like a broken or unusual customer setup. They stay on for this browser tab, so
+    you can follow a video all the way to checkout. A banner on every page says which are on. To share a setup, add
+    <code>?shopping=slow,sold-out</code> to any page.
+  </p>
+  <form id="shop-switches" aria-labelledby="switches-heading">
+    <div class="switch-list">
+      {
+        shoppingSwitches.map((s) => (
+          <label class="switch-card">
+            <input type="checkbox" name="switch" value={s.id} />
+            <span>
+              <strong>{s.label}</strong>
+              <span class="small">{s.shopper}</span>
+              <span class="small muted">Reproduces: {s.ticket}</span>
+            </span>
+          </label>
+        ))
+      }
+    </div>
+    <p class="switch-actions">
+      <button type="submit" class="btn btn-small">Apply and reload</button>
+      <button type="button" class="btn btn-small btn-ghost" id="shop-switches-off">Turn all off</button>
+    </p>
+  </form>
+
+  <h2>Hook log</h2>
+  <p class="small muted">
+    Every call Firework makes to this site's hooks, and every <code>fw:shopping:*</code> event, newest first. Errors are
+    what the shopper's player received.
+  </p>
+  <div class="table-wrap">
+    <table class="table shop-log">
+      <thead><tr><th>Time</th><th>Hook or event</th><th>From Firework</th><th>Store's answer</th><th>ms</th></tr></thead>
+      <tbody id="shop-log"><tr><td colspan="5" class="muted">No calls yet. Firework calls the hooks when a video with products loads.</td></tr></tbody>
+    </table>
+  </div>
+
+  <h2>The code</h2>
+  <p>
+    A developer adds one script next to the Firework script. Product and variant IDs must be the same external IDs as
+    in Business Portal.
+  </p>
+  <SnippetPanel id="shop-code" title="Integration script" code={integrationSnippet} />
+  <p>
+    The widget needs nothing extra. <code>shopping_cart_style="bag"</code> is optional: it changes the cart icon and
+    the button to Add to Bag. This site sets it once for every widget with
+    <code>data-fwparam_shopping_cart_style="bag"</code> on the Firework script tag.
+  </p>
+  <SnippetPanel id="shop-element" title="Widget" code={elementCode} />
+  <p class="small muted">
+    This site's version, with the switches, is
+    <a href={`${repoUrl}/blob/main/src/scripts/shopping.ts`}>src/scripts/shopping.ts</a>. It reads the
+    <a href="/api/products.json">mock commerce API</a>, and links in the player follow the site you're on, so a deploy
+    preview links to itself.
+  </p>
+
+  <h2>Checked with the live SDK</h2>
+  <ul>{findings.map((f) => <li>{f}</li>)}</ul>
+
+  <h2>"Shop Now" instead of Add to Bag</h2>
+  <p>The usual causes, most likely first:</p>
+  <ol>{shopNowReasons.map((r) => <li>{r}</li>)}</ol>
+  <p>If the button says Sold Out, hydration marked the variant unavailable. Check the store's stock for that external ID.</p>
+
+  <h2>Docs</h2>
+  <ul>
+    <li><a href={`${DOCS}/shopping-apis`}>Shopping APIs</a></li>
+    <li><a href={`${DOCS}/product-hydration`}>Product hydration</a> and <a href={`${DOCS}/product-factory`}>product factory</a></li>
+    <li><a href={`${DOCS}/cart-sync`}>Cart sync</a></li>
+    <li><a href={`${DOCS}/shopping-integration-faq`}>Shopping Integration FAQ</a></li>
+    <li><a href="https://docs.firework.com/firework-for-developers/web/integration-guide/events/shopping-events">Shopping events</a></li>
+  </ul>
+</Lab>
+
+<script>
+  import { parseSwitches, readSwitches, saveSwitches, switchLabel } from '../../lab/shopping';
+  import { getCart, onCartChange, setLine } from '../../scripts/cart';
+  import { onFwEvent, type FwEventRecord } from '../../scripts/event-tap';
+  import { fetchProducts, formatEur } from '../../scripts/products-client';
+  import { effectiveSettings } from '../../scripts/settings';
+  import { getShoppingLog, onShoppingLog, shoppingStatus, type ShoppingLogEntry } from '../../scripts/shopping';
+
+  const status = shoppingStatus(effectiveSettings());
+  const switches = readSwitches();
+  const statusEl = document.getElementById('shop-status')!;
+  statusEl.textContent = `${status.on ? 'On' : 'Off'}. ${status.reason}${switches.length ? ` Switches on: ${switches.map(switchLabel).join(', ')}.` : ''}`;
+  statusEl.classList.toggle('note-info', status.on);
+
+  // Failure switches
+  const form = document.getElementById('shop-switches') as HTMLFormElement;
+  const boxes = [...form.querySelectorAll<HTMLInputElement>('input[name="switch"]')];
+  boxes.forEach((b) => (b.checked = switches.includes(b.value as (typeof switches)[number])));
+  const reloadClean = () => {
+    const url = new URL(location.href);
+    url.searchParams.delete('shopping');
+    location.href = url.toString();
+  };
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveSwitches(parseSwitches(boxes.filter((b) => b.checked).map((b) => b.value).join(',')));
+    reloadClean();
+  });
+  document.getElementById('shop-switches-off')!.addEventListener('click', () => {
+    saveSwitches([]);
+    reloadClean();
+  });
+
+  // The site's bag
+  const bag = document.getElementById('shop-bag')!;
+  const fromPlayer = new Set<string>();
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  async function renderBag() {
+    const lines = getCart();
+    if (lines.length === 0) {
+      bag.innerHTML = '<li class="muted">Empty.</li>';
+      return;
+    }
+    const products = await fetchProducts();
+    bag.innerHTML = lines
+      .map((l) => {
+        const product = products.find((p) => p.id === l.productId);
+        const unit = product?.units.find((u) => u.id === l.unitId);
+        const name = product ? `${product.name}, ${unit?.name ?? l.unitId}` : l.unitId;
+        return `<li>
+          <span><strong>${esc(name)}</strong>${fromPlayer.has(l.unitId) ? ' <span class="badge-video">from the video</span>' : ''}<br>
+          <span class="small muted">${esc(l.unitId)} · ${unit ? formatEur(unit.price) : ''}</span></span>
+          <span class="qty" role="group" aria-label="Quantity for ${esc(name)}">
+            <button type="button" data-unit="${esc(l.unitId)}" data-product="${esc(l.productId)}" data-qty="${l.quantity - 1}" aria-label="Decrease">−</button>
+            <span>${l.quantity}</span>
+            <button type="button" data-unit="${esc(l.unitId)}" data-product="${esc(l.productId)}" data-qty="${l.quantity + 1}" aria-label="Increase">+</button>
+          </span>
+        </li>`;
+      })
+      .join('');
+  }
+
+  bag.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-unit]');
+    if (btn) setLine(btn.dataset.product!, btn.dataset.unit!, Math.max(0, Number(btn.dataset.qty)));
+  });
+  document.getElementById('shop-add-toner')!.addEventListener('click', () => {
+    const line = getCart().find((l) => l.unitId === 'FJB-102-200ML');
+    setLine('FJB-102', 'FJB-102-200ML', (line?.quantity ?? 0) + 1);
+  });
+  // Mark only the lines whose quantity the player changed.
+  let before = new Map(getCart().map((l) => [l.unitId, l.quantity]));
+  onCartChange((lines, source) => {
+    if (source === 'player') lines.filter((l) => before.get(l.unitId) !== l.quantity).forEach((l) => fromPlayer.add(l.unitId));
+    before = new Map(lines.map((l) => [l.unitId, l.quantity]));
+    void renderBag();
+  });
+  void renderBag();
+
+  // Hook log and fw:shopping:* events
+  const logBody = document.getElementById('shop-log')!;
+  const time = (ms: number) => `+${(ms / 1000).toFixed(1)}s`;
+  const row = (cells: string[], error = false) => {
+    const tr = document.createElement('tr');
+    if (error) tr.className = 'is-error';
+    cells.forEach((c, i) => {
+      const td = document.createElement('td');
+      if (i === 1) {
+        const code = document.createElement('code');
+        code.textContent = c;
+        td.appendChild(code);
+      } else td.textContent = c;
+      tr.appendChild(td);
+    });
+    if (logBody.querySelector('td[colspan]')) logBody.replaceChildren();
+    logBody.prepend(tr);
+  };
+  const addHook = (e: ShoppingLogEntry) => row([time(e.at), e.hook, e.input, e.output, String(e.ms)], e.error);
+  getShoppingLog().forEach(addHook);
+  onShoppingLog(addHook);
+
+  // The SDK dispatches each event on the widget and on document; show it once.
+  let last: FwEventRecord | null = null;
+  const productOf = (detail: unknown): string => {
+    const d = (detail ?? {}) as { product?: { product_ext_id?: string; product_name?: string }; product_id?: string };
+    return d.product?.product_ext_id ?? d.product?.product_name ?? d.product_id ?? '';
+  };
+  onFwEvent((r) => {
+    if (!r.type.startsWith('fw:shopping:')) return;
+    if (last && last.type === r.type && Math.abs(last.at - r.at) < 50) return;
+    last = r;
+    row([time(r.at), r.type, productOf(r.detail), 'event', '']);
+  });
+</script>
+
+<style>
+  .shop-bag h2 {
+    margin-top: 0;
+  }
+  .shop-bag-lines {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+  }
+  .shop-bag-lines :global(li) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .shop-bag-lines :global(.qty) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .shop-bag-lines :global(.qty button) {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
+  }
+  .shop-bag-lines :global(.badge-video) {
+    font-size: 0.72rem;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--warning-bg);
+    white-space: nowrap;
+  }
+  .switch-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+  .switch-card {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    cursor: pointer;
+  }
+  .switch-card input {
+    width: auto;
+    margin-top: 4px;
+  }
+  .switch-card > span {
+    display: grid;
+    gap: 4px;
+  }
+  .switch-card:has(input:checked) {
+    border-color: var(--fjord);
+    box-shadow: 0 0 0 1px var(--fjord);
+  }
+  .switch-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .shop-log :global(tr.is-error td) {
+    color: var(--danger);
+  }
+  .shop-log :global(td:nth-child(3)),
+  .shop-log :global(td:nth-child(4)) {
+    overflow-wrap: anywhere;
+  }
+</style>

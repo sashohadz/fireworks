@@ -74,6 +74,7 @@ const playerAttrs: AttrDef[] = [
   { name: 'reset_transform', type: 'enum', group: 'Player', values: ['fullscreen', 'always', 'never'], description: 'Removes CSS transforms from ancestors while the player is open. Fixes docked players that scroll with the page.' },
   { name: 'share', type: 'enum', group: 'Player', values: ['hash', 'query', 'false'], description: 'How share links point back to your page. false hides sharing.' },
   { name: 'share_template', type: 'text', group: 'Player', description: 'Base URL for share links, used with share.' },
+  { name: 'shopping_cart_style', type: 'enum', group: 'Shopping', values: ['cart', 'bag'], default: 'cart', description: 'bag shows a bag icon and Add to Bag. Not in the web docs: the SDK recommends it in place of configureCart\'s addToCartText. This site sets bag for every widget on the script tag. See /lab/shopping.' },
   { name: 'ui_asset_next', type: 'text', group: 'Styling attributes', description: 'URL of a custom next arrow, used by carousel arrows and the player. SVG, public and CORS-enabled. Lab links only keep this site\'s /arrows/ files.' },
   { name: 'ui_asset_previous', type: 'text', group: 'Styling attributes', description: 'URL of a custom previous arrow. Same rules as ui_asset_next. See /lab/arrows.' },
 ];

@@ -93,12 +93,15 @@ export function loadFireworkSdk(settings: EffectiveSettings): void {
   // https://docs.firework.com/firework-for-developers/web/integration-guide/privacy-settings/privacy-settings
   const limitTracking: Record<string, string> =
     settings.channel && !settings.isSandbox ? { 'data-fwparam_tracking_opt_in': 'true' } : {};
+  // The store says "bag", so every widget on the sandbox says Add to Bag and shows a bag icon. Firework's SDK
+  // recommends shopping_cart_style over configureCart's deprecated addToCartText; data-fwparam_ sets it for all widgets.
+  const bagStyle: Record<string, string> = settings.isSandbox ? { 'data-fwparam_shopping_cart_style': 'bag' } : {};
   const add = (src: string, attrs: Record<string, string>) => {
     const s = document.createElement('script');
     s.src = src;
     s.async = true;
     s.dataset.fwSdk = 'true';
-    for (const [k, v] of Object.entries({ ...attrs, ...limitTracking })) s.setAttribute(k, v);
+    for (const [k, v] of Object.entries({ ...attrs, ...limitTracking, ...bagStyle })) s.setAttribute(k, v);
     document.head.appendChild(s);
   };
   if (settings.fwMode === 'lazy') {
