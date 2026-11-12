@@ -1,0 +1,264 @@
+---
+import SnippetPanel from '../../components/SnippetPanel.astro';
+import Lab from '../../layouts/Lab.astro';
+import { trackingSnippet } from '../../lab/tracking';
+import { repoUrl } from '../../site.config';
+
+const DOCS = 'https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2/tracking';
+
+const events = [
+  { call: 'pageViewed', request: 'user:page_viewed', when: 'Once on every page, when the shopper lands on it.', here: 'Every page.' },
+  { call: 'addToCart', request: 'user:add_to_cart', when: 'Each time the store\'s cart takes an item.', here: 'Every change to the site\'s bag, from the site or from Add to Bag in a video.' },
+  { call: 'removeFromCart', request: 'user:remove_from_cart', when: 'Each time an item leaves the cart.', here: 'The same, for decreases and removals. Checkout emptying the bag is not a removal.' },
+  { call: 'purchase', request: 'user:purchase', when: 'On the order confirmation page, for every order.', here: 'Once per order on /order/confirmed.' },
+];
+
+// Checked against the live SDK and analytics.js (release v20261104.1) on 12 November 2026. Keep to what was observed.
+const findings = [
+  'The full SDK (fwn.js) contains the same analytics code as analytics.js and defines window._fwn.analytics as it loads. A page that loads fwn.js can send events without the extra tag.',
+  'fwn-async.js loads the SDK only when a widget scrolls into view, or when the URL has fw_ parameters from a shared video link. A page without widgets, such as an order confirmation page, then has no window._fwn.analytics, and the purchase is never sent. That is what the analytics.js tag is for.',
+  'Both scripts can be on one page. Whichever loads first defines window._fwn.analytics, and the other leaves it alone.',
+  'The docs\' examples call window._fwn.analytics on DOMContentLoaded, with analytics.js loaded async. On a test page that threw "Cannot read properties of undefined" every time, fresh and cached, and nothing was sent. Wait for window._fwn.analytics instead, as in the code below.',
+  'analytics.js fires fw:ready when it starts. It fires before window._fwn.shopping exists, and the SDK fires fw:ready again once shopping is ready. Shopping code that runs once on the first fw:ready never registers its hooks, and the player shows Shop Now.',
+  'Each call sends a request to p2.fwpixel.com/trk/user:<event>, with the payload under event_properties.user_data. When the shopper engaged with a video, livestream or AVA chat in this browser, the request also carries their IDs, which is how a sale can be linked to a video.',
+  'Add to Bag in the player sends its own commerce:click_add_to_cart, and the player\'s cart sends click_increase_in_cart, click_decrease_in_cart and click_remove_in_cart. Those are taps in the player. This site still sends addToCart and removeFromCart for those changes, with the quantity the store accepted.',
+  'Not in the docs: analytics.js and the SDK can forward Google Analytics add_to_cart and purchase events from window.dataLayer to the same calls, marked source "ga_datalayer". It is off unless a Firework script tag has data-fwparam_tracking_ga_event. With it on, a store that also calls purchase() may report each order twice.',
+];
+
+const noRevenue = [
+  'The sku values do not match the external IDs imported into Firework. See <a href="/learn/products-and-ids">Products and IDs</a>.',
+  'The confirmation page has no window._fwn.analytics, or calls it before it loads. Look for user:purchase in the network tab after a test order.',
+  'The store only sends orders that came from videos. The docs ask for every purchase, so Firework can compare shoppers who watched with those who did not.',
+];
+---
+
+<Lab title="Tracking" description="Firework's tracking events on this store: the analytics script tag, page views, bag changes and purchases, with a log of what this tab sent.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>Tracking</h1>
+  <p class="lede">
+    The store's own pages tell Firework about page views, bag changes and orders. Firework uses them to link sales to
+    videos. This site loads Firework's analytics script and sends all four events for the sandbox channel.
+  </p>
+  <p id="trk-status" class="note" aria-live="polite">Checking tracking…</p>
+
+  <div class="lab-grid">
+    <section aria-labelledby="trk-try-heading">
+      <h2 id="trk-try-heading">Try it</h2>
+      <ol>
+        <li>Add or remove a toner below. Each change sends <code>addToCart</code> or <code>removeFromCart</code>.</li>
+        <li>Open a <a href="/products/cloudberry-vitamin-c-serum">product page</a> or a video and add something there. Its events show up here too.</li>
+        <li><a href="/checkout">Check out</a>. The confirmation page sends <code>purchase</code> with the same <code>order_id</code> as the bag's events.</li>
+      </ol>
+      <p class="trk-try">
+        <button type="button" class="btn btn-small" id="trk-add">Add Glacier Water Essence Toner</button>
+        <button type="button" class="btn btn-small btn-ghost" id="trk-remove">Remove one</button>
+        <span id="trk-bag" class="small muted" aria-live="polite"></span>
+      </p>
+    </section>
+
+    <aside class="panel" aria-labelledby="trk-tag-heading">
+      <h2 id="trk-tag-heading">The script tag</h2>
+      <p class="small">On every page that sends events, in the <code>&lt;head&gt;</code>:</p>
+      <pre class="trk-tag" tabindex="0"><code>&lt;script async type="text/javascript"
+  src="//asset.fwcdn3.com/js/analytics.js"&gt;&lt;/script&gt;</code></pre>
+      <p class="small muted">
+        This site adds it on every page that uses the sandbox channel, before the SDK. Nothing is added with
+        <code>?fw=off</code> or on other channels.
+      </p>
+    </aside>
+  </div>
+
+  <h2>Event log</h2>
+  <p class="small muted">
+    Every event this browser tab sent, newest first, from any page. Open a row to see the payload. The network tab shows
+    the same calls as <code>user:*</code> requests.
+  </p>
+  <div class="table-wrap">
+    <table class="table trk-log">
+      <thead><tr><th>Time</th><th>Page</th><th>Call</th><th>Result</th><th>Payload</th></tr></thead>
+      <tbody id="trk-log"><tr><td colspan="5" class="muted">Nothing sent yet in this tab.</td></tr></tbody>
+    </table>
+  </div>
+  <p><button type="button" class="btn btn-small btn-ghost" id="trk-clear">Clear the log</button></p>
+
+  <h2>The four events</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Call</th><th>Request</th><th>When to send it</th><th>On this site</th></tr></thead>
+      <tbody>
+        {
+          events.map((e) => (
+            <tr>
+              <td><code>window._fwn.analytics.{e.call}()</code></td>
+              <td><code>{e.request}</code></td>
+              <td>{e.when}</td>
+              <td>{e.here}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <code>addToCart</code>, <code>removeFromCart</code> and <code>purchase</code> take the purchase format:
+    <code>order_id</code>, <code>currency</code>, <code>subtotal</code>, <code>order_value</code> and
+    <code>line_items</code> with <code>sku</code>, <code>quantity</code> and <code>price</code>. The docs don't say
+    what a cart event's lines mean. This site sends what was added or removed, as Google Analytics does, and uses the
+    bag's ID as <code>order_id</code>. That ID becomes the order ID at checkout.
+  </p>
+
+  <h2>The code</h2>
+  <SnippetPanel id="trk-code" title="Tracking script" code={trackingSnippet} />
+  <p class="small muted">
+    This site's version is <a href={`${repoUrl}/blob/main/src/scripts/tracking.ts`}>src/scripts/tracking.ts</a>, and
+    the script tag comes from <a href={`${repoUrl}/blob/main/src/scripts/firework-loader.ts`}>src/scripts/firework-loader.ts</a>.
+  </p>
+
+  <h2>Checked with the live SDK</h2>
+  <ul>{findings.map((f) => <li>{f}</li>)}</ul>
+
+  <h2>"Insights shows no sales from videos"</h2>
+  <p>The usual causes, most likely first:</p>
+  <ol>{noRevenue.map((r) => <li set:html={r} />)}</ol>
+
+  <h2>Docs</h2>
+  <p class="small muted">
+    Stores on a Firework e-commerce app (Shopify, Magento, Salesforce Commerce Cloud) don't need the purchase call: the
+    app sends it.
+  </p>
+  <ul>
+    <li><a href={DOCS}>Tracking</a>, including the analytics script tag</li>
+    <li><a href={`${DOCS}/purchase`}>Purchase</a>, <a href={`${DOCS}/add-to-cart`}>Add to cart</a>, <a href={`${DOCS}/remove-from-cart`}>Remove from cart</a> and <a href={`${DOCS}/page-viewed`}>Page viewed</a></li>
+    <li><a href="/lab/shopping">Shopping integration</a> on this site</li>
+  </ul>
+</Lab>
+
+<script>
+  import { getCart, onCartChange, setLine } from '../../scripts/cart';
+  import { formatEur } from '../../scripts/products-client';
+  import { effectiveSettings } from '../../scripts/settings';
+  import { clearTrackingLog, getTrackingLog, onTrackingLog, trackingStatus, trackRequest, type TrackingLogEntry } from '../../scripts/tracking';
+
+  // Status: is tracking on, and did anything define window._fwn.analytics?
+  const statusEl = document.getElementById('trk-status')!;
+  const status = trackingStatus(effectiveSettings());
+  statusEl.textContent = `${status.on ? 'On' : 'Off'}: ${status.reason}.`;
+  if (status.on) {
+    statusEl.classList.add('note-info');
+    const started = Date.now();
+    const check = () => {
+      if (window._fwn?.analytics) statusEl.textContent += ' window._fwn.analytics is ready.';
+      else if (Date.now() - started > 12000) statusEl.textContent += ' window._fwn.analytics did not appear within 12 seconds. Is something blocking asset.fwcdn3.com?';
+      else return void window.setTimeout(check, 200);
+    };
+    check();
+  }
+
+  // Try it: the toner
+  const TONER = { productId: 'FJB-102', unitId: 'FJB-102-200ML' };
+  const bagEl = document.getElementById('trk-bag')!;
+  const tonerQty = () => getCart().find((l) => l.unitId === TONER.unitId)?.quantity ?? 0;
+  const showBag = () => {
+    const qty = tonerQty();
+    bagEl.textContent = qty ? `${qty} in the bag.` : 'None in the bag.';
+    (document.getElementById('trk-remove') as HTMLButtonElement).disabled = qty === 0;
+  };
+  document.getElementById('trk-add')!.addEventListener('click', () => setLine(TONER.productId, TONER.unitId, tonerQty() + 1));
+  document.getElementById('trk-remove')!.addEventListener('click', () => setLine(TONER.productId, TONER.unitId, Math.max(0, tonerQty() - 1)));
+  onCartChange(showBag);
+  showBag();
+
+  // Event log
+  const logBody = document.getElementById('trk-log')!;
+  const empty = logBody.innerHTML;
+  const cell = (tr: HTMLTableRowElement, build: (td: HTMLTableCellElement) => void) => {
+    const td = document.createElement('td');
+    build(td);
+    tr.appendChild(td);
+  };
+  const code = (text: string) => {
+    const el = document.createElement('code');
+    el.textContent = text;
+    return el;
+  };
+  const summary = (e: TrackingLogEntry): string => {
+    const p = e.payload as { line_items?: { sku: string; quantity: number }[]; order_value?: number } | null;
+    if (e.event === 'pageViewed') return 'no customer ID';
+    if (Array.isArray(p?.line_items)) return `${p.line_items.map((l) => `${l.sku} × ${l.quantity}`).join(', ')} · ${formatEur(p.order_value ?? 0)}`;
+    return 'payload';
+  };
+
+  function addRow(e: TrackingLogEntry) {
+    if (logBody.querySelector('td[colspan]')) logBody.replaceChildren();
+    const tr = document.createElement('tr');
+    if (e.status !== 'sent') tr.className = 'is-error';
+    cell(tr, (td) => (td.textContent = new Date(e.at).toLocaleTimeString()));
+    cell(tr, (td) => (td.textContent = e.page));
+    cell(tr, (td) => {
+      td.appendChild(code(e.event));
+      if (e.source === 'player') {
+        const badge = document.createElement('span');
+        badge.className = 'badge-video';
+        badge.textContent = 'from the video';
+        td.append(' ', badge);
+      }
+    });
+    cell(tr, (td) => {
+      if (e.status === 'sent') td.append('Sent as ', code(trackRequest[e.event]));
+      else td.textContent = `Not sent: ${e.reason}.`;
+    });
+    cell(tr, (td) => {
+      const details = document.createElement('details');
+      const sum = document.createElement('summary');
+      sum.textContent = summary(e);
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(e.payload, null, 2);
+      details.append(sum, pre);
+      td.appendChild(details);
+    });
+    logBody.prepend(tr);
+  }
+
+  getTrackingLog().forEach(addRow);
+  onTrackingLog(addRow);
+  document.getElementById('trk-clear')!.addEventListener('click', () => {
+    clearTrackingLog();
+    logBody.innerHTML = empty;
+  });
+</script>
+
+<style>
+  .trk-try {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .trk-tag {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 0.82rem;
+  }
+  .trk-log :global(tr.is-error td) {
+    color: var(--danger);
+  }
+  .trk-log :global(td:nth-child(2)),
+  .trk-log :global(td:nth-child(4)) {
+    overflow-wrap: anywhere;
+  }
+  .trk-log :global(td:nth-child(4) code) {
+    white-space: nowrap;
+  }
+  .trk-log :global(details pre) {
+    margin: 6px 0 0;
+    font-size: 0.78rem;
+    white-space: pre-wrap;
+  }
+  .trk-log :global(.badge-video) {
+    font-size: 0.72rem;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--warning-bg);
+    white-space: nowrap;
+  }
+</style>

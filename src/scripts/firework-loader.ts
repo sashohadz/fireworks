@@ -3,6 +3,7 @@
 // configured they render as placeholders and are turned into real elements here if a channel is set.
 import { ava, firework } from '../site.config';
 import { playlistFor, type EffectiveSettings } from './settings';
+import { trackingStatus } from './tracking';
 
 const MANAGED = '[data-fw-managed]';
 
@@ -110,6 +111,21 @@ export function loadFireworkSdk(settings: EffectiveSettings): void {
   }
   add(firework.scripts.module, { type: 'module' });
   add(firework.scripts.nomodule, { nomodule: '' });
+}
+
+/**
+ * Firework's analytics script, in the head of every page that sends tracking events, as the tracking docs ask.
+ * The full SDK bundles the same code, but fwn-async.js only loads the SDK once a widget scrolls into view, so a
+ * page without widgets, such as the order confirmation page, has no window._fwn.analytics without this tag.
+ * Both can be on one page: whichever loads first defines window._fwn.analytics and the other leaves it alone.
+ */
+export function loadAnalyticsScript(settings: EffectiveSettings): void {
+  if (!trackingStatus(settings).on || document.querySelector('script[data-fw-analytics]')) return;
+  const s = document.createElement('script');
+  s.src = firework.scripts.analytics;
+  s.async = true;
+  s.dataset.fwAnalytics = 'true';
+  document.head.appendChild(s);
 }
 
 /**

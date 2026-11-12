@@ -3,7 +3,7 @@ layout: ../../layouts/Learn.astro
 title: Go-live checklist
 description: What to check before a customer's site goes live with Firework, and before a livestream. Tick items as you go; ticks stay in this browser.
 order: 5
-updated: 27 Oct 2026
+updated: 12 Nov 2026
 ---
 
 ## Part 1: before the site goes live
@@ -26,9 +26,12 @@ updated: 27 Oct 2026
 ### Shopping and tracking
 
 - [ ] If the cart integration is used, adding to bag in the player updates the site's cart, and the other way round.
-- [ ] The order confirmation page calls `_fwn.analytics.purchase()` with `order_id`, `currency`, `subtotal`, `order_value` and `line_items`.
+- [ ] `analytics.js` is in the `<head>` of every page that sends tracking events. It matters most where the full SDK doesn't load: pages without widgets, and sites using `fwn-async.js`.
+- [ ] Tracking calls wait for `window._fwn.analytics` instead of running on `DOMContentLoaded`. See the [tracking lab](/lab/tracking).
+- [ ] Every page calls `_fwn.analytics.pageViewed()`, and the cart code calls `addToCart()` and `removeFromCart()`, including for changes from Add to Bag in the player.
+- [ ] The order confirmation page calls `_fwn.analytics.purchase()` with `order_id`, `currency`, `subtotal`, `order_value` and `line_items`, for every order.
 - [ ] Each line item's `sku` matches the IDs imported into Firework.
-- [ ] A test order shows a `user:purchase` request in the network tab.
+- [ ] A test order shows `user:add_to_cart` and `user:purchase` requests in the network tab.
 
 ### Privacy and security
 
@@ -79,4 +82,4 @@ updated: 27 Oct 2026
 - [ ] The replay is in the right playlist, with its start and end trimmed.
 - [ ] Short clips are cut from the replay, and Insights are reviewed with the customer.
 
-Sources: [FAQ and troubleshooting](https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting), [Cookies management](https://docs.firework.com/firework-for-developers/web/integration-guide/privacy-settings/cookies-management), [Content Security Policy](https://docs.firework.com/firework-for-developers/web/integration-guide/privacy-settings/content-security-policy), [Service domains](https://docs.firework.com/firework-for-developers/web/firework-service-domains), [Purchase tracking](https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2/tracking/purchase), [Closed captions](https://firework.com/help/how-to-add-closed-captions-to-your-videos), [Go live with OBS](https://firework.com/help/how-to-go-live-with-third-party-obs), [Stream a prerecorded video](https://firework.com/help/how-to-stream-a-prerecorded-video), [Livestream best practices](https://firework.com/help/what-are-best-practices-for-live-streaming), [Edit replay start and end](https://firework.com/help/select-livestream-replays), [Short clips from a livestream](https://firework.com/help/create-short-clips).
+Sources: [FAQ and troubleshooting](https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting), [Cookies management](https://docs.firework.com/firework-for-developers/web/integration-guide/privacy-settings/cookies-management), [Content Security Policy](https://docs.firework.com/firework-for-developers/web/integration-guide/privacy-settings/content-security-policy), [Service domains](https://docs.firework.com/firework-for-developers/web/firework-service-domains), [Tracking](https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2/tracking), [Purchase tracking](https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2/tracking/purchase), [Closed captions](https://firework.com/help/how-to-add-closed-captions-to-your-videos), [Go live with OBS](https://firework.com/help/how-to-go-live-with-third-party-obs), [Stream a prerecorded video](https://firework.com/help/how-to-stream-a-prerecorded-video), [Livestream best practices](https://firework.com/help/what-are-best-practices-for-live-streaming), [Edit replay start and end](https://firework.com/help/select-livestream-replays), [Short clips from a livestream](https://firework.com/help/create-short-clips).

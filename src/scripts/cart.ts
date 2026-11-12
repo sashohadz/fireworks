@@ -6,7 +6,22 @@ export interface CartLine {
 }
 
 const KEY = 'fjb.cart.v1';
+const ID_KEY = 'fjb.cart.id.v1';
 export const CART_EVENT = 'fjb:cart-changed';
+
+/**
+ * Who changed the bag: the site's own buttons, Add to Bag inside the Firework player, or a placed order
+ * emptying it.
+ */
+export type CartSource = 'site' | 'player' | 'order';
+
+/** One change to the bag in this tab, with the bag before and after it. */
+export interface CartChange {
+  cartId: string;
+  previous: CartLine[];
+  lines: CartLine[];
+  source: CartSource;
+}
 
 function read(): CartLine[] {
   try {
@@ -17,16 +32,47 @@ function read(): CartLine[] {
   }
 }
 
-/** Who changed the bag: the site's own buttons, or Add to Bag inside the Firework player. */
-export type CartSource = 'site' | 'player';
+let unsavedId: string | null = null;
+
+/**
+ * The bag's ID. It becomes the order ID at checkout, so the bag's tracking events and the purchase share one
+ * order_id, as in Firework's tracking examples. A new bag starts after each order.
+ */
+export function cartId(): string {
+  try {
+    const saved = window.localStorage.getItem(ID_KEY);
+    if (saved) return saved;
+  } catch {
+    /* storage blocked: the ID lasts for this page view */
+  }
+  unsavedId ??= `FJB-DEMO-${Date.now().toString(36).toUpperCase()}`;
+  try {
+    window.localStorage.setItem(ID_KEY, unsavedId);
+  } catch {
+    /* ignore */
+  }
+  return unsavedId;
+}
+
+function forgetCartId(): void {
+  unsavedId = null;
+  try {
+    window.localStorage.removeItem(ID_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 function write(lines: CartLine[], source: CartSource = 'site'): void {
+  const previous = read();
+  const id = cartId();
   try {
     window.localStorage.setItem(KEY, JSON.stringify(lines));
   } catch {
     /* storage blocked: cart lasts for this page view only */
   }
-  window.dispatchEvent(new CustomEvent(CART_EVENT, { detail: { lines, source } }));
+  const detail: CartChange = { cartId: id, previous, lines, source };
+  window.dispatchEvent(new CustomEvent<CartChange>(CART_EVENT, { detail }));
 }
 
 export const getCart = (): CartLine[] => read();
@@ -61,13 +107,21 @@ export function setLine(productId: string, unitId: string, quantity: number, sou
   return kept;
 }
 
-export function clearCart(): void {
-  write([]);
+/** Empties the bag. After checkout pass 'order': the purchase event covers those items, so it is not a removal. */
+export function clearCart(source: CartSource = 'site'): void {
+  write([], source);
+  if (source === 'order') forgetCartId();
 }
 
+/** Any change to the bag, including changes made in another tab (reported as 'site'). */
 export function onCartChange(fn: (lines: CartLine[], source: CartSource) => void): void {
-  window.addEventListener(CART_EVENT, (e) => fn(read(), (e as CustomEvent<{ source: CartSource }>).detail.source));
+  window.addEventListener(CART_EVENT, (e) => fn(read(), (e as CustomEvent<CartChange>).detail.source));
   window.addEventListener('storage', (e) => {
     if (e.key === KEY) fn(read(), 'site');
   });
+}
+
+/** Changes made in this tab only. Tracking uses this, so a change made in two open tabs is not counted twice. */
+export function onCartWrite(fn: (change: CartChange) => void): void {
+  window.addEventListener(CART_EVENT, (e) => fn((e as CustomEvent<CartChange>).detail));
 }
