@@ -1,0 +1,207 @@
+---
+// A plain store page without Firework, to practise the "Your site with Firework" bookmark on.
+// Standalone on purpose: no site layout, no Firework script, no Fjordbloom styles.
+const products = [
+  { name: 'Wool overshirt', price: '€89', tone: '#c9b79c' },
+  { name: 'Canvas tote', price: '€35', tone: '#9fb3a8' },
+  { name: 'Merino beanie', price: '€29', tone: '#b9a2b8' },
+  { name: 'Leather gloves', price: '€59', tone: '#a7b6c9' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Practice page · Sample Store</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <p class="practice-bar">
+      Practice page for the Firework demo bookmark. Nothing here uses Firework until you click the bookmark.
+      <a href="/lab/bookmarklet/">Back to the bookmark</a>
+    </p>
+    <header class="top">
+      <div class="wrap top-inner">
+        <a class="logo" href="#">Sample Store</a>
+        <nav aria-label="Main">
+          <a href="#bestsellers">New in</a>
+          <a href="#bestsellers">Clothing</a>
+          <a href="#bestsellers">Accessories</a>
+          <a href="#story">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="hero">
+        <div class="wrap">
+          <h1>Autumn layers are here</h1>
+          <p>Warm basics in wool and canvas, made to last for years.</p>
+          <a class="button" href="#bestsellers">Shop the collection</a>
+        </div>
+      </section>
+
+      <section class="band" id="bestsellers">
+        <div class="wrap">
+          <h2>Bestsellers</h2>
+          <ul class="cards">
+            {
+              products.map((p) => (
+                <li class="card">
+                  <a href="#bestsellers">
+                    <span class="swatch" style={`background:${p.tone}`} />
+                    <span class="name">{p.name}</span>
+                    <span class="price">{p.price}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </section>
+
+      <section class="band band-alt" id="story">
+        <div class="wrap narrow">
+          <h2>Made to last</h2>
+          <p>
+            Every piece is made in small batches from natural materials. Repairs are free for the first two years, and
+            worn pieces can come back to us for a credit.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">Sample Store is not a real shop. It exists to practise demos.</div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --ink: #222;
+    --muted: #666;
+    --paper: #fbfaf7;
+    --alt: #f0ede6;
+    --accent: #2f4f3e;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font: 16px/1.55 Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: var(--paper);
+  }
+  a {
+    color: inherit;
+  }
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  .narrow {
+    max-width: 720px;
+  }
+  .practice-bar {
+    margin: 0;
+    padding: 8px 16px;
+    background: #fff4c2;
+    font: 14px/1.4 system-ui, sans-serif;
+    text-align: center;
+  }
+  .top {
+    border-bottom: 1px solid #e4e0d8;
+    background: #fff;
+  }
+  .top-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  .logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    font: 15px system-ui, sans-serif;
+  }
+  nav a {
+    text-decoration: none;
+  }
+  .hero {
+    padding: 72px 0;
+    background: linear-gradient(135deg, #dfe7df, #efe4d3);
+  }
+  .hero h1 {
+    margin: 0 0 12px;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    line-height: 1.1;
+  }
+  .hero p {
+    margin: 0 0 24px;
+    font-size: 1.15rem;
+    color: #444;
+  }
+  .button {
+    display: inline-block;
+    padding: 12px 22px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font: 600 15px system-ui, sans-serif;
+  }
+  .band {
+    padding: 56px 0;
+  }
+  .band-alt {
+    background: var(--alt);
+  }
+  .band h2 {
+    margin: 0 0 20px;
+    font-size: 1.8rem;
+  }
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  .card a {
+    display: grid;
+    gap: 6px;
+    text-decoration: none;
+  }
+  .swatch {
+    display: block;
+    aspect-ratio: 4 / 5;
+  }
+  .name {
+    font-weight: 600;
+  }
+  .price {
+    color: var(--muted);
+    font-family: system-ui, sans-serif;
+  }
+  .foot {
+    padding: 28px 0;
+    font: 14px system-ui, sans-serif;
+    color: var(--muted);
+  }
+</style>
