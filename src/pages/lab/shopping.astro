@@ -25,10 +25,11 @@ const findings = [
   'While hydration is pending, the player shows the Business Portal price, then switches to the store\'s price when the hook returns.',
   'Check out in the player\'s cart opens the url from configureCart in the same tab.',
   'configureCart\'s addToCartText still works but logs a deprecation warning. The SDK points to shopping_cart_style="bag" on the widget, which the web docs don\'t list yet.',
+  'Checked 12 November 2026: when analytics.js is on the page too, it fires fw:ready first, before window._fwn.shopping exists. The SDK fires fw:ready again once shopping is ready. The docs say shopping is available in the fw:ready callback, so check for it and keep listening. See /lab/tracking.',
 ];
 
 const shopNowReasons = [
-  'configureCart never ran. The script checked window._fwn.shopping before the SDK loaded and did not wait for fw:ready. Look for configureCart in the hook log, or for the hooks in the console.',
+  'configureCart never ran. The script checked window._fwn.shopping before the SDK loaded and did not wait for fw:ready, or it ran once on the first fw:ready, which analytics.js fires before window._fwn.shopping exists. Look for configureCart in the hook log, or for the hooks in the console.',
   'The product has no External ID in Business Portal, so the store can\'t match it.',
   'The price is hidden in Business Portal. The button then says View More.',
   'The docs also list a product URL on a different domain from the page. In our tests, this site on localhost with production product URLs still showed Add to Bag, so check the first three first.',

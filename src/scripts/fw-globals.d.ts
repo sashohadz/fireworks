@@ -65,12 +65,19 @@ declare global {
     productFactory(build: (product: FwProductBuilder) => void, validateRequiredFields?: boolean): unknown;
   }
 
+  /** https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2/tracking */
+  interface FwAnalytics {
+    pageViewed?: (data: { ext_customer_identifier?: string }) => void;
+    addToCart?: (payload: object) => void;
+    removeFromCart?: (payload: object) => void;
+    purchase?: (payload: object) => void;
+  }
+
   interface Window {
     _fwn?: {
       console?: () => void;
-      analytics?: {
-        purchase?: (payload: Record<string, unknown>) => void;
-      };
+      /** Defined by analytics.js and by the full SDK, whichever loads first. */
+      analytics?: FwAnalytics;
       shopping?: FwShopping;
       player?: Record<string, unknown>;
       players?: Record<string, unknown>;

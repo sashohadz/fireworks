@@ -34,6 +34,7 @@ const pages = [
   '/lab/layouts',
   '/lab/arrows',
   '/lab/shopping',
+  '/lab/tracking',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -238,6 +239,93 @@ test.describe('shopping integration', () => {
   });
 });
 
+interface FakeCall {
+  event: string;
+  page: string;
+  payload: Record<string, unknown>;
+}
+
+/** Stands in for window._fwn.analytics. Calls are kept for the tab, so a journey across pages can be checked. */
+function installFakeAnalytics(): void {
+  const call = (event: string) => (payload: unknown) => {
+    const calls = JSON.parse(sessionStorage.getItem('__fakeAnalytics') ?? '[]') as unknown[];
+    calls.push({ event, page: location.pathname, payload });
+    sessionStorage.setItem('__fakeAnalytics', JSON.stringify(calls));
+  };
+  window._fwn = { analytics: { pageViewed: call('pageViewed'), addToCart: call('addToCart'), removeFromCart: call('removeFromCart'), purchase: call('purchase') } };
+}
+
+async function withFakeAnalytics(page: Page): Promise<void> {
+  // Nothing reaches Firework: its scripts and its pixel are blocked.
+  await page.route(/asset\.(fwcdn3|fwscripts)\.com|fwpixel\.com/, (route) => route.abort());
+  await page.addInitScript(installFakeAnalytics);
+}
+
+const fakeCalls = (page: Page): Promise<FakeCall[]> => page.evaluate(() => JSON.parse(sessionStorage.getItem('__fakeAnalytics') ?? '[]'));
+const fakeEvents = async (page: Page) => (await fakeCalls(page)).map((c) => c.event);
+
+test.describe('tracking', () => {
+  test('analytics.js heads the page, and bag changes and the purchase share one order ID', async ({ page }) => {
+    await withFakeAnalytics(page);
+    await page.goto('/products/cloudberry-vitamin-c-serum');
+    await expect(page.locator('head script[data-fw-analytics]')).toHaveAttribute('src', 'https://asset.fwcdn3.com/js/analytics.js');
+    const tagFirst = await page.evaluate(() => {
+      const tag = document.querySelector('script[data-fw-analytics]')!;
+      const sdk = document.querySelector('script[data-fw-sdk]')!;
+      return Boolean(tag.compareDocumentPosition(sdk) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(tagFirst).toBe(true);
+    await expect.poll(() => fakeEvents(page)).toEqual(['pageViewed']);
+
+    await page.locator('#pdp-add').click();
+    await expect.poll(() => fakeEvents(page)).toEqual(['pageViewed', 'addToCart']);
+    const added = (await fakeCalls(page))[1]!.payload;
+    expect(added).toMatchObject({
+      currency: 'EUR',
+      subtotal: 48,
+      order_value: 48,
+      line_items: [{ sku: 'FJB-103-30ML', quantity: 1, price: 48, product_name: 'Cloudberry Vitamin C Glow Serum (30 ml)' }],
+    });
+    const orderId = added.order_id as string;
+    expect(orderId).toMatch(/^FJB-DEMO-/);
+
+    await page.goto('/cart');
+    await page.locator('.cart-line button[data-delta="1"]').click();
+    await expect.poll(async () => (await fakeEvents(page)).filter((e) => e === 'addToCart')).toHaveLength(2);
+    await page.locator('.cart-line button[data-delta="-1"]').click();
+    await expect.poll(async () => (await fakeEvents(page)).filter((e) => e === 'removeFromCart')).toHaveLength(1);
+    const removed = (await fakeCalls(page)).find((c) => c.event === 'removeFromCart')!.payload;
+    expect(removed).toMatchObject({ order_id: orderId, order_value: 48, line_items: [{ sku: 'FJB-103-30ML', quantity: 1, price: 48 }] });
+
+    await page.goto('/checkout');
+    await page.locator('#co-submit').click();
+    await page.waitForURL('**/order/confirmed');
+    await expect(page.locator('#track-status')).toContainText('Sent');
+    const calls = await fakeCalls(page);
+    expect(calls.find((c) => c.event === 'purchase')!.payload).toMatchObject({ order_id: orderId, line_items: [{ sku: 'FJB-103-30ML', quantity: 1, price: 48 }] });
+    // Checkout empties the bag without a removeFromCart, and the next bag gets a new ID.
+    expect(calls.filter((c) => c.event === 'removeFromCart')).toHaveLength(1);
+    expect(await page.evaluate(() => localStorage.getItem('fjb.cart.id.v1'))).toBeNull();
+
+    await page.goto('/lab/tracking');
+    await expect(page.locator('#trk-log tr')).toHaveCount(calls.length + 1);
+    await expect(page.locator('#trk-log')).toContainText('user:purchase');
+  });
+
+  test('the tag loads in lazy mode, but not with fw=off or on other channels', async ({ page }) => {
+    await withFakeAnalytics(page);
+    await page.goto('/order/confirmed?fw=lazy');
+    await expect(page.locator('head script[data-fw-analytics]')).toHaveCount(1);
+    await expect(page.locator('script[data-fw-sdk]')).toHaveAttribute('src', /fwn-async\.js$/);
+    await expect.poll(() => fakeEvents(page)).toEqual(['pageViewed']);
+    for (const query of ['fw=off', 'channel=firework']) {
+      await page.goto(`/order/confirmed?${query}`);
+      await expect(page.locator('script[data-fw-analytics]')).toHaveCount(0);
+    }
+    expect(await fakeEvents(page)).toEqual(['pageViewed']);
+  });
+});
+
 test.describe('demo tools', () => {
   test('pitch mode hides demo tools and moves between steps', async ({ page }) => {
     // Keep the SDK off on every page the pitch visits.
@@ -391,6 +479,19 @@ test.describe('firework sdk (network)', () => {
       null,
       { timeout: 30_000 },
     );
+  });
+
+  test('analytics.js alone sends page views on a page without widgets', async ({ page }) => {
+    // Read the pixel requests and block them, so the sandbox's analytics get nothing from tests.
+    const sent: string[] = [];
+    await page.route(/\/trk\//, (route) => {
+      sent.push(new URL(route.request().url()).pathname);
+      return route.abort();
+    });
+    // Lazy mode on the confirmation page: no widget, so fwn-async.js never loads the SDK.
+    await page.goto('/order/confirmed?fw=lazy');
+    await expect.poll(() => sent, { timeout: 30_000 }).toContain('/trk/user:page_viewed');
+    expect(await page.evaluate(() => typeof window._fwn?.shopping)).toBe('undefined');
   });
 
   test('fw=off skips the SDK', async ({ page }) => {

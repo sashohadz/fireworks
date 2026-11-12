@@ -126,8 +126,13 @@ export function applyScenario<P extends ScenarioPrice & { units: (ScenarioPrice 
 export const integrationSnippet = `<script>
   // Add once per page, next to the Firework script. "store" stands for your own commerce API.
   function whenShoppingReady(fn) {
-    if (window._fwn?.shopping) fn(window._fwn.shopping);
-    else document.addEventListener('fw:ready', () => fn(window._fwn.shopping), { once: true });
+    if (window._fwn?.shopping) return fn(window._fwn.shopping);
+    // analytics.js also fires fw:ready, before window._fwn.shopping exists. Wait for the one that has it.
+    document.addEventListener('fw:ready', function ready() {
+      if (!window._fwn?.shopping) return;
+      document.removeEventListener('fw:ready', ready);
+      fn(window._fwn.shopping);
+    });
   }
 
   whenShoppingReady((shopping) => {

@@ -86,7 +86,7 @@ const countries = ['Austria', 'Belgium', 'Denmark', 'Finland', 'France', 'German
     submit.disabled = true;
     submit.textContent = 'Placing order…';
     await createOrder(lines);
-    clearCart();
+    clearCart('order');
     location.href = '/order/confirmed';
   });
 

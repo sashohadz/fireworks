@@ -3,7 +3,7 @@ layout: ../../layouts/Learn.astro
 title: Firework product map
 description: The four customer-facing surfaces, the AI layer behind them, and where each one shows up on this site.
 order: 1
-updated: 27 Oct 2026
+updated: 12 Nov 2026
 ---
 
 Firework sells video commerce to retailers and brands. Customers manage everything in **Business Portal** (the CMS) and put it on their sites with web components, mobile SDKs or platform apps.
@@ -29,6 +29,6 @@ Products reach Firework through a platform integration (Shopify, Salesforce Comm
 
 ## Where the data goes
 
-Every widget sends engagement events, and the site sends a **purchase event** on the order confirmation page. Firework uses these to attribute revenue to videos in Insights.
+Every widget sends engagement events. The store's own pages send **tracking events**: a page view on every page, add to cart and remove from cart when the bag changes, and a purchase on the order confirmation page. Firework uses these to attribute revenue to videos in Insights. See the [tracking lab](/lab/tracking).
 
 Sources: [Get started](https://firework.com/docs/get-started), [Shoppable video](https://firework.com/docs/shoppable-video), [Video Showroom](https://firework.com/docs/video-showroom), [AVA](https://firework.com/docs/ava-ai-virtual-assistant).

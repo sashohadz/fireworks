@@ -17,9 +17,9 @@ export interface FireworkConfig {
   /** Playlist ID per page slot. An empty slot falls back to the whole channel. */
   playlists: Record<PlaylistSlot, string>;
   /** Script URLs from the Firework web docs. */
-  scripts: { module: string; nomodule: string; lazy: string };
-  /** Purchase events are only sent when the page uses this sandbox channel. */
-  trackPurchases: boolean;
+  scripts: { module: string; nomodule: string; lazy: string; analytics: string };
+  /** Tracking events (page views, bag changes, purchases). Only sent when the page uses this sandbox channel. */
+  trackEvents: boolean;
 }
 
 export const firework: FireworkConfig = {
@@ -40,8 +40,10 @@ export const firework: FireworkConfig = {
     module: 'https://asset.fwcdn3.com/js/module/fwn.js',
     nomodule: 'https://asset.fwcdn3.com/js/fwn.js',
     lazy: 'https://asset.fwcdn3.com/js/fwn-async.js',
+    // Tracking only: defines window._fwn.analytics on pages that may not load the SDK.
+    analytics: 'https://asset.fwcdn3.com/js/analytics.js',
   },
-  trackPurchases: true,
+  trackEvents: true,
 };
 
 /**

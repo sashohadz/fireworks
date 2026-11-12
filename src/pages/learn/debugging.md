@@ -3,7 +3,7 @@ layout: ../../layouts/Learn.astro
 title: First checks on an embed ticket
 description: A public-safe checklist for "the widget doesn't show" and friends, with links to live repros.
 order: 4
-updated: 27 Oct 2026
+updated: 12 Nov 2026
 ---
 
 ## 1. Is the script on the page?
@@ -28,7 +28,7 @@ If an embed silently shows nothing, add `debug_fwn=true` to the page URL. It byp
 
 Widgets dispatch `fw:*` events on `document`. An `fw:embed-feed:error` means the feed could not be shown. Seeing `render` but never `content-ready` points at the content source: a wrong channel, playlist, hashtag or `skus` value.
 
-In practice each event arrives twice: once on the widget element and once on `document`. Count them once when you compare numbers with Insights. The SDK also emits many events the docs don't list yet, such as `fw:ready`, `fw:shopping:configure`, `fw:video:start` and `fw:video:first-quartile`. The debug overlay shows all of them.
+In practice each event arrives twice: once on the widget element and once on `document`. Count them once when you compare numbers with Insights. The SDK also emits many events the docs don't list yet, such as `fw:ready`, `fw:shopping:configure`, `fw:video:start` and `fw:video:first-quartile`. The debug overlay shows all of them. With `analytics.js` on the page, `fw:ready` arrives twice: first from `analytics.js`, before `window._fwn.shopping` exists, then from the SDK.
 
 ## 5. Check the usual suspects
 

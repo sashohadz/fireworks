@@ -1,5 +1,5 @@
 // Builds demo orders from the cart. Prices come from the mock commerce API, never from the client cart.
-import type { CartLine } from './cart';
+import { cartId, type CartLine } from './cart';
 import { fetchProducts } from './products-client';
 import type { DemoOrder, DemoOrderLine } from './tracking';
 
@@ -24,7 +24,8 @@ export async function priceCart(lines: CartLine[]): Promise<{ lines: DemoOrderLi
 export async function createOrder(lines: CartLine[]): Promise<DemoOrder> {
   const priced = await priceCart(lines);
   const order: DemoOrder = {
-    id: `FJB-DEMO-${Date.now().toString(36).toUpperCase()}`,
+    // The bag's ID, which its addToCart and removeFromCart events already used as order_id.
+    id: cartId(),
     createdAt: new Date().toISOString(),
     currency: 'EUR',
     ...priced,
