@@ -1,0 +1,204 @@
+---
+import SnippetPanel from '../../components/SnippetPanel.astro';
+import Lab from '../../layouts/Lab.astro';
+import { portalLayouts } from '../../lab/layouts';
+import { repoUrl } from '../../site.config';
+
+const DEFAULT_LAYOUT = 'carousel_row';
+---
+
+<Lab title="Your site with Firework" description="A bookmark that adds Firework videos to any website, only in your browser, for pitches.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>Your site with Firework</h1>
+  <p class="lede">
+    A bookmark that adds Firework videos to any website, only in your browser. Open a prospect's homepage, click the
+    bookmark, then click where the videos should go. Nothing changes on their site, and a reload removes it.
+  </p>
+
+  <div class="lab-grid">
+    <section aria-labelledby="bm-pick-heading">
+      <h2 id="bm-pick-heading">1. Pick what to show</h2>
+      <div class="knob">
+        <label for="bm-layout">Layout</label>
+        <select id="bm-layout">
+          {portalLayouts.map((l) => <option value={l.id} selected={l.id === DEFAULT_LAYOUT}>{l.name}</option>)}
+        </select>
+        <p class="hint" id="bm-layout-summary"></p>
+      </div>
+      <div class="knob">
+        <label for="bm-channel">Channel</label>
+        <input id="bm-channel" autocomplete="off" spellcheck="false" />
+        <p class="hint">The channel name from Business Portal's embed code. Starts with this site's channel, or yours from Settings.</p>
+      </div>
+      <div class="knob">
+        <label for="bm-playlist">Playlist</label>
+        <input id="bm-playlist" autocomplete="off" spellcheck="false" placeholder="Whole channel" />
+        <p class="hint">Starts with this site's playlist for the layout. Empty shows the whole channel.</p>
+      </div>
+      <p id="bm-error" class="note bm-error" role="alert" hidden></p>
+    </section>
+
+    <aside class="panel bm-save" aria-labelledby="bm-save-heading">
+      <h2 id="bm-save-heading">2. Save the bookmark</h2>
+      <p><a id="bm-link" class="btn bm-link" href="#bm-save-heading">Firework demo</a></p>
+      <p class="small">
+        Drag the button to your bookmarks bar. No bar? Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>, or
+        <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> on a Mac.
+      </p>
+      <p class="small">Each layout is its own bookmark, named after it. Pick another layout and drag again to have both.</p>
+      <p class="small"><a href="/lab/bookmarklet/practice/">Practise on a sample page</a> before the call.</p>
+    </aside>
+  </div>
+
+  <h2>3. During the pitch</h2>
+  <ol>
+    <li>Before the call, open the prospect's site: the homepage, or a product page.</li>
+    <li>Click the bookmark. A small panel opens in the bottom left corner.</li>
+    <li>
+      Move the mouse over the page. The videos go under the highlighted block. <kbd>↑</kbd> picks a bigger block and
+      <kbd>↓</kbd> a smaller one. Click to place, or press <kbd>Esc</kbd> to cancel. A Floating Player needs no click: it
+      goes straight into the corner.
+    </li>
+    <li>Hide the panel with × before you share your screen. Click the bookmark again to bring it back.</li>
+    <li>Reload the page to remove everything.</li>
+  </ol>
+
+  <h2>When it doesn't work</h2>
+  <ul>
+    <li>
+      <strong>"This site's security policy blocks…"</strong> The site only allows its own scripts (a Content Security
+      Policy). Many large retailers have one. Try another page of the site, or show the Fjordbloom store instead.
+    </li>
+    <li><strong>"Firework's script could not load here."</strong> Usually an ad blocker. Pause it for the demo.</li>
+    <li>
+      <strong>The videos vanish after a click.</strong> Some sites redraw the page when you move around in them.
+      Click the bookmark again on the new page.
+    </li>
+    <li>
+      <strong>"Firework returned no videos."</strong> Check the channel and playlist. A playlist ID only works with the
+      channel it belongs to.
+    </li>
+    <li>
+      Product cards in the videos link to Fjordbloom's product pages, and Add to Bag is not connected to the prospect's
+      cart. That needs their own shopping integration.
+    </li>
+    <li>A cookie banner can cover the panel or the videos. Accept or close it first.</li>
+  </ul>
+
+  <h2>Without a bookmarks bar</h2>
+  <p>
+    Paste this into the browser console on the prospect's page (<kbd>F12</kbd>, then Console). It does the same as the
+    bookmark, with the layout picked above.
+  </p>
+  <SnippetPanel id="bm-code" title="Console code" code="Pick a layout above." />
+
+  <h2>What it does</h2>
+  <ul>
+    <li>It runs only in the tab where you click it. It adds Firework's script from <code>asset.fwcdn3.com</code> and the widget, reads nothing from the site and sends nothing to Fjordbloom.</li>
+    <li>The bookmark holds all of its code, so it never loads code from this site.</li>
+    <li>
+      Firework runs with <code>data-fwparam_tracking_opt_in="true"</code> and no consent, so only essential requests
+      go out, and the visit stays out of the channel's Insights as far as the SDK allows.
+    </li>
+    <li>If the site already uses Firework, it reuses that script.</li>
+    <li>Code: <a href={`${repoUrl}/blob/main/src/lab/bookmarklet.ts`}>src/lab/bookmarklet.ts</a>.</li>
+  </ul>
+</Lab>
+
+<script>
+  import { bookmarkletCode, bookmarkletHref, CHANNEL_PATTERN, PLAYLIST_PATTERN, type InjectConfig } from '../../lab/bookmarklet';
+  import { portalLayouts } from '../../lab/layouts';
+  import { firework } from '../../site.config';
+  import { effectiveSettings, playlistFor } from '../../scripts/settings';
+
+  const settings = effectiveSettings();
+  const layoutSelect = document.getElementById('bm-layout') as HTMLSelectElement;
+  const summary = document.getElementById('bm-layout-summary')!;
+  const channelInput = document.getElementById('bm-channel') as HTMLInputElement;
+  const playlistInput = document.getElementById('bm-playlist') as HTMLInputElement;
+  const error = document.getElementById('bm-error')!;
+  const link = document.getElementById('bm-link') as HTMLAnchorElement;
+  const code = document.getElementById('bm-code')!;
+
+  const layoutById = (id: string) => portalLayouts.find((l) => l.id === id) ?? portalLayouts[0]!;
+  channelInput.value = settings.channel;
+  let playlistEdited = false;
+  playlistInput.addEventListener('input', () => (playlistEdited = true));
+
+  function update(): void {
+    const layout = layoutById(layoutSelect.value);
+    summary.textContent = layout.summary;
+    if (!playlistEdited) playlistInput.value = playlistFor(settings, layout.slot);
+    const channel = channelInput.value.trim();
+    const playlist = playlistInput.value.trim();
+    const problem = !CHANNEL_PATTERN.test(channel)
+      ? 'The channel name can only use letters, numbers, dots, dashes and underscores.'
+      : !PLAYLIST_PATTERN.test(playlist)
+        ? 'The playlist ID can only use letters, numbers, dashes and underscores.'
+        : '';
+    error.hidden = !problem;
+    error.textContent = problem;
+    link.classList.toggle('is-disabled', Boolean(problem));
+    if (problem) {
+      link.setAttribute('href', '#bm-save-heading');
+      link.setAttribute('aria-disabled', 'true');
+      code.textContent = problem;
+      return;
+    }
+    link.removeAttribute('aria-disabled');
+    const cfg: InjectConfig = {
+      layout: layout.name,
+      tag: layout.tag,
+      attrs: layout.attrs,
+      style: layout.style ?? '',
+      floating: layout.attrs.mode === 'pinned',
+      channel,
+      playlist,
+      sdk: firework.scripts.module,
+    };
+    link.textContent = `Firework: ${layout.name}`;
+    link.setAttribute('href', bookmarkletHref(cfg));
+    code.textContent = bookmarkletCode(cfg);
+  }
+
+  layoutSelect.addEventListener('change', update);
+  channelInput.addEventListener('input', update);
+  playlistInput.addEventListener('input', update);
+  // Clicking (instead of dragging) runs it here, which is a fine way to see it. Only a broken setup is stopped.
+  link.addEventListener('click', (e) => {
+    if (link.getAttribute('aria-disabled') === 'true') e.preventDefault();
+  });
+  update();
+</script>
+
+<style>
+  .bm-error {
+    border-left-color: var(--danger);
+  }
+  .bm-save h2 {
+    margin-top: 0;
+  }
+  .bm-link {
+    cursor: grab;
+  }
+  .bm-link.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  kbd {
+    font: inherit;
+    font-size: 0.85em;
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    background: var(--surface);
+  }
+  #bm-code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 220px;
+    overflow: auto;
+    display: block;
+  }
+</style>

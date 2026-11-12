@@ -35,6 +35,8 @@ const pages = [
   '/lab/arrows',
   '/lab/shopping',
   '/lab/tracking',
+  '/lab/bookmarklet',
+  '/lab/bookmarklet/practice',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -326,6 +328,77 @@ test.describe('tracking', () => {
   });
 });
 
+/** The code the "Your site with Firework" bookmark runs, for a given layout. */
+async function bookmarkCode(page: Page, layout: string): Promise<string> {
+  await page.goto('/lab/bookmarklet');
+  await page.selectOption('#bm-layout', layout);
+  const href = (await page.locator('#bm-link').getAttribute('href')) ?? '';
+  expect(href.startsWith('javascript:')).toBe(true);
+  return decodeURIComponent(href.slice('javascript:'.length));
+}
+
+const demoStatus = (page: Page) => page.locator('[data-fjb-demo="panel"]').getByRole('status');
+
+test.describe('bookmarklet', () => {
+  test('places the chosen layout under the picked block, without following the page\'s links', async ({ page }) => {
+    // An empty stand-in for Firework's script: it "loads", so the widgets stay, but nothing reaches Firework.
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.fulfill({ contentType: 'text/javascript', body: '' }));
+    const code = await bookmarkCode(page, 'carousel_row');
+    await expect(page.locator('#bm-link')).toHaveText('Firework: Carousel');
+    await page.goto('/lab/bookmarklet/practice/');
+    await page.evaluate(code);
+    await expect(demoStatus(page)).toContainText('highlighted block');
+
+    // The block around the heading, then one bigger: the whole section.
+    await page.hover('#bestsellers h2');
+    await page.keyboard.press('ArrowUp');
+    await page.click('#bestsellers h2');
+    const widget = page.locator('#bestsellers + [data-fjb-demo="widget"] > fw-embed-feed');
+    await expect(widget).toHaveAttribute('channel', 'sashoo_business');
+    await expect(widget).toHaveAttribute('playlist', 'o9XklW');
+    await expect(widget).toHaveAttribute('mode', 'row');
+    await expect(page.locator('script[src$="/module/fwn.js"]')).toHaveAttribute('data-fwparam_tracking_opt_in', 'true');
+
+    // While placing, a click on a link places the videos instead of following the link.
+    await page.getByRole('button', { name: 'Place videos' }).click();
+    await page.getByRole('link', { name: 'About' }).click();
+    await expect(page.locator('[data-fjb-demo="widget"]')).toHaveCount(2);
+    expect(new URL(page.url()).hash).toBe('');
+
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await page.getByRole('button', { name: 'Undo' }).click();
+    await expect(page.locator('[data-fjb-demo="widget"]')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Undo' })).toBeDisabled();
+  });
+
+  test('a site that only allows its own scripts gets a clear message', async ({ page }) => {
+    const code = await bookmarkCode(page, 'floating_player');
+    await page.route('https://strict.test/**', (route) =>
+      route.fulfill({
+        contentType: 'text/html',
+        headers: { 'Content-Security-Policy': "script-src 'self'; style-src 'self'" },
+        body: '<!doctype html><title>Strict</title><h1>A strict site</h1>',
+      }),
+    );
+    await page.goto('https://strict.test/');
+    await page.evaluate(code);
+    await expect(page.getByRole('dialog', { name: 'Firework demo' })).toBeVisible();
+    await expect(demoStatus(page)).toContainText("security policy");
+    await expect(page.locator('[data-fjb-demo="widget"]')).toHaveCount(0);
+  });
+
+  test('the builder only accepts plain channel names and playlist IDs', async ({ page }) => {
+    await page.goto('/lab/bookmarklet?fw=off');
+    await page.fill('#bm-channel', 'shop"><img src=x>');
+    await expect(page.locator('#bm-error')).toBeVisible();
+    await expect(page.locator('#bm-link')).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.locator('#bm-link')).not.toHaveAttribute('href', /^javascript:/);
+    await page.fill('#bm-channel', 'my_sandbox');
+    await expect(page.locator('#bm-error')).toBeHidden();
+    await expect(page.locator('#bm-link')).toHaveAttribute('href', /^javascript:/);
+  });
+});
+
 test.describe('demo tools', () => {
   test('pitch mode hides demo tools and moves between steps', async ({ page }) => {
     // Keep the SDK off on every page the pitch visits.
@@ -492,6 +565,17 @@ test.describe('firework sdk (network)', () => {
     await page.goto('/order/confirmed?fw=lazy');
     await expect.poll(() => sent, { timeout: 30_000 }).toContain('/trk/user:page_viewed');
     expect(await page.evaluate(() => typeof window._fwn?.shopping)).toBe('undefined');
+  });
+
+  test('the bookmark shows a real carousel on a page without Firework', async ({ page }) => {
+    await page.route(/\/trk\//, (route) => route.abort());
+    const code = await bookmarkCode(page, 'carousel_row');
+    await page.goto('/lab/bookmarklet/practice/');
+    await page.evaluate(() => document.addEventListener('fw:embed-feed:content-ready', () => (document.body.dataset.fwReady = 'yes')));
+    await page.evaluate(code);
+    await page.click('.hero h1');
+    await expect(page.locator('body')).toHaveAttribute('data-fw-ready', 'yes', { timeout: 30_000 });
+    await expect(demoStatus(page)).toContainText('Carousel added');
   });
 
   test('fw=off skips the SDK', async ({ page }) => {
