@@ -1,26 +1,81 @@
-// The "Firework demo" bookmarklet: adds a Firework widget to any website, in the presenter's browser tab only.
-// /lab/bookmarklet builds the bookmark from fjbInject's source text, with the chosen layout and playlist baked in.
-import type { LayoutTag } from './layouts';
+// The "Your site with Firework" bookmarklet: adds Firework videos or AVA to any website, in the presenter's browser
+// tab only. /lab/bookmarklet builds the bookmark from fjbInject's source text, with one setup baked in.
+import type { PortalLayout } from './layouts';
 
+/** One setup the bookmark adds: a video layout or an AVA embed. */
 export interface InjectConfig {
-  /** Business Portal layout name, shown in the panel. */
+  /** Name shown in the panel, such as "Carousel" or "AVA Native Button". */
   layout: string;
-  tag: LayoutTag;
+  /** Where its content comes from, for the panel: "channel / playlist" or "assistant …". */
+  source: string;
+  /** What is placed, in a sentence: "the videos" or "AVA". */
+  what: string;
+  tag: string;
   attrs: Record<string, string>;
   /** Inline style the element needs, such as the horizontal player's 16:9 box. */
   style: string;
   /** Floating layouts need no placement: they go straight into the corner. */
   floating: boolean;
-  channel: string;
-  /** Empty for the whole channel. */
-  playlist: string;
-  /** Firework's SDK, module build. */
-  sdk: string;
+  /** The script that defines the element, and how to tell the page already has it. */
+  script: { src: string; module: boolean; present: string };
+  /** Said when the element stays empty. */
+  empty: string;
 }
 
-/** Channel names and playlist IDs the builder accepts, so the bookmark never carries anything else. */
+/** The only values the builder accepts, so the bookmark never carries anything else. */
 export const CHANNEL_PATTERN = /^[A-Za-z0-9_.-]{1,64}$/;
 export const PLAYLIST_PATTERN = /^[A-Za-z0-9_-]{0,32}$/;
+export const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
+export const SKU_PATTERN = /^[A-Za-z0-9_.-]{1,64}$/;
+
+/** AVA's two embeds, named as in AVA 4.0's Embed screen. */
+export const avaEmbeds = [
+  {
+    id: 'ava_button',
+    name: 'AVA Native Button',
+    layout: 'button',
+    summary: "AVA's button, with the label and colours set under Embed in Business Portal. It opens the chat. Needs no products, so it suits prospects.",
+  },
+  {
+    id: 'ava_faq',
+    name: 'AVA Product FAQ',
+    layout: 'faq',
+    summary: 'Starter questions about one product, answered by AVA. Only works with a product ID linked to the assistant.',
+  },
+] as const;
+
+export type AvaEmbed = (typeof avaEmbeds)[number];
+
+export function videoConfig(layout: PortalLayout, channel: string, playlist: string, sdk: string): InjectConfig {
+  return {
+    layout: layout.name,
+    source: `${channel}${playlist ? ` / ${playlist}` : ''}`,
+    what: 'the videos',
+    tag: layout.tag,
+    attrs: { channel, ...(playlist ? { playlist } : {}), ...layout.attrs },
+    style: layout.style ?? '',
+    floating: layout.attrs.mode === 'pinned',
+    script: { src: sdk, module: true, present: 'script[src*="/fwn"]' },
+    empty: `Firework returned no videos for ${playlist ? `playlist ${playlist}` : `channel ${channel}`}. Check the channel and playlist.`,
+  };
+}
+
+export function avaConfig(embed: AvaEmbed, assistant: string, business: string, sku: string, script: string): InjectConfig {
+  return {
+    layout: embed.name,
+    source: `assistant ${assistant}${embed.layout === 'faq' ? `, product ${sku}` : ''}`,
+    what: 'AVA',
+    tag: 'fw-ava',
+    attrs: { domain_assistant_id: assistant, layout: embed.layout, ...(embed.layout === 'faq' ? { sku } : {}) },
+    style: '',
+    floating: false,
+    script: { src: `${script}?business_id=${encodeURIComponent(business)}`, module: false, present: 'script[src*="/ava.js"]' },
+    empty:
+      embed.layout === 'faq'
+        ? `AVA shows nothing for product ${sku}. Check that the assistant is published and that this product is linked to it.`
+        : 'AVA shows nothing. Check the assistant ID and business ID, and that the assistant is published.',
+  };
+}
 
 /**
  * Runs on someone else's page. It must stay self-contained: no imports, no module variables and no helpers from
@@ -29,7 +84,7 @@ export const PLAYLIST_PATTERN = /^[A-Za-z0-9_-]{0,32}$/;
  */
 export function fjbInject(start: InjectConfig): void {
   type Demo = { open: (next: InjectConfig) => void };
-  const w = window as unknown as { __fjbDemo?: Demo; _fwn?: unknown };
+  const w = window as unknown as { __fjbDemo?: Demo };
   if (w.__fjbDemo) {
     w.__fjbDemo.open(start);
     return;
@@ -37,8 +92,8 @@ export function fjbInject(start: InjectConfig): void {
 
   let cfg = start;
   const added: HTMLElement[] = [];
-  let sdk: 'none' | 'loading' | 'ready' | 'blocked' = 'none';
-  let blockedBy = '';
+  /** Each script the bookmark needed on this page (Firework's SDK, AVA), by URL. */
+  const scripts: Record<string, 'loading' | 'ready' | 'blocked'> = {};
 
   // ---------- panel, in a shadow root so the site's CSS can't reach it ----------
   const host = document.createElement('div');
@@ -88,7 +143,7 @@ export function fjbInject(start: InjectConfig): void {
   const msg = el('p', 'm');
   msg.setAttribute('role', 'status');
   const row = el('div', 'r');
-  const placeBtn = el('button', 'go', 'Place videos');
+  const placeBtn = el('button', 'go');
   const undoBtn = el('button', '', 'Undo');
   row.append(placeBtn, undoBtn);
   panel.append(title, sub, note, msg, row);
@@ -99,9 +154,10 @@ export function fjbInject(start: InjectConfig): void {
     msg.textContent = text;
     msg.className = error ? 'm e' : 'm';
   };
+  const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
   const refresh = () => {
-    sub.textContent = `${cfg.layout} · ${cfg.channel}${cfg.playlist ? ` / ${cfg.playlist}` : ''}`;
-    placeBtn.textContent = cfg.floating ? 'Add to the corner' : 'Place videos';
+    sub.textContent = `${cfg.layout} · ${cfg.source}`;
+    placeBtn.textContent = cfg.floating ? 'Add to the corner' : `Place ${cfg.what.replace(/^the /, '')}`;
     undoBtn.disabled = added.length === 0;
   };
   const hostOf = (url: string) => {
@@ -112,70 +168,78 @@ export function fjbInject(start: InjectConfig): void {
     }
   };
 
-  // ---------- Firework's script ----------
-  const blocked = (text: string) => {
-    sdk = 'blocked';
-    // Nothing will render, so leave the page as it was.
-    added.splice(0).forEach((a) => a.remove());
+  // ---------- scripts ----------
+  /** A script can't run here. Its widgets will never render, so they go, and the page is as it was. */
+  const blocked = (src: string | null, text: string) => {
+    for (const s of Object.keys(scripts)) if (src === null || s === src) scripts[s] = 'blocked';
+    for (let i = added.length - 1; i >= 0; i--) {
+      if (src === null || added[i]!.dataset.fjbScript === src) added.splice(i, 1)[0]!.remove();
+    }
     refresh();
     say(text, true);
   };
   document.addEventListener('securitypolicyviolation', (e) => {
-    if (!/fw|firework/i.test(hostOf(e.blockedURI))) return;
-    blockedBy = e.blockedURI;
-    blocked(`This site's security policy (Content Security Policy, ${e.effectiveDirective}) blocks ${hostOf(e.blockedURI)}, so Firework can't run here. Try another page of the site, or show the Fjordbloom store instead.`);
+    const blockedHost = hostOf(e.blockedURI);
+    if (!/fw|firework/i.test(blockedHost)) return;
+    // Firework's or AVA's own script, or one of the hosts both need (such as Firework's API).
+    const src = Object.keys(scripts).find((s) => hostOf(s) === blockedHost) ?? null;
+    blocked(src, `This site's security policy (Content Security Policy, ${e.effectiveDirective}) blocks ${blockedHost}, so ${src ? 'this' : 'Firework'} can't run here. Try another page of the site, or show the Fjordbloom store instead.`);
   });
 
-  function loadSdk(): void {
-    if (sdk !== 'none') return;
-    // The site may already use Firework, or only its lazy loader, which picks up new widgets by itself.
-    if (document.querySelector('script[src*="/fwn"]') || customElements.get(cfg.tag)) {
-      sdk = 'ready';
+  function loadScript(): void {
+    const { src, module, present } = cfg.script;
+    if (scripts[src]) return;
+    // The site may already have it. Firework's lazy loader also picks up new widgets by itself.
+    if (document.querySelector(present) || customElements.get(cfg.tag)) {
+      scripts[src] = 'ready';
       return;
     }
-    sdk = 'loading';
+    scripts[src] = 'loading';
     try {
       const s = document.createElement('script');
-      s.type = 'module';
-      s.src = cfg.sdk;
+      if (module) s.type = 'module';
+      s.async = true;
+      s.src = src;
       // Essential requests only, so this visit stays out of the channel's Insights as far as the SDK allows.
       s.setAttribute('data-fwparam_tracking_opt_in', 'true');
-      s.onload = () => (sdk = 'ready');
+      s.onload = () => {
+        if (scripts[src] === 'loading') scripts[src] = 'ready';
+      };
       s.onerror = () => {
-        if (!blockedBy) blocked("Firework's script could not load here. An ad blocker or the site's security settings stopped it.");
+        if (scripts[src] !== 'blocked') blocked(src, `${capital(cfg.what)} could not load here. An ad blocker or the site's security settings stopped it.`);
       };
       (document.head ?? document.documentElement).appendChild(s);
     } catch (e) {
       // Sites with Trusted Types refuse plain script URLs.
-      blocked(`This site does not allow added scripts (${e instanceof Error ? e.message : String(e)}), so Firework can't run here.`);
+      blocked(src, `This site does not allow added scripts (${e instanceof Error ? e.message : String(e)}), so ${cfg.what} can't run here.`);
     }
   }
 
   // ---------- adding a widget ----------
   function insert(after: HTMLElement | null): void {
+    const c = cfg;
     const wrap = document.createElement('div');
     wrap.setAttribute('data-fjb-demo', 'widget');
-    if (cfg.floating) wrap.dataset.floating = 'true';
+    wrap.dataset.fjbScript = c.script.src;
+    if (c.floating) wrap.dataset.floating = 'true';
     else wrap.style.cssText = 'display:block;box-sizing:border-box;width:100%;max-width:1240px;margin:32px auto;padding:0 16px;clear:both;';
-    const widget = document.createElement(cfg.tag);
-    widget.setAttribute('channel', cfg.channel);
-    if (cfg.playlist) widget.setAttribute('playlist', cfg.playlist);
-    Object.keys(cfg.attrs).forEach((name) => widget.setAttribute(name, cfg.attrs[name] ?? ''));
-    if (cfg.style) widget.style.cssText = cfg.style;
-    const source = cfg.playlist ? `playlist ${cfg.playlist}` : `channel ${cfg.channel}`;
-    widget.addEventListener('fw:embed-feed:error', () => say(`Firework returned no videos for ${source}.`, true));
+    const widget = document.createElement(c.tag);
+    Object.keys(c.attrs).forEach((name) => widget.setAttribute(name, c.attrs[name] ?? ''));
+    if (c.style) widget.style.cssText = c.style;
+    widget.addEventListener('fw:embed-feed:error', () => say(c.empty, true));
     wrap.appendChild(widget);
     if (after) after.insertAdjacentElement('afterend', wrap);
     else document.body.appendChild(wrap);
     added.push(wrap);
     refresh();
     if (after) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    loadSdk();
-    if (sdk === 'blocked') return;
-    say(`${cfg.layout} added${after ? '' : ' to the corner'}. Place more, or Undo to take it away.`);
-    const tag = cfg.tag;
+    loadScript();
+    if (scripts[c.script.src] === 'blocked') return;
+    say(`${c.layout} added${after ? '' : ' to the corner'}. Place more, or Undo to take it away.`);
     window.setTimeout(() => {
-      if (!customElements.get(tag) && sdk !== 'blocked') say('Firework has not loaded after 15 seconds. Check the connection, or try another page.', true);
+      if (scripts[c.script.src] === 'blocked' || !wrap.isConnected) return;
+      if (!customElements.get(c.tag)) say(`${capital(c.what)} has not loaded after 15 seconds. Check the connection, or try another page.`, true);
+      else if (!c.floating && widget.getBoundingClientRect().height < 8) say(c.empty, true);
     }, 15000);
   }
 
@@ -267,6 +331,10 @@ export function fjbInject(start: InjectConfig): void {
   };
 
   function startPlacing(): void {
+    if (scripts[cfg.script.src] === 'blocked') {
+      say(`${capital(cfg.what)} can't run on this page: the site blocked it. Try another page, or show the Fjordbloom store instead.`, true);
+      return;
+    }
     if (cfg.floating) {
       stopPlacing();
       if (added.some((a) => a.dataset.floating === 'true')) say(`${cfg.layout} is already in the corner. Undo takes it away.`);
@@ -280,7 +348,7 @@ export function fjbInject(start: InjectConfig): void {
     document.documentElement.appendChild(box);
     listen(true);
     placeBtn.disabled = true;
-    say('The videos go under the highlighted block. ↑ picks a bigger block, ↓ a smaller one. Click to place, Esc to cancel.');
+    say(`${capital(cfg.what)} will sit under the highlighted block. ↑ picks a bigger block, ↓ a smaller one. Click to place, Esc to cancel.`);
   }
   function stopPlacing(): void {
     if (!placing) return;
@@ -294,7 +362,7 @@ export function fjbInject(start: InjectConfig): void {
   undoBtn.addEventListener('click', () => {
     added.pop()?.remove();
     refresh();
-    say(added.length ? 'Removed the last one.' : 'Removed. The page is as it was, apart from Firework\'s script.');
+    say(added.length ? 'Removed the last one.' : "Removed. The page is as it was, apart from Firework's scripts.");
   });
   hide.addEventListener('click', () => {
     stopPlacing();
@@ -307,7 +375,7 @@ export function fjbInject(start: InjectConfig): void {
       cfg = next;
       host.style.display = '';
       refresh();
-      if (sdk !== 'blocked') startPlacing();
+      startPlacing();
     },
   };
   refresh();

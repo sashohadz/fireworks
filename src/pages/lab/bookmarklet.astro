@@ -1,18 +1,19 @@
 ---
 import SnippetPanel from '../../components/SnippetPanel.astro';
 import Lab from '../../layouts/Lab.astro';
+import { avaEmbeds } from '../../lab/bookmarklet';
 import { portalLayouts } from '../../lab/layouts';
 import { repoUrl } from '../../site.config';
 
 const DEFAULT_LAYOUT = 'carousel_row';
 ---
 
-<Lab title="Your site with Firework" description="A bookmark that adds Firework videos to any website, only in your browser, for pitches.">
+<Lab title="Your site with Firework" description="A bookmark that adds Firework videos or AVA to any website, only in your browser, for pitches.">
   <p class="eyebrow">Lab tool</p>
   <h1>Your site with Firework</h1>
   <p class="lede">
-    A bookmark that adds Firework videos to any website, only in your browser. Open a prospect's homepage, click the
-    bookmark, then click where the videos should go. Nothing changes on their site, and a reload removes it.
+    A bookmark that adds Firework videos or AVA to any website, only in your browser. Open a prospect's homepage, click
+    the bookmark, then click where it should go. Nothing changes on their site, and a reload removes it.
   </p>
 
   <div class="lab-grid">
@@ -21,19 +22,48 @@ const DEFAULT_LAYOUT = 'carousel_row';
       <div class="knob">
         <label for="bm-layout">Layout</label>
         <select id="bm-layout">
-          {portalLayouts.map((l) => <option value={l.id} selected={l.id === DEFAULT_LAYOUT}>{l.name}</option>)}
+          <optgroup label="Videos">
+            {portalLayouts.map((l) => <option value={l.id} selected={l.id === DEFAULT_LAYOUT}>{l.name}</option>)}
+          </optgroup>
+          <optgroup label="AVA, the AI shopping assistant">
+            {avaEmbeds.map((e) => <option value={e.id}>{e.name}</option>)}
+          </optgroup>
         </select>
         <p class="hint" id="bm-layout-summary"></p>
       </div>
-      <div class="knob">
-        <label for="bm-channel">Channel</label>
-        <input id="bm-channel" autocomplete="off" spellcheck="false" />
-        <p class="hint">The channel name from Business Portal's embed code. Starts with this site's channel, or yours from Settings.</p>
+
+      <div id="bm-video-fields">
+        <div class="knob">
+          <label for="bm-channel">Channel</label>
+          <input id="bm-channel" autocomplete="off" spellcheck="false" />
+          <p class="hint">The channel name from Business Portal's embed code. Starts with this site's channel, or yours from Settings.</p>
+        </div>
+        <div class="knob">
+          <label for="bm-playlist">Playlist</label>
+          <input id="bm-playlist" autocomplete="off" spellcheck="false" placeholder="Whole channel" />
+          <p class="hint">Starts with this site's playlist for the layout. Empty shows the whole channel.</p>
+        </div>
       </div>
-      <div class="knob">
-        <label for="bm-playlist">Playlist</label>
-        <input id="bm-playlist" autocomplete="off" spellcheck="false" placeholder="Whole channel" />
-        <p class="hint">Starts with this site's playlist for the layout. Empty shows the whole channel.</p>
+
+      <div id="bm-ava-fields" hidden>
+        <div class="knob">
+          <label for="bm-assistant">Assistant ID</label>
+          <input id="bm-assistant" autocomplete="off" spellcheck="false" />
+          <p class="hint">
+            <code>domain_assistant_id</code> in the assistant's embed code. For a pitch, use the assistant you trained on
+            the prospect's site. This browser remembers it.
+          </p>
+        </div>
+        <div class="knob">
+          <label for="bm-business">Business ID</label>
+          <input id="bm-business" autocomplete="off" spellcheck="false" />
+          <p class="hint"><code>business_id</code> in the embed code's script URL. The same for every assistant in one business.</p>
+        </div>
+        <div class="knob" id="bm-sku-knob">
+          <label for="bm-sku">Product ID</label>
+          <input id="bm-sku" autocomplete="off" spellcheck="false" />
+          <p class="hint">A product linked to the assistant, such as FJB-103. Use the product ID, not a size or shade.</p>
+        </div>
       </div>
       <p id="bm-error" class="note bm-error" role="alert" hidden></p>
     </section>
@@ -45,7 +75,10 @@ const DEFAULT_LAYOUT = 'carousel_row';
         Drag the button to your bookmarks bar. No bar? Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>, or
         <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> on a Mac.
       </p>
-      <p class="small">Each layout is its own bookmark, named after it. Pick another layout and drag again to have both.</p>
+      <p class="small">
+        Each setup is its own bookmark, named after it. Pick another one and drag again to have both. Videos and AVA work
+        together on one page: click one bookmark, place it, then click the other.
+      </p>
       <p class="small"><a href="/lab/bookmarklet/practice/">Practise on a sample page</a> before the call.</p>
     </aside>
   </div>
@@ -55,23 +88,51 @@ const DEFAULT_LAYOUT = 'carousel_row';
     <li>Before the call, open the prospect's site: the homepage, or a product page.</li>
     <li>Click the bookmark. A small panel opens in the bottom left corner.</li>
     <li>
-      Move the mouse over the page. The videos go under the highlighted block. <kbd>↑</kbd> picks a bigger block and
-      <kbd>↓</kbd> a smaller one. Click to place, or press <kbd>Esc</kbd> to cancel. A Floating Player needs no click: it
-      goes straight into the corner.
+      Move the mouse over the page. The videos or AVA go under the highlighted block. <kbd>↑</kbd> picks a bigger block
+      and <kbd>↓</kbd> a smaller one. Click to place, or press <kbd>Esc</kbd> to cancel. A Floating Player needs no
+      click: it goes straight into the corner.
     </li>
     <li>Hide the panel with × before you share your screen. Click the bookmark again to bring it back.</li>
     <li>Reload the page to remove everything.</li>
   </ol>
 
+  <h2>AVA for a prospect</h2>
+  <p>
+    An assistant only knows what it was trained on. Fjordbloom's assistant talks about Nordic skincare, so on a
+    prospect's site it would recommend the wrong products. Before the pitch, give the prospect their own assistant in
+    your sandbox:
+  </p>
+  <ol>
+    <li>In Business Portal, open <strong>AI Video Assistant</strong> and click <strong>Create New Assistant</strong>. Name it after the prospect and pick the language of their site.</li>
+    <li>
+      Open the <strong>Knowledge</strong> tab and click <strong>Brand</strong> on the left, the section for knowledge
+      not tied to a product. Add the prospect's public pages: the homepage, shipping and returns, the FAQ and a few
+      product pages.
+    </li>
+    <li>Click <strong>Publish Pending Resources</strong>, then ask the questions their shoppers would ask in the <strong>Playground</strong>.</li>
+    <li>On the <strong>Overview</strong> tab, <strong>Preview</strong> and <strong>Publish</strong> the assistant.</li>
+    <li>
+      Under <strong>Embed</strong>, set the Native Button's label and colours to match their site and save. Copy
+      <code>domain_assistant_id</code> from the <strong>Embed Code</strong> into the Assistant ID above.
+    </li>
+  </ol>
+  <p class="small muted">
+    Not settled by Firework's help center: it lists a Webpage resource (a URL), General Text (TXT) and PDFs, but doesn't
+    say which ones the Brand section offers. If Brand has no Webpage option, save the pages' text as TXT files. The
+    Product FAQ needs the prospect's products linked to the assistant, so use the Native Button for prospects. See also
+    the <a href="/lab/ava">AVA setup kit</a>.
+  </p>
+
   <h2>When it doesn't work</h2>
   <ul>
     <li>
       <strong>"This site's security policy blocks…"</strong> The site only allows its own scripts (a Content Security
-      Policy). Many large retailers have one. Try another page of the site, or show the Fjordbloom store instead.
+      Policy). Many large retailers have one. Videos and AVA load from different Firework hosts, so a site can block one
+      and allow the other. Try another page of the site, or show the Fjordbloom store instead.
     </li>
-    <li><strong>"Firework's script could not load here."</strong> Usually an ad blocker. Pause it for the demo.</li>
+    <li><strong>"… could not load here."</strong> Usually an ad blocker. Pause it for the demo.</li>
     <li>
-      <strong>The videos vanish after a click.</strong> Some sites redraw the page when you move around in them.
+      <strong>The videos or AVA vanish after a click.</strong> Some sites redraw the page when you move around in them.
       Click the bookmark again on the new page.
     </li>
     <li>
@@ -79,56 +140,114 @@ const DEFAULT_LAYOUT = 'carousel_row';
       channel it belongs to.
     </li>
     <li>
+      <strong>"AVA shows nothing."</strong> Check the assistant and business IDs, and that the assistant is published.
+      The Product FAQ also needs a product ID linked to the assistant.
+    </li>
+    <li>
       Product cards in the videos link to Fjordbloom's product pages, and Add to Bag is not connected to the prospect's
       cart. That needs their own shopping integration.
     </li>
-    <li>A cookie banner can cover the panel or the videos. Accept or close it first.</li>
+    <li>A cookie banner can cover the panel, the videos or AVA. Accept or close it first.</li>
   </ul>
 
   <h2>Without a bookmarks bar</h2>
   <p>
     Paste this into the browser console on the prospect's page (<kbd>F12</kbd>, then Console). It does the same as the
-    bookmark, with the layout picked above.
+    bookmark, with the setup picked above.
   </p>
   <SnippetPanel id="bm-code" title="Console code" code="Pick a layout above." />
 
   <h2>What it does</h2>
   <ul>
-    <li>It runs only in the tab where you click it. It adds Firework's script from <code>asset.fwcdn3.com</code> and the widget, reads nothing from the site and sends nothing to Fjordbloom.</li>
+    <li>
+      It runs only in the tab where you click it. It adds Firework's script from <code>asset.fwcdn3.com</code> (videos)
+      or AVA's from <code>asset.fwscripts.com</code>, and the widget. It reads nothing from the site and sends nothing to
+      Fjordbloom.
+    </li>
     <li>The bookmark holds all of its code, so it never loads code from this site.</li>
     <li>
-      Firework runs with <code>data-fwparam_tracking_opt_in="true"</code> and no consent, so only essential requests
-      go out, and the visit stays out of the channel's Insights as far as the SDK allows.
+      Both scripts get <code>data-fwparam_tracking_opt_in="true"</code> and no consent, so only essential requests go
+      out, and the visit stays out of Insights as far as the SDK allows.
     </li>
-    <li>If the site already uses Firework, it reuses that script.</li>
+    <li>If the site already uses Firework or AVA, it reuses that script.</li>
     <li>Code: <a href={`${repoUrl}/blob/main/src/lab/bookmarklet.ts`}>src/lab/bookmarklet.ts</a>.</li>
   </ul>
 </Lab>
 
 <script>
-  import { bookmarkletCode, bookmarkletHref, CHANNEL_PATTERN, PLAYLIST_PATTERN, type InjectConfig } from '../../lab/bookmarklet';
+  import {
+    avaConfig,
+    avaEmbeds,
+    bookmarkletCode,
+    bookmarkletHref,
+    CHANNEL_PATTERN,
+    ID_PATTERN,
+    PLAYLIST_PATTERN,
+    SKU_PATTERN,
+    videoConfig,
+    type InjectConfig,
+  } from '../../lab/bookmarklet';
   import { portalLayouts } from '../../lab/layouts';
-  import { firework } from '../../site.config';
+  import { ava, firework } from '../../site.config';
   import { effectiveSettings, playlistFor } from '../../scripts/settings';
 
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
   const settings = effectiveSettings();
-  const layoutSelect = document.getElementById('bm-layout') as HTMLSelectElement;
-  const summary = document.getElementById('bm-layout-summary')!;
-  const channelInput = document.getElementById('bm-channel') as HTMLInputElement;
-  const playlistInput = document.getElementById('bm-playlist') as HTMLInputElement;
-  const error = document.getElementById('bm-error')!;
-  const link = document.getElementById('bm-link') as HTMLAnchorElement;
-  const code = document.getElementById('bm-code')!;
+  const layoutSelect = $<HTMLSelectElement>('bm-layout');
+  const summary = $('bm-layout-summary');
+  const videoFields = $('bm-video-fields');
+  const avaFields = $('bm-ava-fields');
+  const skuKnob = $('bm-sku-knob');
+  const channelInput = $<HTMLInputElement>('bm-channel');
+  const playlistInput = $<HTMLInputElement>('bm-playlist');
+  const assistantInput = $<HTMLInputElement>('bm-assistant');
+  const businessInput = $<HTMLInputElement>('bm-business');
+  const skuInput = $<HTMLInputElement>('bm-sku');
+  const error = $('bm-error');
+  const link = $<HTMLAnchorElement>('bm-link');
+  const code = $('bm-code');
 
-  const layoutById = (id: string) => portalLayouts.find((l) => l.id === id) ?? portalLayouts[0]!;
+  // The AVA fields are remembered in this browser, so a prospect's assistant ID survives until the pitch.
+  const KEY = 'fjb.bookmarklet.v1';
+  const saved = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) ?? '{}') as { assistant?: string; business?: string; sku?: string };
+    } catch {
+      return {};
+    }
+  })();
+  const save = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ assistant: assistantInput.value.trim(), business: businessInput.value.trim(), sku: skuInput.value.trim() }));
+    } catch {
+      /* storage blocked: the fields last for this page view */
+    }
+  };
+
   channelInput.value = settings.channel;
+  assistantInput.value = saved.assistant || ava.assistantId;
+  businessInput.value = saved.business || ava.businessId;
+  skuInput.value = saved.sku || 'FJB-103';
   let playlistEdited = false;
   playlistInput.addEventListener('input', () => (playlistEdited = true));
 
-  function update(): void {
-    const layout = layoutById(layoutSelect.value);
-    summary.textContent = layout.summary;
-    if (!playlistEdited) playlistInput.value = playlistFor(settings, layout.slot);
+  /** The setup picked in the form, or the reason it can't be a bookmark. */
+  function current(): { cfg?: InjectConfig; name: string; problem: string } {
+    const embed = avaEmbeds.find((e) => e.id === layoutSelect.value);
+    if (embed) {
+      const assistant = assistantInput.value.trim();
+      const business = businessInput.value.trim();
+      const sku = skuInput.value.trim();
+      const problem = !ID_PATTERN.test(assistant)
+        ? 'The assistant ID can only use letters, numbers, dashes and underscores.'
+        : !ID_PATTERN.test(business)
+          ? 'The business ID can only use letters, numbers, dashes and underscores.'
+          : embed.layout === 'faq' && !SKU_PATTERN.test(sku)
+            ? 'The product ID can only use letters, numbers, dots, dashes and underscores.'
+            : '';
+      return { name: embed.name, problem, cfg: problem ? undefined : avaConfig(embed, assistant, business, sku, ava.script) };
+    }
+    const layout = portalLayouts.find((l) => l.id === layoutSelect.value) ?? portalLayouts[0]!;
     const channel = channelInput.value.trim();
     const playlist = playlistInput.value.trim();
     const problem = !CHANNEL_PATTERN.test(channel)
@@ -136,34 +255,42 @@ const DEFAULT_LAYOUT = 'carousel_row';
       : !PLAYLIST_PATTERN.test(playlist)
         ? 'The playlist ID can only use letters, numbers, dashes and underscores.'
         : '';
+    return { name: layout.name, problem, cfg: problem ? undefined : videoConfig(layout, channel, playlist, firework.scripts.module) };
+  }
+
+  function update(): void {
+    const embed = avaEmbeds.find((e) => e.id === layoutSelect.value);
+    const layout = portalLayouts.find((l) => l.id === layoutSelect.value);
+    videoFields.hidden = Boolean(embed);
+    avaFields.hidden = !embed;
+    skuKnob.hidden = embed?.layout !== 'faq';
+    summary.textContent = embed?.summary ?? layout?.summary ?? '';
+    if (layout && !playlistEdited) playlistInput.value = playlistFor(settings, layout.slot);
+
+    const { cfg, name, problem } = current();
     error.hidden = !problem;
     error.textContent = problem;
-    link.classList.toggle('is-disabled', Boolean(problem));
-    if (problem) {
+    link.classList.toggle('is-disabled', !cfg);
+    link.textContent = `Firework: ${name}`;
+    if (!cfg) {
       link.setAttribute('href', '#bm-save-heading');
       link.setAttribute('aria-disabled', 'true');
       code.textContent = problem;
       return;
     }
     link.removeAttribute('aria-disabled');
-    const cfg: InjectConfig = {
-      layout: layout.name,
-      tag: layout.tag,
-      attrs: layout.attrs,
-      style: layout.style ?? '',
-      floating: layout.attrs.mode === 'pinned',
-      channel,
-      playlist,
-      sdk: firework.scripts.module,
-    };
-    link.textContent = `Firework: ${layout.name}`;
     link.setAttribute('href', bookmarkletHref(cfg));
     code.textContent = bookmarkletCode(cfg);
   }
 
   layoutSelect.addEventListener('change', update);
-  channelInput.addEventListener('input', update);
-  playlistInput.addEventListener('input', update);
+  for (const input of [channelInput, playlistInput]) input.addEventListener('input', update);
+  for (const input of [assistantInput, businessInput, skuInput]) {
+    input.addEventListener('input', () => {
+      save();
+      update();
+    });
+  }
   // Clicking (instead of dragging) runs it here, which is a fine way to see it. Only a broken setup is stopped.
   link.addEventListener('click', (e) => {
     if (link.getAttribute('aria-disabled') === 'true') e.preventDefault();

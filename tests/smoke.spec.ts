@@ -387,6 +387,33 @@ test.describe('bookmarklet', () => {
     await expect(page.locator('[data-fjb-demo="widget"]')).toHaveCount(0);
   });
 
+  test('AVA: the builder shows its own fields, remembers the assistant, and the bookmark places fw-ava', async ({ page }) => {
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.fulfill({ contentType: 'text/javascript', body: '' }));
+    await page.goto('/lab/bookmarklet?fw=off');
+    await page.selectOption('#bm-layout', 'ava_button');
+    await expect(page.locator('#bm-channel')).toBeHidden();
+    await expect(page.locator('#bm-sku')).toBeHidden();
+    await page.fill('#bm-assistant', 'prospect1');
+    await page.reload();
+    await page.selectOption('#bm-layout', 'ava_faq');
+    await expect(page.locator('#bm-assistant')).toHaveValue('prospect1');
+    await expect(page.locator('#bm-sku')).toBeVisible();
+    await page.selectOption('#bm-layout', 'ava_button');
+    await expect(page.locator('#bm-link')).toHaveText('Firework: AVA Native Button');
+    const href = (await page.locator('#bm-link').getAttribute('href')) ?? '';
+    const code = decodeURIComponent(href.slice('javascript:'.length));
+
+    await page.goto('/lab/bookmarklet/practice/');
+    await page.evaluate(code);
+    await expect(demoStatus(page)).toContainText('AVA will sit under the highlighted block');
+    await page.click('.hero h1');
+    const ava = page.locator('[data-fjb-demo="widget"] > fw-ava');
+    await expect(ava).toHaveAttribute('domain_assistant_id', 'prospect1');
+    await expect(ava).toHaveAttribute('layout', 'button');
+    await expect(ava).not.toHaveAttribute('sku');
+    await expect(page.locator('script[src$="/ava.js?business_id=gYx0PO"]')).toHaveAttribute('data-fwparam_tracking_opt_in', 'true');
+  });
+
   test('the builder only accepts plain channel names and playlist IDs', async ({ page }) => {
     await page.goto('/lab/bookmarklet?fw=off');
     await page.fill('#bm-channel', 'shop"><img src=x>');
@@ -396,6 +423,10 @@ test.describe('bookmarklet', () => {
     await page.fill('#bm-channel', 'my_sandbox');
     await expect(page.locator('#bm-error')).toBeHidden();
     await expect(page.locator('#bm-link')).toHaveAttribute('href', /^javascript:/);
+    await page.selectOption('#bm-layout', 'ava_button');
+    await page.fill('#bm-assistant', 'x" onload="alert(1)');
+    await expect(page.locator('#bm-error')).toContainText('assistant ID');
+    await expect(page.locator('#bm-link')).toHaveAttribute('aria-disabled', 'true');
   });
 });
 
@@ -576,6 +607,16 @@ test.describe('firework sdk (network)', () => {
     await page.click('.hero h1');
     await expect(page.locator('body')).toHaveAttribute('data-fw-ready', 'yes', { timeout: 30_000 });
     await expect(demoStatus(page)).toContainText('Carousel added');
+  });
+
+  test('the bookmark shows AVA on a page without Firework', async ({ page }) => {
+    await page.route(/\/trk\//, (route) => route.abort());
+    const code = await bookmarkCode(page, 'ava_button');
+    await page.goto('/lab/bookmarklet/practice/');
+    await page.evaluate(code);
+    await page.click('.hero h1');
+    const ava = page.locator('[data-fjb-demo="widget"] > fw-ava');
+    await expect.poll(async () => (await ava.boundingBox())?.height ?? 0, { timeout: 30_000 }).toBeGreaterThan(20);
   });
 
   test('fw=off skips the SDK', async ({ page }) => {
