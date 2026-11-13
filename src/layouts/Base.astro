@@ -1,6 +1,6 @@
 ---
-import '@fontsource-variable/fraunces';
-import '@fontsource-variable/inter';
+import frauncesWoff2 from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
+import interWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import '../styles/global.css';
 import DemoBanner from '../components/DemoBanner.astro';
 import Footer from '../components/Footer.astro';
@@ -8,6 +8,16 @@ import Header from '../components/Header.astro';
 import SettingsDialog from '../components/SettingsDialog.astro';
 import { getPitches, pitchOutline } from '../lib/pitches';
 import { safeJson } from '../lib/safe-json';
+
+// The two brand fonts, latin subset, preloaded, with font-display: optional: a font that isn't ready within the
+// browser's short block period is skipped for this page view (and cached for the next), so text never reflows and
+// the page has no layout shift from fonts. Fontsource's default is swap, which moved every heading on this site.
+const fontCss = `
+@font-face { font-family: 'Fraunces Variable'; font-style: normal; font-display: optional; font-weight: 100 900;
+  src: url(${frauncesWoff2}) format('woff2-variations'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Inter Variable'; font-style: normal; font-display: optional; font-weight: 100 900;
+  src: url(${interWoff2}) format('woff2-variations'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+`;
 
 interface Props {
   title: string;
@@ -40,6 +50,9 @@ const fullTitle = title === 'Fjordbloom' ? 'Fjordbloom · Firework demo store' :
     <meta name="robots" content="noindex, nofollow" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <link rel="preload" href={interWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={frauncesWoff2} as="font" type="font/woff2" crossorigin />
+    <style is:inline set:html={fontCss} />
     <meta name="theme-color" content="#F7F5F0" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script is:inline>
@@ -49,6 +62,27 @@ const fullTitle = title === 'Fjordbloom' ? 'Fjordbloom · Firework demo store' :
         var fjbOn = fjbPresent !== null ? !/^(0|off|false|no)$/i.test(fjbPresent) : sessionStorage.getItem('fjb.present.v1');
         if (fjbOn && !/^\/pitch\/./.test(location.pathname)) {
           document.documentElement.setAttribute('data-present', 'on');
+        }
+      } catch (e) {}
+      // Firework mode and ?widgets= before first paint, so neither moves the page later. See src/scripts/settings.ts.
+      try {
+        var fjbQ = new URLSearchParams(location.search);
+        var fjbMode = fjbQ.get('fw');
+        if (!/^(on|lazy|off)$/.test(fjbMode || '')) fjbMode = JSON.parse(localStorage.getItem('fjb.settings.v1') || '{}').fwMode;
+        // Without Firework nothing will render, so no space is kept for it.
+        if (fjbMode === 'off') document.documentElement.setAttribute('data-fw-early', 'off');
+        if (fjbQ.has('widgets')) {
+          var fjbKept = (fjbQ.get('widgets') || '')
+            .split(',')
+            .filter(function (k) { return /^[a-z]{2,20}$/.test(k); })
+            .map(function (k) { return '[data-fw-key="' + k + '"],[data-fw-slot="' + k + '"]:not([data-fw-key])'; })
+            .join(',');
+          var fjbCss =
+            '[data-fw-managed]' + (fjbKept ? ':not(' + fjbKept + ')' : '') + '{display:none!important}' +
+            '.fw-reserve' + (fjbKept ? ':not(:has(>:is(' + fjbKept + ')))' : '') + '{display:none!important}';
+          var fjbStyle = document.createElement('style');
+          fjbStyle.textContent = fjbCss;
+          document.head.appendChild(fjbStyle);
         }
       } catch (e) {}
     </script>

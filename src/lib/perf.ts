@@ -64,19 +64,37 @@ export function rate(id: string, value: number): Rating {
 
 export const ratingLabels: Record<Rating, string> = { good: 'Good', 'needs-improvement': 'Needs improvement', poor: 'Poor' };
 
-export interface PerfPage {
+/**
+ * A setup to measure: a page of this store with a chosen set of widgets (?widgets=). "core" setups are what most
+ * customers start with and lead the overview; "addon" setups show what one more feature costs; "stress" is the demo
+ * store's showcase home page with everything on.
+ */
+export interface PerfScenario {
   id: string;
   label: string;
+  /** Page path, with a trailing slash. */
   path: string;
-  /** What the page embeds when Firework is on. */
+  /** Keys for ?widgets= (see WIDGET_KEYS in settings.ts). */
   widgets: string[];
+  /** What the shopper sees when Firework is on. */
+  shows: string[];
+  tier: 'core' | 'addon' | 'stress';
+  /** For an add-on: the core scenario it adds to. */
+  addsTo?: string;
 }
 
-export const perfPages: PerfPage[] = [
-  { id: 'home', label: 'Home', path: '/', widgets: ['Hero unit (livestream)', 'Storyblock', 'Carousel', 'Floating player'] },
-  { id: 'product', label: 'Product page', path: '/products/cloudberry-vitamin-c-serum', widgets: ['Storyblock (skus)', 'Player Deck', 'AVA Product FAQ'] },
-  { id: 'shop', label: 'Shop', path: '/shop', widgets: ['Grid', 'Circle stories'] },
+export const perfScenarios: PerfScenario[] = [
+  { id: 'home-carousel', label: 'Home page with a carousel', path: '/', widgets: ['carousel'], shows: ['Carousel'], tier: 'core' },
+  { id: 'product-storyblock', label: 'Product page with a Storyblock', path: '/products/cloudberry-vitamin-c-serum/', widgets: ['pdp'], shows: ['Storyblock of videos tagged with the product'], tier: 'core' },
+  { id: 'shop-grid', label: 'Category page with a video grid', path: '/shop/', widgets: ['grid', 'stories'], shows: ['Grid', 'Circle stories'], tier: 'core' },
+  { id: 'home-carousel-floating', label: 'Home page: carousel plus a floating player', path: '/', widgets: ['carousel', 'floating'], shows: ['Carousel', 'Floating player'], tier: 'addon', addsTo: 'home-carousel' },
+  { id: 'product-storyblock-ava', label: 'Product page: Storyblock plus AVA', path: '/products/cloudberry-vitamin-c-serum/', widgets: ['pdp', 'ava'], shows: ['Storyblock', 'AVA Product FAQ'], tier: 'addon', addsTo: 'product-storyblock' },
+  { id: 'live-hero', label: 'Livestream page with a hero unit', path: '/live/', widgets: ['hero'], shows: ['Hero unit: countdown, live show or replay'], tier: 'addon' },
+  { id: 'home-all', label: 'Home page with everything on', path: '/', widgets: ['hero', 'storyblock', 'carousel', 'floating'], shows: ['Hero unit (livestream)', 'Storyblock', 'Carousel', 'Floating player'], tier: 'stress' },
 ];
+
+/** The URL a scenario is measured at. */
+export const scenarioUrl = (s: PerfScenario, mode: FwMode): string => `${s.path}?widgets=${s.widgets.join(',')}&fw=${mode}`;
 
 export const modeLabels: Record<FwMode, string> = {
   off: 'Without Firework',
@@ -93,7 +111,7 @@ export interface GroupTotals {
 }
 
 export interface PerfResult {
-  page: string;
+  scenario: string;
   mode: FwMode;
   url: string;
   lighthouse: {
@@ -107,7 +125,13 @@ export interface PerfResult {
   };
   network: {
     requests: number;
+    /** All transferred bytes, including video that started playing during the run. */
     bytes: number;
+    /**
+     * Video files that streamed because a video started playing (autoplay). Whether one starts within the run
+     * varies, so setups are compared on bytes minus these, and video is shown on its own.
+     */
+    videoBytes?: number;
     groups: Partial<Record<PerfGroup, GroupTotals>>;
     types: Record<string, number>;
     /** The biggest Firework requests, for the "what is it" table. */
@@ -117,6 +141,8 @@ export interface PerfResult {
     domNodes: number;
     longTasks: number;
     longTaskMs: number;
+    /** The longest single pause: what a tap during loading could wait for. */
+    longestTaskMs: number;
     /** Total main-thread work during load. */
     mainThreadMs: number;
     sdkLoaded: boolean;
@@ -127,6 +153,8 @@ export interface PerfResult {
   };
   /** Number of runs this result is the median of. */
   runs: number;
+  /** Lowest and highest value across the runs, to tell a real change from run-to-run noise. */
+  ranges?: { lcp: [number, number]; tbt: [number, number]; bytes: [number, number]; videoBytes?: [number, number] };
 }
 
 export interface PerfReport {
@@ -136,6 +164,6 @@ export interface PerfReport {
   lighthouseVersion: string;
   chrome: string;
   conditions: { device: string; network: string; cpu: string; cache: string; tracking: string };
-  pages: PerfPage[];
+  scenarios: PerfScenario[];
   results: PerfResult[];
 }

@@ -19,7 +19,7 @@ Nothing here is for sale. Products, images and videos are illustrated or AI-gene
 | Live and Showroom | `/live`, `/showroom` | Live: the hosted show, its countdown and replays. Showroom: a daily restream with AI Copilot answering the chat, and the next session in the visitor's time zone |
 | OBS overlays | `/live/overlays` | Browser-source overlays at 720x1280 (name strap, product spotlight, giveaway, starting soon) and the OBS settings Firework needs |
 | Pitch mode | `/pitch` | Presents the store as a customer demo: demo tools hidden, presenter notes in a second window |
-| Page weight and vitals | `/lab/performance` | What Firework adds to three pages, measured with Lighthouse without it, with the lazy loader and with the full SDK: weight by sender, main-thread time, LCP, TBT, CLS against Google's thresholds, plus a run in the visitor's own browser. `npm run perf:measure` regenerates the numbers |
+| Page weight and vitals | `/lab/performance`, `/lab/performance/details` | What adding Firework does to a page, in plain words for a marketing manager (how much heavier, does it show up as fast, does it respond to taps, does anything jump, with the research on what people notice), then every number for engineers: seven setups via `?widgets=`, three modes, weight by sender, main-thread time, Lighthouse metrics on Google's thresholds, and a run in the visitor's own browser. `npm run perf:measure` regenerates the numbers |
 | Your site with Firework | `/lab/bookmarklet` | A bookmark that adds any of the 12 layouts, or AVA, to a prospect's website, only in the presenter's browser, with a practice page and steps for a prospect's own assistant |
 | Custom arrows | `/lab/arrows`, `/arrows/*.svg` | Six SVG arrow styles for `ui_asset_next` and `ui_asset_previous`, switchable on a live carousel, served with CORS for reuse |
 | Layouts | `/lab/layouts` | All 12 Business Portal layouts live, grouped by the five elements behind them, with the attributes that make each one |
@@ -54,6 +54,7 @@ You don't need to fork or redeploy. Settings are saved in your browser only.
 | `?fw=off` or `?fw=lazy` | Skip the SDK, or load it with `fwn-async.js` |
 | `?a.<attribute>=` and `?css.<variable>=` | Lab pages only. "Copy link to this setup" builds these |
 | `?shopping=` | Shopping failure switches for the tab, such as `?shopping=slow,sold-out`. `?shopping=` turns them off |
+| `?widgets=` | Keeps only the listed widgets on the page, such as `/?widgets=carousel` or `?widgets=pdp,ava`. Used to measure setups |
 
 Tracking events and the shopping integration only run for the sandbox channel in `src/site.config.ts`. Viewing anyone else's channel never sends page views, bag changes or test orders to their analytics.
 

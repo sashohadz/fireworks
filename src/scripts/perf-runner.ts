@@ -8,13 +8,14 @@ export const PERF_KEY = 'fjb.perf.v1';
 const SETTLE_MS = 8000;
 
 export interface LiveStep {
-  page: string;
+  scenario: string;
   mode: FwMode;
-  path: string;
+  /** Path and query of the page to load, without the perf parameter. */
+  url: string;
 }
 
 export interface LiveResult {
-  page: string;
+  scenario: string;
   mode: FwMode;
   url: string;
   at: string;
@@ -63,7 +64,7 @@ function save(run: LiveRun | null): void {
 export const readRun = (): LiveRun | null => load();
 export const clearRun = (): void => save(null);
 
-const stepUrl = (run: LiveRun, step: LiveStep) => `${step.path}?fw=${step.mode}&perf=${run.id}`;
+const stepUrl = (run: LiveRun, step: LiveStep) => `${step.url}${step.url.includes('?') ? '&' : '?'}perf=${run.id}`;
 
 /** Starts a run from the lab page: saves the plan and goes to the first page. */
 export function startRun(steps: LiveStep[], returnTo: string): void {
@@ -100,7 +101,7 @@ function collect(step: LiveStep): LiveResult {
   }
   const m = window.__fjbPerf ?? { lcp: 0, cls: 0, longTasks: 0, longTaskMs: 0, blockingMs: 0 };
   return {
-    page: step.page,
+    scenario: step.scenario,
     mode: step.mode,
     url: location.pathname + location.search,
     at: new Date().toISOString(),

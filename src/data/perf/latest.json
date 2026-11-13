@@ -1,6 +1,6 @@
 {
-  "measuredAt": "2026-11-13T08:55:29.891Z",
-  "site": "http://127.0.0.1:4391",
+  "measuredAt": "2026-11-13T10:36:36.788Z",
+  "site": "http://127.0.0.1:4392",
   "sdkRelease": "v20261111.1",
   "lighthouseVersion": "13.6.0",
   "chrome": "156.0.0.0",
@@ -11,126 +11,206 @@
     "cache": "Cold: storage and cache cleared before each run",
     "tracking": "Firework's tracking pixel blocked, so the runs are not counted as visits"
   },
-  "pages": [
+  "scenarios": [
     {
-      "id": "home",
-      "label": "Home",
+      "id": "home-carousel",
+      "label": "Home page with a carousel",
       "path": "/",
       "widgets": [
+        "carousel"
+      ],
+      "shows": [
+        "Carousel"
+      ],
+      "tier": "core"
+    },
+    {
+      "id": "product-storyblock",
+      "label": "Product page with a Storyblock",
+      "path": "/products/cloudberry-vitamin-c-serum/",
+      "widgets": [
+        "pdp"
+      ],
+      "shows": [
+        "Storyblock of videos tagged with the product"
+      ],
+      "tier": "core"
+    },
+    {
+      "id": "shop-grid",
+      "label": "Category page with a video grid",
+      "path": "/shop/",
+      "widgets": [
+        "grid",
+        "stories"
+      ],
+      "shows": [
+        "Grid",
+        "Circle stories"
+      ],
+      "tier": "core"
+    },
+    {
+      "id": "home-carousel-floating",
+      "label": "Home page: carousel plus a floating player",
+      "path": "/",
+      "widgets": [
+        "carousel",
+        "floating"
+      ],
+      "shows": [
+        "Carousel",
+        "Floating player"
+      ],
+      "tier": "addon",
+      "addsTo": "home-carousel"
+    },
+    {
+      "id": "product-storyblock-ava",
+      "label": "Product page: Storyblock plus AVA",
+      "path": "/products/cloudberry-vitamin-c-serum/",
+      "widgets": [
+        "pdp",
+        "ava"
+      ],
+      "shows": [
+        "Storyblock",
+        "AVA Product FAQ"
+      ],
+      "tier": "addon",
+      "addsTo": "product-storyblock"
+    },
+    {
+      "id": "live-hero",
+      "label": "Livestream page with a hero unit",
+      "path": "/live/",
+      "widgets": [
+        "hero"
+      ],
+      "shows": [
+        "Hero unit: countdown, live show or replay"
+      ],
+      "tier": "addon"
+    },
+    {
+      "id": "home-all",
+      "label": "Home page with everything on",
+      "path": "/",
+      "widgets": [
+        "hero",
+        "storyblock",
+        "carousel",
+        "floating"
+      ],
+      "shows": [
         "Hero unit (livestream)",
         "Storyblock",
         "Carousel",
         "Floating player"
-      ]
-    },
-    {
-      "id": "product",
-      "label": "Product page",
-      "path": "/products/cloudberry-vitamin-c-serum",
-      "widgets": [
-        "Storyblock (skus)",
-        "Player Deck",
-        "AVA Product FAQ"
-      ]
-    },
-    {
-      "id": "shop",
-      "label": "Shop",
-      "path": "/shop",
-      "widgets": [
-        "Grid",
-        "Circle stories"
-      ]
+      ],
+      "tier": "stress"
     }
   ],
   "results": [
     {
-      "page": "home",
+      "scenario": "home-carousel",
       "mode": "off",
-      "url": "/?fw=off",
+      "url": "/?widgets=carousel&fw=off",
       "lighthouse": {
-        "score": 99,
-        "lcp": 2188.0149999999994,
-        "fcp": 763.0150000000001,
-        "cls": 0.03838274028971765,
-        "tbt": 3.4925000000000637,
-        "si": 763.0150000000001,
-        "tti": 2210.5149999999994
+        "score": 98,
+        "lcp": 2406.7793,
+        "fcp": 906.7792999999999,
+        "cls": 0,
+        "tbt": 0,
+        "si": 906.7792999999999,
+        "tti": 2421.7793
       },
       "network": {
         "requests": 22,
-        "bytes": 245252,
+        "bytes": 285792,
+        "videoBytes": 0,
         "groups": {
           "site": {
             "requests": 22,
-            "bytes": 245252,
-            "scriptMs": 46.092
+            "bytes": 285792,
+            "scriptMs": 26.73999999999999
           },
           "other": {
             "requests": 0,
             "bytes": 0,
-            "scriptMs": 8.6
+            "scriptMs": 4.048000000000001
           }
         },
         "types": {
-          "Document": 6147,
-          "Stylesheet": 4078,
-          "Image": 128324,
-          "Script": 20660,
-          "Font": 85516,
-          "Other": 527
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 127924,
+          "Script": 38323,
+          "Other": 449
         },
         "biggest": []
       },
       "runtime": {
-        "domNodes": 243,
-        "longTasks": 2,
-        "longTaskMs": 179.0000000000001,
-        "mainThreadMs": 641.2119999999991,
+        "domNodes": 244,
+        "longTasks": 1,
+        "longTaskMs": 109,
+        "longestTaskMs": 109,
+        "mainThreadMs": 394.20399999999984,
         "sdkLoaded": false,
-        "shifts": [
-          {
-            "selector": "body > main#main",
-            "score": 0.03783980901452617
-          },
-          {
-            "selector": "body > div.demo-banner",
-            "score": 0.0005429312751914872
-          }
-        ],
+        "shifts": [],
         "lcpElement": {
           "selector": "main#main > section.home-hero > div.container > img",
           "firework": false
         }
       },
-      "runs": 3
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2406.1944,
+          2408.3847000000005
+        ],
+        "tbt": [
+          0,
+          8
+        ],
+        "bytes": [
+          285792,
+          285792
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
     },
     {
-      "page": "home",
+      "scenario": "home-carousel",
       "mode": "lazy",
-      "url": "/?fw=lazy",
+      "url": "/?widgets=carousel&fw=lazy",
       "lighthouse": {
-        "score": 99,
-        "lcp": 2037.6198,
-        "fcp": 762.6197999999999,
-        "cls": 0.03838274028971765,
-        "tbt": 1.5,
-        "si": 762.6197999999999,
-        "tti": 2446.95537
+        "score": 98,
+        "lcp": 2407.1135999999997,
+        "fcp": 906.6100999999999,
+        "cls": 0,
+        "tbt": 8,
+        "si": 906.6100999999999,
+        "tti": 2768.5429274999997
       },
       "network": {
         "requests": 26,
-        "bytes": 277737,
+        "bytes": 318277,
+        "videoBytes": 0,
         "groups": {
           "site": {
             "requests": 22,
-            "bytes": 245252,
-            "scriptMs": 34.756
+            "bytes": 285792,
+            "scriptMs": 41.85599999999998
           },
           "firework-sdk": {
             "requests": 2,
             "bytes": 32485,
-            "scriptMs": 72.78400000000006
+            "scriptMs": 89.27200000000008
           },
           "firework-api": {
             "requests": 2,
@@ -140,17 +220,17 @@
           "other": {
             "requests": 0,
             "bytes": 0,
-            "scriptMs": 4.568
+            "scriptMs": 6.279999999999999
           }
         },
         "types": {
-          "Document": 6147,
-          "Stylesheet": 4078,
-          "Image": 128324,
-          "Script": 53145,
-          "Font": 85516,
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 127924,
+          "Script": 70808,
           "Ping": 0,
-          "Other": 527
+          "Other": 449
         },
         "biggest": [
           {
@@ -176,310 +256,211 @@
         ]
       },
       "runtime": {
-        "domNodes": 243,
+        "domNodes": 244,
         "longTasks": 2,
-        "longTaskMs": 109,
-        "mainThreadMs": 390.9000000000001,
+        "longTaskMs": 227,
+        "longestTaskMs": 161,
+        "mainThreadMs": 560.0200000000007,
         "sdkLoaded": false,
-        "shifts": [
-          {
-            "selector": "body > main#main",
-            "score": 0.03783980901452617
-          },
-          {
-            "selector": "body > div.demo-banner",
-            "score": 0.0005429312751914872
-          }
-        ],
+        "shifts": [],
         "lcpElement": {
           "selector": "main#main > section.home-hero > div.container > img",
           "firework": false
         }
       },
-      "runs": 3
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2405.873600000001,
+          2407.4381
+        ],
+        "tbt": [
+          3,
+          44.5
+        ],
+        "bytes": [
+          318277,
+          318280
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
     },
     {
-      "page": "home",
+      "scenario": "home-carousel",
       "mode": "on",
-      "url": "/?fw=on",
+      "url": "/?widgets=carousel&fw=on",
       "lighthouse": {
-        "score": 86,
-        "lcp": 2910.0144,
-        "fcp": 762.0924,
-        "cls": 0.0005429312751914872,
-        "tbt": 319.0000000000009,
-        "si": 3674.6944810805526,
-        "tti": 9259.605280000003
+        "score": 92,
+        "lcp": 3349.0575500000004,
+        "fcp": 908.1004,
+        "cls": 0,
+        "tbt": 66.5,
+        "si": 1594.63690231178,
+        "tti": 4864.485360000001
       },
       "network": {
-        "requests": 274,
-        "bytes": 2902178,
+        "requests": 81,
+        "bytes": 558343,
+        "videoBytes": 0,
         "groups": {
           "site": {
-            "requests": 26,
-            "bytes": 323151,
-            "scriptMs": 29.956000000000003
+            "requests": 23,
+            "bytes": 302451,
+            "scriptMs": 40.58000000000003
           },
           "firework-sdk": {
-            "requests": 187,
-            "bytes": 1324041,
-            "scriptMs": 2838.6719999999937
+            "requests": 51,
+            "bytes": 243316,
+            "scriptMs": 563.8920000000057
           },
           "firework-api": {
-            "requests": 49,
-            "bytes": 52618,
-            "scriptMs": 0
-          },
-          "firework-media": {
-            "requests": 10,
-            "bytes": 1202370,
+            "requests": 7,
+            "bytes": 12576,
             "scriptMs": 0
           },
           "other": {
-            "requests": 2,
-            "bytes": -2,
-            "scriptMs": 212.17600000000022
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 102.592
           }
         },
         "types": {
-          "Document": 6147,
-          "Stylesheet": 4078,
-          "Image": 232843,
-          "Script": 761562,
-          "Font": 85516,
-          "Ping": 1407,
-          "Other": 58746,
-          "Fetch": 563104,
-          "Preflight": 0,
-          "XHR": 14004,
-          "Media": 1174771
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 132563,
+          "Script": 277000,
+          "Ping": 0,
+          "Other": 449,
+          "Fetch": 29235,
+          "Preflight": 0
         },
         "biggest": [
           {
-            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
-            "bytes": 640851,
-            "type": "Media"
-          },
-          {
-            "url": "https://cdn5.fireworktv.com/medias/2026/10/27/1793101177-tlkuxfwv/watermarked/720/fjb-09-brand-hero.en.mp4",
-            "bytes": 533920,
-            "type": "Media"
-          },
-          {
-            "url": "https://asset.fwcdn3.com/js/module/assets/shared/CC8KP1wy.wasm",
-            "bytes": 519683,
-            "type": "Fetch"
-          },
-          {
-            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/C6nsHqFM.js",
-            "bytes": 117104,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
-            "bytes": 60738,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwcdn3.com/js/module/assets/shared/Dpk_q80y.js",
-            "bytes": 57636,
-            "type": "Other"
-          },
-          {
             "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
-            "bytes": 53607,
+            "bytes": 53608,
             "type": "Script"
           },
           {
             "url": "https://asset.fwcdn3.com/js/analytics.js",
-            "bytes": 30927,
+            "bytes": 30928,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22488,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19319,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/N4hOkvhB.js",
+            "bytes": 16277,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/D4wUrn_T.js",
+            "bytes": 14921,
+            "type": "Script"
+          },
+          {
+            "url": "https://cdn1-api.fireworktv.com/embed/v2/playlists/o9XklW/feeds?page_size=10&n=1&channel=sashoo_business&_=1794565748163",
+            "bytes": 10036,
+            "type": "Fetch"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CleVBYw6.js",
+            "bytes": 8096,
             "type": "Script"
           }
         ]
       },
       "runtime": {
-        "domNodes": 918,
-        "longTasks": 15,
-        "longTaskMs": 1258.0000000000018,
-        "mainThreadMs": 5118.11199999986,
+        "domNodes": 606,
+        "longTasks": 3,
+        "longTaskMs": 248,
+        "longestTaskMs": 113,
+        "mainThreadMs": 1223.024000000007,
         "sdkLoaded": true,
-        "shifts": [
-          {
-            "selector": "body > div.demo-banner",
-            "score": 0.0005429312751914872
-          }
-        ],
+        "shifts": [],
         "lcpElement": {
           "selector": "main#main > section.home-hero > div.container > img",
           "firework": false
         }
       },
-      "runs": 3
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2419.8298,
+          3498.0446
+        ],
+        "tbt": [
+          66.5,
+          187.5
+        ],
+        "bytes": [
+          558328,
+          558343
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
     },
     {
-      "page": "product",
+      "scenario": "product-storyblock",
       "mode": "off",
-      "url": "/products/cloudberry-vitamin-c-serum?fw=off",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp&fw=off",
       "lighthouse": {
-        "score": 98,
-        "lcp": 2185.8634,
-        "fcp": 760.8634,
-        "cls": 0.05880964024567258,
+        "score": 97,
+        "lcp": 2577.9396,
+        "fcp": 908.5968,
+        "cls": 0.002498094062705211,
         "tbt": 0,
-        "si": 760.8634,
-        "tti": 2208.3634
+        "si": 908.5968,
+        "tti": 2578.5843600000003
       },
       "network": {
         "requests": 22,
-        "bytes": 227960,
+        "bytes": 272410,
+        "videoBytes": 0,
         "groups": {
           "site": {
             "requests": 22,
-            "bytes": 227960,
-            "scriptMs": 36.96
+            "bytes": 272410,
+            "scriptMs": 36.048
           },
           "other": {
             "requests": 0,
             "bytes": 0,
-            "scriptMs": 15.97199999999999
+            "scriptMs": 17.09999999999999
           }
         },
         "types": {
-          "Document": 7194,
-          "Stylesheet": 4078,
-          "Image": 108763,
-          "Script": 21882,
-          "Font": 85516,
-          "Other": 527
+          "Document": 24737,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 108443,
+          "Script": 40210,
+          "Other": 449
         },
         "biggest": []
       },
       "runtime": {
         "domNodes": 251,
-        "longTasks": 1,
-        "longTaskMs": 64,
-        "mainThreadMs": 372.7040000000009,
+        "longTasks": 2,
+        "longTaskMs": 134,
+        "longestTaskMs": 82,
+        "mainThreadMs": 440.28799999999944,
         "sdkLoaded": false,
         "shifts": [
-          {
-            "selector": "body > main#main",
-            "score": 0.05880964024567258
-          }
-        ],
-        "lcpElement": {
-          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
-          "firework": false
-        }
-      },
-      "runs": 3
-    },
-    {
-      "page": "product",
-      "mode": "lazy",
-      "url": "/products/cloudberry-vitamin-c-serum?fw=lazy",
-      "lighthouse": {
-        "score": 99,
-        "lcp": 1741.2800249999996,
-        "fcp": 766.2465499999998,
-        "cls": 0.0427247041373406,
-        "tbt": 90.5,
-        "si": 766.2465499999998,
-        "tti": 4183.8928049999995
-      },
-      "network": {
-        "requests": 36,
-        "bytes": 432411,
-        "groups": {
-          "site": {
-            "requests": 22,
-            "bytes": 227960,
-            "scriptMs": 29.76799999999999
-          },
-          "firework-sdk": {
-            "requests": 2,
-            "bytes": 32484,
-            "scriptMs": 78.05600000000004
-          },
-          "ava": {
-            "requests": 6,
-            "bytes": 170056,
-            "scriptMs": 250.07200000000003
-          },
-          "firework-api": {
-            "requests": 6,
-            "bytes": 1911,
-            "scriptMs": 0
-          },
-          "other": {
-            "requests": 0,
-            "bytes": 0,
-            "scriptMs": 102.62800000000041
-          }
-        },
-        "types": {
-          "Document": 7194,
-          "Stylesheet": 4078,
-          "Image": 108763,
-          "Script": 224422,
-          "Font": 85516,
-          "Ping": 0,
-          "Fetch": 1911,
-          "Other": 527
-        },
-        "biggest": [
-          {
-            "url": "https://asset.fwscripts.com/js/ava.js?business_id=gYx0PO",
-            "bytes": 123987,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwcdn3.com/js/analytics.js",
-            "bytes": 30925,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwscripts.com/js/chunks/ava/markdown-dbfcb6c658ad22b2166b.js",
-            "bytes": 13726,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwscripts.com/js/chunks/ava/8939-dd9e3cb7a7dcabaf2ec6.js",
-            "bytes": 12371,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwscripts.com/js/chunks/ava/4980-7c9be34e232b14b8159d.js",
-            "bytes": 8952,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwscripts.com/js/chunks/ava/4202-a26fb25dd9128e0009a2.js",
-            "bytes": 6682,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwscripts.com/js/chunks/ava/8305-a38caf5670dbbc1c36ba.js",
-            "bytes": 4338,
-            "type": "Script"
-          },
-          {
-            "url": "https://asset.fwcdn3.com/js/fwn-async.js",
-            "bytes": 1559,
-            "type": "Script"
-          }
-        ]
-      },
-      "runtime": {
-        "domNodes": 298,
-        "longTasks": 5,
-        "longTaskMs": 443,
-        "mainThreadMs": 914.8200000000015,
-        "sdkLoaded": false,
-        "shifts": [
-          {
-            "selector": "body > main#main",
-            "score": 0.04022661007463539
-          },
           {
             "selector": "main#main > div.container > div.pdp > div.pdp-info",
             "score": 0.002498094062705211
@@ -490,80 +471,193 @@
           "firework": false
         }
       },
-      "runs": 3
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2407.3586999999998,
+          2577.9396
+        ],
+        "tbt": [
+          0,
+          105
+        ],
+        "bytes": [
+          272410,
+          272410
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
     },
     {
-      "page": "product",
-      "mode": "on",
-      "url": "/products/cloudberry-vitamin-c-serum?fw=on",
+      "scenario": "product-storyblock",
+      "mode": "lazy",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp&fw=lazy",
       "lighthouse": {
-        "score": 93,
-        "lcp": 2108.677,
-        "fcp": 758.2783000000001,
-        "cls": 0.004279681553845275,
-        "tbt": 283.00000000000045,
-        "si": 2886.159120324875,
-        "tti": 7682.190770000001
+        "score": 95,
+        "lcp": 2992.5409500000005,
+        "fcp": 905.9655000000002,
+        "cls": 0.002498094062705211,
+        "tbt": 6,
+        "si": 905.9655000000002,
+        "tti": 2997.2409500000012
       },
       "network": {
-        "requests": 190,
-        "bytes": 1510454,
+        "requests": 26,
+        "bytes": 304898,
+        "videoBytes": 0,
         "groups": {
           "site": {
-            "requests": 31,
-            "bytes": 414291,
-            "scriptMs": 44.436
+            "requests": 22,
+            "bytes": 272410,
+            "scriptMs": 24.800000000000008
           },
           "firework-sdk": {
-            "requests": 124,
-            "bytes": 482400,
-            "scriptMs": 1071.7600000000048
-          },
-          "ava": {
-            "requests": 7,
-            "bytes": 172832,
-            "scriptMs": 252.7400000000003
+            "requests": 2,
+            "bytes": 32488,
+            "scriptMs": 75.20400000000008
           },
           "firework-api": {
-            "requests": 18,
-            "bytes": 23852,
-            "scriptMs": 0
-          },
-          "firework-media": {
-            "requests": 10,
-            "bytes": 417079,
+            "requests": 2,
+            "bytes": 0,
             "scriptMs": 0
           },
           "other": {
             "requests": 0,
             "bytes": 0,
-            "scriptMs": 215.82799999999926
+            "scriptMs": 15.735999999999994
           }
         },
         "types": {
-          "Document": 7194,
-          "Stylesheet": 4078,
-          "Image": 346275,
-          "Script": 672474,
-          "Font": 85516,
-          "Ping": 176,
-          "Fetch": 22336,
-          "Other": 527,
-          "Preflight": 0,
-          "XHR": 3882,
-          "Media": 367996
+          "Document": 24737,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 108443,
+          "Script": 72698,
+          "Ping": 0,
+          "Other": 449
         },
         "biggest": [
           {
-            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
-            "bytes": 367996,
-            "type": "Media"
-          },
-          {
-            "url": "https://asset.fwscripts.com/js/ava.js?business_id=gYx0PO",
-            "bytes": 123989,
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30927,
             "type": "Script"
           },
+          {
+            "url": "https://asset.fwcdn3.com/js/fwn-async.js",
+            "bytes": 1561,
+            "type": "Script"
+          },
+          {
+            "url": "https://p2.fwpixel.com/trk/system:page_load",
+            "bytes": 0,
+            "type": "Ping"
+          },
+          {
+            "url": "https://p2.fwpixel.com/trk/user:page_viewed",
+            "bytes": 0,
+            "type": "Ping"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 251,
+        "longTasks": 2,
+        "longTaskMs": 176,
+        "longestTaskMs": 120,
+        "mainThreadMs": 493.2879999999995,
+        "sdkLoaded": false,
+        "shifts": [
+          {
+            "selector": "main#main > div.container > div.pdp > div.pdp-info",
+            "score": 0.002498094062705211
+          }
+        ],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2405.64,
+          3038.5475749999996
+        ],
+        "tbt": [
+          6,
+          23
+        ],
+        "bytes": [
+          304896,
+          304898
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "product-storyblock",
+      "mode": "on",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp&fw=on",
+      "lighthouse": {
+        "score": 93,
+        "lcp": 2904.5916500000003,
+        "fcp": 907.9544000000001,
+        "cls": 0.002498094062705211,
+        "tbt": 175.5,
+        "si": 1904.4208704298237,
+        "tti": 6000.855125000002
+      },
+      "network": {
+        "requests": 150,
+        "bytes": 816139,
+        "videoBytes": 40562,
+        "groups": {
+          "site": {
+            "requests": 24,
+            "bytes": 314972,
+            "scriptMs": 53.85199999999999
+          },
+          "firework-sdk": {
+            "requests": 112,
+            "bytes": 445067,
+            "scriptMs": 632.3640000000004
+          },
+          "firework-api": {
+            "requests": 10,
+            "bytes": 13060,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 4,
+            "bytes": 43040,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 192.7320000000002
+          }
+        },
+        "types": {
+          "Document": 24737,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 136824,
+          "Script": 485277,
+          "Ping": 176,
+          "Other": 449,
+          "Fetch": 25557,
+          "Preflight": 0,
+          "XHR": 3986,
+          "Media": 40562
+        },
+        "biggest": [
           {
             "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
             "bytes": 60739,
@@ -575,8 +669,13 @@
             "type": "Script"
           },
           {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 39943,
+            "type": "Media"
+          },
+          {
             "url": "https://asset.fwcdn3.com/js/analytics.js",
-            "bytes": 30926,
+            "bytes": 30928,
             "type": "Script"
           },
           {
@@ -591,21 +690,27 @@
           },
           {
             "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
-            "bytes": 19317,
+            "bytes": 19318,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/N4hOkvhB.js",
+            "bytes": 16274,
             "type": "Script"
           }
         ]
       },
       "runtime": {
-        "domNodes": 787,
-        "longTasks": 12,
-        "longTaskMs": 1092,
-        "mainThreadMs": 2957.4519999999698,
+        "domNodes": 327,
+        "longTasks": 7,
+        "longTaskMs": 548,
+        "longestTaskMs": 150,
+        "mainThreadMs": 1883.4280000000197,
         "sdkLoaded": true,
         "shifts": [
           {
             "selector": "main#main > div.container > div.pdp > div.pdp-info",
-            "score": 0.004279681553845275
+            "score": 0.002498094062705211
           }
         ],
         "lcpElement": {
@@ -613,139 +718,616 @@
           "firework": false
         }
       },
-      "runs": 3
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2406.7696000000005,
+          3312.5192749999997
+        ],
+        "tbt": [
+          56.5,
+          398.5
+        ],
+        "bytes": [
+          816139,
+          1143572
+        ],
+        "videoBytes": [
+          40562,
+          367996
+        ]
+      }
     },
     {
-      "page": "shop",
+      "scenario": "shop-grid",
       "mode": "off",
-      "url": "/shop?fw=off",
+      "url": "/shop/?widgets=grid,stories&fw=off",
       "lighthouse": {
-        "score": 99,
-        "lcp": 2183.3864,
-        "fcp": 758.3864000000001,
-        "cls": 0.03925974788721437,
+        "score": 97,
+        "lcp": 2557.8869999999997,
+        "fcp": 907.887,
+        "cls": 0,
         "tbt": 0,
-        "si": 758.3864000000001,
-        "tti": 2220.8864000000003
+        "si": 907.887,
+        "tti": 2572.8869999999997
       },
       "network": {
         "requests": 24,
-        "bytes": 283215,
+        "bytes": 325031,
+        "videoBytes": 0,
         "groups": {
           "site": {
             "requests": 24,
-            "bytes": 283215,
-            "scriptMs": 19.46799999999999
+            "bytes": 325031,
+            "scriptMs": 29.176000000000002
           },
           "other": {
             "requests": 0,
             "bytes": 0,
-            "scriptMs": 14.267999999999992
+            "scriptMs": 13.339999999999991
           }
         },
         "types": {
-          "Document": 6065,
-          "Stylesheet": 4078,
-          "Script": 20660,
-          "Font": 85516,
-          "Image": 166369,
-          "Other": 527
+          "Document": 21879,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 165809,
+          "Script": 38323,
+          "Other": 449
         },
         "biggest": []
       },
       "runtime": {
-        "domNodes": 279,
+        "domNodes": 281,
         "longTasks": 2,
-        "longTaskMs": 156.0000000000001,
-        "mainThreadMs": 447.55599999999896,
+        "longTaskMs": 113,
+        "longestTaskMs": 63,
+        "mainThreadMs": 364.8960000000001,
         "sdkLoaded": false,
-        "shifts": [
-          {
-            "selector": "body > main#main",
-            "score": 0.03783980901452617
-          },
-          {
-            "selector": "body > div.demo-banner",
-            "score": 0.001419938872688205
-          }
-        ],
+        "shifts": [],
         "lcpElement": {
           "selector": "div#product-grid > a.product-card > div.product-card-media > img",
           "firework": false
         }
       },
-      "runs": 3
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2332.3644999999997,
+          2557.8869999999997
+        ],
+        "tbt": [
+          0,
+          0
+        ],
+        "bytes": [
+          325031,
+          325031
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
     },
     {
-      "page": "shop",
+      "scenario": "shop-grid",
       "mode": "lazy",
-      "url": "/shop?fw=lazy",
+      "url": "/shop/?widgets=grid,stories&fw=lazy",
       "lighthouse": {
-        "score": 93,
-        "lcp": 2107.8896,
-        "fcp": 757.8896,
-        "cls": 0.10732378703630666,
-        "tbt": 193.5,
-        "si": 2157.041156976218,
-        "tti": 5439.611577000001
+        "score": 95,
+        "lcp": 906.922,
+        "fcp": 906.922,
+        "cls": 0,
+        "tbt": 244,
+        "si": 2292.2646881209785,
+        "tti": 6211.769934000001
       },
       "network": {
         "requests": 80,
-        "bytes": 1140004,
+        "bytes": 1215006,
+        "videoBytes": 542802,
         "groups": {
           "site": {
             "requests": 25,
-            "bytes": 285757,
-            "scriptMs": 30.54
+            "bytes": 341690,
+            "scriptMs": 20.235999999999994
           },
           "firework-sdk": {
             "requests": 17,
-            "bytes": 248125,
-            "scriptMs": 1455.0800000000047
+            "bytes": 248142,
+            "scriptMs": 1650.8920000000076
           },
           "firework-api": {
             "requests": 26,
-            "bytes": 27615,
+            "bytes": 27599,
             "scriptMs": 0
           },
           "firework-media": {
             "requests": 12,
-            "bytes": 578507,
+            "bytes": 597575,
             "scriptMs": 0
           },
           "other": {
             "requests": 0,
             "bytes": 0,
-            "scriptMs": 44.23599999999995
+            "scriptMs": 38.11600000000003
           }
         },
         "types": {
-          "Document": 6065,
-          "Stylesheet": 4078,
-          "Script": 264148,
-          "Font": 85516,
-          "Image": 226843,
-          "Ping": 1063,
-          "Other": 527,
-          "Fetch": 24141,
+          "Document": 21879,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 226277,
+          "Script": 281826,
+          "Ping": 1056,
+          "Other": 449,
+          "Fetch": 38181,
           "Preflight": 0,
-          "XHR": 3891,
-          "Media": 523732
+          "Media": 542802,
+          "XHR": 3965
         },
         "biggest": [
           {
             "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
-            "bytes": 463409,
+            "bytes": 394126,
             "type": "Media"
           },
           {
             "url": "https://asset.fwcdn3.com/js/fwn.js",
-            "bytes": 130243,
+            "bytes": 130245,
             "type": "Script"
           },
           {
             "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
-            "bytes": 50373,
+            "bytes": 98304,
+            "type": "Media"
+          },
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 50372,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30926,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/chunks/fwn/41393-f3bb76350401cf00a811.js",
+            "bytes": 20494,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/chunks/fwn/4976-1e9c95834c6b6ce0cc1b.js",
+            "bytes": 14734,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/chunks/fwn/37491-e121095485bfe89193c6.js",
+            "bytes": 11813,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 948,
+        "longTasks": 11,
+        "longTaskMs": 1032,
+        "longestTaskMs": 227,
+        "mainThreadMs": 3194.4239999999727,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.section-tight > div.container > p.lede",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          906.0054,
+          909.1835999999998
+        ],
+        "tbt": [
+          171,
+          388.7663
+        ],
+        "bytes": [
+          1214943,
+          1313074
+        ],
+        "videoBytes": [
+          542802,
+          640850
+        ]
+      }
+    },
+    {
+      "scenario": "shop-grid",
+      "mode": "on",
+      "url": "/shop/?widgets=grid,stories&fw=on",
+      "lighthouse": {
+        "score": 95,
+        "lcp": 945.7142999999998,
+        "fcp": 945.7142999999998,
+        "cls": 0,
+        "tbt": 242.197,
+        "si": 2418.907311068064,
+        "tti": 6717.6891479999995
+      },
+      "network": {
+        "requests": 118,
+        "bytes": 1341323,
+        "videoBytes": 640851,
+        "groups": {
+          "site": {
+            "requests": 25,
+            "bytes": 341690,
+            "scriptMs": 28.447999999999997
+          },
+          "firework-sdk": {
+            "requests": 57,
+            "bytes": 276327,
+            "scriptMs": 1344.4760000000026
+          },
+          "firework-api": {
+            "requests": 26,
+            "bytes": 27685,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 10,
+            "bytes": 695621,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 173.5560000000001
+          }
+        },
+        "types": {
+          "Document": 21879,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 226276,
+          "Script": 310010,
+          "Ping": 1057,
+          "Other": 449,
+          "Fetch": 38184,
+          "Preflight": 0,
+          "Media": 640851,
+          "XHR": 4046
+        },
+        "biggest": [
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 640851,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53607,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30927,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22489,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19319,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/N4hOkvhB.js",
+            "bytes": 16275,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/D4wUrn_T.js",
+            "bytes": 14921,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/OMAJQxci.js",
+            "bytes": 14792,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 948,
+        "longTasks": 12,
+        "longTaskMs": 1016,
+        "longestTaskMs": 166,
+        "mainThreadMs": 3743.027999999963,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.section-tight > div.container > p.lede",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          907.5825999999998,
+          945.7142999999998
+        ],
+        "tbt": [
+          108.5,
+          429.9999999999999
+        ],
+        "bytes": [
+          701080,
+          1341325
+        ],
+        "videoBytes": [
+          617,
+          640859
+        ]
+      }
+    },
+    {
+      "scenario": "home-carousel-floating",
+      "mode": "off",
+      "url": "/?widgets=carousel,floating&fw=off",
+      "lighthouse": {
+        "score": 98,
+        "lcp": 2406.6931,
+        "fcp": 906.6931,
+        "cls": 0,
+        "tbt": 0,
+        "si": 906.6931,
+        "tti": 2421.6931
+      },
+      "network": {
+        "requests": 22,
+        "bytes": 285792,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 22,
+            "bytes": 285792,
+            "scriptMs": 28.507999999999992
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 6.031999999999999
+          }
+        },
+        "types": {
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 127924,
+          "Script": 38323,
+          "Other": 449
+        },
+        "biggest": []
+      },
+      "runtime": {
+        "domNodes": 244,
+        "longTasks": 1,
+        "longTaskMs": 100,
+        "longestTaskMs": 100,
+        "mainThreadMs": 372.6879999999993,
+        "sdkLoaded": false,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.home-hero > div.container > img",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2405.7291,
+          2407.9689
+        ],
+        "tbt": [
+          0,
+          0
+        ],
+        "bytes": [
+          285792,
+          285792
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "home-carousel-floating",
+      "mode": "lazy",
+      "url": "/?widgets=carousel,floating&fw=lazy",
+      "lighthouse": {
+        "score": 93,
+        "lcp": 3214.9424,
+        "fcp": 908.0494000000001,
+        "cls": 0,
+        "tbt": 25,
+        "si": 908.0494000000001,
+        "tti": 3236.8419400000002
+      },
+      "network": {
+        "requests": 26,
+        "bytes": 318280,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 22,
+            "bytes": 285792,
+            "scriptMs": 46.20799999999999
+          },
+          "firework-sdk": {
+            "requests": 2,
+            "bytes": 32488,
+            "scriptMs": 136.7319999999999
+          },
+          "firework-api": {
+            "requests": 2,
+            "bytes": 0,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 5.372
+          }
+        },
+        "types": {
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 127924,
+          "Script": 70811,
+          "Ping": 0,
+          "Other": 449
+        },
+        "biggest": [
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30928,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/fwn-async.js",
+            "bytes": 1560,
+            "type": "Script"
+          },
+          {
+            "url": "https://p2.fwpixel.com/trk/system:page_load",
+            "bytes": 0,
+            "type": "Ping"
+          },
+          {
+            "url": "https://p2.fwpixel.com/trk/user:page_viewed",
+            "bytes": 0,
+            "type": "Ping"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 244,
+        "longTasks": 1,
+        "longTaskMs": 100,
+        "longestTaskMs": 100,
+        "mainThreadMs": 432.66000000000014,
+        "sdkLoaded": false,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.home-hero > div.container > img",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2411.3096000000005,
+          3214.9424
+        ],
+        "tbt": [
+          9,
+          25
+        ],
+        "bytes": [
+          318280,
+          318281
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "home-carousel-floating",
+      "mode": "on",
+      "url": "/?widgets=carousel,floating&fw=on",
+      "lighthouse": {
+        "score": 81,
+        "lcp": 4045.983434999999,
+        "fcp": 905.4335000000001,
+        "cls": 0,
+        "tbt": 269.5,
+        "si": 2788.317533258777,
+        "tti": 8119.039172500002
+      },
+      "network": {
+        "requests": 166,
+        "bytes": 1242283,
+        "videoBytes": 486636,
+        "groups": {
+          "site": {
+            "requests": 23,
+            "bytes": 302451,
+            "scriptMs": 50.35999999999998
+          },
+          "firework-sdk": {
+            "requests": 95,
+            "bytes": 422521,
+            "scriptMs": 1921.5320000000074
+          },
+          "firework-api": {
+            "requests": 44,
+            "bytes": 26139,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 4,
+            "bytes": 491172,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 121.94400000000007
+          }
+        },
+        "types": {
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 139567,
+          "Script": 456203,
+          "Ping": 2465,
+          "Other": 449,
+          "Fetch": 33726,
+          "Preflight": 0,
+          "XHR": 4141,
+          "Media": 486636
+        },
+        "biggest": [
+          {
+            "url": "https://cdn5.fireworktv.com/medias/2026/10/27/1793101177-tlkuxfwv/watermarked/720/fjb-09-brand-hero.en.mp4",
+            "bytes": 444161,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
+            "bytes": 60738,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53607,
+            "type": "Script"
+          },
+          {
+            "url": "https://cdn5.fireworktv.com/medias/2026/10/27/1793101177-tlkuxfwv/watermarked/720/fjb-09-brand-hero.en.mp4",
+            "bytes": 41854,
             "type": "Media"
           },
           {
@@ -754,129 +1336,358 @@
             "type": "Script"
           },
           {
-            "url": "https://asset.fwcdn3.com/js/chunks/fwn/41393-f3bb76350401cf00a811.js",
-            "bytes": 20491,
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BSBJgD5I.js",
+            "bytes": 28109,
             "type": "Script"
           },
           {
-            "url": "https://asset.fwcdn3.com/js/chunks/fwn/4976-1e9c95834c6b6ce0cc1b.js",
-            "bytes": 14733,
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22489,
             "type": "Script"
           },
           {
-            "url": "https://asset.fwcdn3.com/js/chunks/fwn/37491-e121095485bfe89193c6.js",
-            "bytes": 11812,
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19317,
             "type": "Script"
-          },
-          {
-            "url": "https://cdn1-api.fireworktv.com/embed/v2/playlists/o9XklW/feeds?page_size=10&n=1&channel=sashoo_business&_=1794560074278",
-            "bytes": 10114,
-            "type": "Fetch"
           }
         ]
       },
       "runtime": {
-        "domNodes": 946,
-        "longTasks": 11,
-        "longTaskMs": 896,
-        "mainThreadMs": 3233.679999999955,
+        "domNodes": 665,
+        "longTasks": 15,
+        "longTaskMs": 1181,
+        "longestTaskMs": 123,
+        "mainThreadMs": 2969.8119999999744,
         "sdkLoaded": true,
-        "shifts": [
-          {
-            "selector": "main#main > section.section-tight > div.container > div.chip-row",
-            "score": 0.06806403914909229
-          },
-          {
-            "selector": "body > main#main",
-            "score": 0.03783980901452617
-          },
-          {
-            "selector": "body > div.demo-banner",
-            "score": 0.001419938872688205
-          }
-        ],
+        "shifts": [],
         "lcpElement": {
-          "selector": "div#product-grid > a.product-card > div.product-card-media > img",
+          "selector": "main#main > section.home-hero > div.container > img",
           "firework": false
         }
       },
-      "runs": 3
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2131.9169,
+          4390.88026
+        ],
+        "tbt": [
+          269.5,
+          509.5
+        ],
+        "bytes": [
+          753095,
+          1286415
+        ],
+        "videoBytes": [
+          622,
+          533920
+        ]
+      }
     },
     {
-      "page": "shop",
-      "mode": "on",
-      "url": "/shop?fw=on",
+      "scenario": "product-storyblock-ava",
+      "mode": "off",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp,ava&fw=off",
       "lighthouse": {
-        "score": 92,
-        "lcp": 3114.901175,
-        "fcp": 758.0887499999999,
-        "cls": 0.07721852792508645,
-        "tbt": 101.5,
-        "si": 2310.359716206175,
-        "tti": 5390.320777500001
+        "score": 98,
+        "lcp": 2406.0897,
+        "fcp": 906.0897,
+        "cls": 0.002498094062705211,
+        "tbt": 0,
+        "si": 906.0897,
+        "tti": 2421.0897
       },
       "network": {
-        "requests": 116,
-        "bytes": 973351,
+        "requests": 22,
+        "bytes": 272410,
+        "videoBytes": 0,
         "groups": {
           "site": {
-            "requests": 25,
-            "bytes": 285757,
-            "scriptMs": 19.84799999999999
+            "requests": 22,
+            "bytes": 272410,
+            "scriptMs": 88.25200000000007
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 25.136000000000013
+          }
+        },
+        "types": {
+          "Document": 24737,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 108443,
+          "Script": 40210,
+          "Other": 449
+        },
+        "biggest": []
+      },
+      "runtime": {
+        "domNodes": 251,
+        "longTasks": 2,
+        "longTaskMs": 121,
+        "longestTaskMs": 71,
+        "mainThreadMs": 503.76400000000046,
+        "sdkLoaded": false,
+        "shifts": [
+          {
+            "selector": "main#main > div.container > div.pdp > div.pdp-info",
+            "score": 0.002498094062705211
+          }
+        ],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2406.0897,
+          2593.833725
+        ],
+        "tbt": [
+          0,
+          211.00000000000023
+        ],
+        "bytes": [
+          272410,
+          272410
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "product-storyblock-ava",
+      "mode": "lazy",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp,ava&fw=lazy",
+      "lighthouse": {
+        "score": 87,
+        "lcp": 3445.3851000000004,
+        "fcp": 908.7820999999999,
+        "cls": 0.002498094062705211,
+        "tbt": 240,
+        "si": 908.7820999999999,
+        "tti": 4755.071865000001
+      },
+      "network": {
+        "requests": 36,
+        "bytes": 476916,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 22,
+            "bytes": 272410,
+            "scriptMs": 45.33200000000001
           },
           "firework-sdk": {
-            "requests": 57,
-            "bytes": 276323,
-            "scriptMs": 1155.7720000000058
+            "requests": 2,
+            "bytes": 32488,
+            "scriptMs": 142.80799999999996
+          },
+          "ava": {
+            "requests": 6,
+            "bytes": 170111,
+            "scriptMs": 430.49600000000055
           },
           "firework-api": {
-            "requests": 22,
-            "bytes": 26977,
-            "scriptMs": 0
-          },
-          "firework-media": {
-            "requests": 12,
-            "bytes": 384294,
+            "requests": 6,
+            "bytes": 1907,
             "scriptMs": 0
           },
           "other": {
             "requests": 0,
             "bytes": 0,
-            "scriptMs": 158.93999999999988
+            "scriptMs": 120.47200000000038
           }
         },
         "types": {
-          "Document": 6065,
-          "Stylesheet": 4078,
-          "Script": 292343,
-          "Font": 85516,
-          "Image": 226486,
-          "Ping": 704,
-          "Other": 527,
-          "Fetch": 24131,
-          "Preflight": 0,
-          "Media": 329520,
-          "XHR": 3981
+          "Document": 24737,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 108443,
+          "Script": 242809,
+          "Ping": 0,
+          "Fetch": 1907,
+          "Other": 449
         },
         "biggest": [
           {
-            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
-            "bytes": 278528,
-            "type": "Media"
-          },
-          {
-            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
-            "bytes": 53606,
+            "url": "https://asset.fwscripts.com/js/ava.js?business_id=gYx0PO",
+            "bytes": 123997,
             "type": "Script"
           },
           {
-            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
-            "bytes": 50374,
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30927,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwscripts.com/js/chunks/ava/markdown-dbfcb6c658ad22b2166b.js",
+            "bytes": 13734,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwscripts.com/js/chunks/ava/8939-dd9e3cb7a7dcabaf2ec6.js",
+            "bytes": 12382,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwscripts.com/js/chunks/ava/4980-7c9be34e232b14b8159d.js",
+            "bytes": 8963,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwscripts.com/js/chunks/ava/4202-a26fb25dd9128e0009a2.js",
+            "bytes": 6688,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwscripts.com/js/chunks/ava/8305-a38caf5670dbbc1c36ba.js",
+            "bytes": 4347,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/fwn-async.js",
+            "bytes": 1561,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 298,
+        "longTasks": 7,
+        "longTaskMs": 817,
+        "longestTaskMs": 341,
+        "mainThreadMs": 1405.1720000000037,
+        "sdkLoaded": false,
+        "shifts": [
+          {
+            "selector": "main#main > div.container > div.pdp > div.pdp-info",
+            "score": 0.002498094062705211
+          }
+        ],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2406.7384,
+          4115.7069
+        ],
+        "tbt": [
+          90,
+          240
+        ],
+        "bytes": [
+          476877,
+          476916
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "product-storyblock-ava",
+      "mode": "on",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp,ava&fw=on",
+      "lighthouse": {
+        "score": 86,
+        "lcp": 2414.9800000000005,
+        "fcp": 914.7300000000001,
+        "cls": 0.002498094062705211,
+        "tbt": 466.15999999999997,
+        "si": 2521.2251688240044,
+        "tti": 7254.097295000002
+      },
+      "network": {
+        "requests": 158,
+        "bytes": 1315793,
+        "videoBytes": 367988,
+        "groups": {
+          "site": {
+            "requests": 24,
+            "bytes": 314974,
+            "scriptMs": 73.85999999999997
+          },
+          "firework-sdk": {
+            "requests": 111,
+            "bytes": 442521,
+            "scriptMs": 912.4440000000026
+          },
+          "ava": {
+            "requests": 7,
+            "bytes": 172835,
+            "scriptMs": 316.69200000000006
+          },
+          "firework-api": {
+            "requests": 14,
+            "bytes": 14997,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 2,
+            "bytes": 370466,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 309.8360000000003
+          }
+        },
+        "types": {
+          "Document": 24737,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 136826,
+          "Script": 655566,
+          "Ping": 176,
+          "Fetch": 27481,
+          "Other": 449,
+          "Preflight": 0,
+          "XHR": 3999,
+          "Media": 367988
+        },
+        "biggest": [
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 367988,
             "type": "Media"
           },
           {
+            "url": "https://asset.fwscripts.com/js/ava.js?business_id=gYx0PO",
+            "bytes": 123988,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
+            "bytes": 60739,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53607,
+            "type": "Script"
+          },
+          {
             "url": "https://asset.fwcdn3.com/js/analytics.js",
-            "bytes": 30925,
+            "bytes": 30927,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BSBJgD5I.js",
+            "bytes": 28108,
             "type": "Script"
           },
           {
@@ -888,41 +1699,690 @@
             "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
             "bytes": 19317,
             "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 375,
+        "longTasks": 12,
+        "longTaskMs": 1177,
+        "longestTaskMs": 229,
+        "mainThreadMs": 2922.2799999999675,
+        "sdkLoaded": true,
+        "shifts": [
+          {
+            "selector": "main#main > div.container > div.pdp > div.pdp-info",
+            "score": 0.002498094062705211
+          }
+        ],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2405.9902,
+          4213.615755
+        ],
+        "tbt": [
+          220.00000000000045,
+          639.3989000000001
+        ],
+        "bytes": [
+          988382,
+          1315820
+        ],
+        "videoBytes": [
+          40559,
+          367996
+        ]
+      }
+    },
+    {
+      "scenario": "live-hero",
+      "mode": "off",
+      "url": "/live/?widgets=hero&fw=off",
+      "lighthouse": {
+        "score": 100,
+        "lcp": 756.7746,
+        "fcp": 756.7746,
+        "cls": 0,
+        "tbt": 0,
+        "si": 756.7746,
+        "tti": 756.7746
+      },
+      "network": {
+        "requests": 17,
+        "bytes": 150794,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 17,
+            "bytes": 150794,
+            "scriptMs": 28.34
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 12.104000000000001
+          }
+        },
+        "types": {
+          "Document": 13451,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Script": 38323,
+          "Other": 449
+        },
+        "biggest": []
+      },
+      "runtime": {
+        "domNodes": 171,
+        "longTasks": 0,
+        "longTaskMs": 0,
+        "longestTaskMs": 0,
+        "mainThreadMs": 266.99600000000015,
+        "sdkLoaded": false,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "section.section-tight > div.container > div.note > p",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          755.8552999999999,
+          758.6934000000001
+        ],
+        "tbt": [
+          0,
+          0
+        ],
+        "bytes": [
+          150794,
+          150794
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "live-hero",
+      "mode": "lazy",
+      "url": "/live/?widgets=hero&fw=lazy",
+      "lighthouse": {
+        "score": 82,
+        "lcp": 761.0401000000002,
+        "fcp": 761.0401000000002,
+        "cls": 0,
+        "tbt": 670.5,
+        "si": 3282.8617493258816,
+        "tti": 7830.332344999999
+      },
+      "network": {
+        "requests": 94,
+        "bytes": 1399436,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 18,
+            "bytes": 167453,
+            "scriptMs": 39.596000000000004
+          },
+          "firework-sdk": {
+            "requests": 50,
+            "bytes": 1191851,
+            "scriptMs": 2390.520000000008
+          },
+          "firework-api": {
+            "requests": 15,
+            "bytes": 21759,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 9,
+            "bytes": 18375,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 2,
+            "bytes": -2,
+            "scriptMs": 46.92800000000002
+          }
+        },
+        "types": {
+          "Document": 13451,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Script": 652321,
+          "Ping": 0,
+          "Other": 58019,
+          "Fetch": 556821,
+          "Preflight": 0,
+          "XHR": 6212,
+          "Image": 14041
+        },
+        "biggest": [
+          {
+            "url": "https://asset.fwcdn3.com/js/assets/amazon-ivs-wasmworker.min.369d57e7000140ba610ec322d20798c5.wasm",
+            "bytes": 519685,
+            "type": "Fetch"
           },
           {
-            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/N4hOkvhB.js",
-            "bytes": 16274,
+            "url": "https://asset.fwcdn3.com/js/fwn.js",
+            "bytes": 130245,
             "type": "Script"
           },
           {
-            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/D4wUrn_T.js",
-            "bytes": 14920,
+            "url": "https://asset.fwcdn3.com/js/chunks/fwn/23867-da7787f88a259ae08378.js",
+            "bytes": 119083,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/assets/amazon-ivs-wasmworker.min.08af48886f4fbc0ea27ee66ad52d4032.js",
+            "bytes": 56986,
+            "type": "Other"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/chunks/fwn/videoplayer-28beb9b6677a931d686d.js",
+            "bytes": 56431,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30926,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/chunks/fwn/38190-0b04039e6d67f9e14b9f.js",
+            "bytes": 23833,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/chunks/fwn/66983-6ccdb1e30e1c6b232870.js",
+            "bytes": 20808,
             "type": "Script"
           }
         ]
       },
       "runtime": {
-        "domNodes": 944,
-        "longTasks": 7,
-        "longTaskMs": 611,
-        "mainThreadMs": 2949.8519999999708,
+        "domNodes": 339,
+        "longTasks": 10,
+        "longTaskMs": 1261,
+        "longestTaskMs": 285,
+        "mainThreadMs": 4040.8119999998685,
         "sdkLoaded": true,
-        "shifts": [
-          {
-            "selector": "main#main > section.section-tight > div.container > div.chip-row",
-            "score": 0.07579858905239824
-          },
-          {
-            "selector": "body > div.demo-banner",
-            "score": 0.001419938872688205
-          }
-        ],
+        "shifts": [],
         "lcpElement": {
-          "selector": "div#product-grid > a.product-card > div.product-card-media > img",
+          "selector": "main#main > section.section-tight > div.container > p.lede",
           "firework": false
         }
       },
-      "runs": 3
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          756.1897499999998,
+          761.0401000000002
+        ],
+        "tbt": [
+          670.5,
+          724
+        ],
+        "bytes": [
+          1399436,
+          1410051
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "live-hero",
+      "mode": "on",
+      "url": "/live/?widgets=hero&fw=on",
+      "lighthouse": {
+        "score": 81,
+        "lcp": 759.62175,
+        "fcp": 759.62175,
+        "cls": 0,
+        "tbt": 752.9999999999998,
+        "si": 3058.6534254843327,
+        "tti": 8030.845297500002
+      },
+      "network": {
+        "requests": 198,
+        "bytes": 1474246,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 18,
+            "bytes": 167453,
+            "scriptMs": 57.38399999999994
+          },
+          "firework-sdk": {
+            "requests": 156,
+            "bytes": 1257720,
+            "scriptMs": 2333.5520000000056
+          },
+          "firework-api": {
+            "requests": 16,
+            "bytes": 27710,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 7,
+            "bytes": 21364,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 1,
+            "bytes": -1,
+            "scriptMs": 152.60000000000005
+          }
+        },
+        "types": {
+          "Document": 13451,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Script": 718720,
+          "Ping": 0,
+          "Other": 58087,
+          "Fetch": 559191,
+          "Preflight": 0,
+          "XHR": 12193,
+          "Image": 14033
+        },
+        "biggest": [
+          {
+            "url": "https://asset.fwcdn3.com/js/module/assets/shared/CC8KP1wy.wasm",
+            "bytes": 519684,
+            "type": "Fetch"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/C6nsHqFM.js",
+            "bytes": 117105,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
+            "bytes": 60738,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/assets/shared/Dpk_q80y.js",
+            "bytes": 57638,
+            "type": "Other"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53607,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30926,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BSBJgD5I.js",
+            "bytes": 28108,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22489,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 340,
+        "longTasks": 14,
+        "longTaskMs": 1608.9999999999998,
+        "longestTaskMs": 242,
+        "mainThreadMs": 4712.075999999951,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.section-tight > div.container > p.lede",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          753.8753999999999,
+          759.62175
+        ],
+        "tbt": [
+          360.5084500000012,
+          1334.8279749999992
+        ],
+        "bytes": [
+          1472262,
+          1478042
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "home-all",
+      "mode": "off",
+      "url": "/?widgets=hero,storyblock,carousel,floating&fw=off",
+      "lighthouse": {
+        "score": 98,
+        "lcp": 2405.3424999999997,
+        "fcp": 905.3425,
+        "cls": 0,
+        "tbt": 0,
+        "si": 905.3425,
+        "tti": 2420.3424999999997
+      },
+      "network": {
+        "requests": 22,
+        "bytes": 285792,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 22,
+            "bytes": 285792,
+            "scriptMs": 30.14799999999999
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 7.135999999999999
+          }
+        },
+        "types": {
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 127924,
+          "Script": 38323,
+          "Other": 449
+        },
+        "biggest": []
+      },
+      "runtime": {
+        "domNodes": 246,
+        "longTasks": 1,
+        "longTaskMs": 111,
+        "longestTaskMs": 111,
+        "mainThreadMs": 370.8439999999992,
+        "sdkLoaded": false,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.home-hero > div.container > img",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2404.4079,
+          2408.2623000000003
+        ],
+        "tbt": [
+          0,
+          0
+        ],
+        "bytes": [
+          285792,
+          285792
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "home-all",
+      "mode": "lazy",
+      "url": "/?widgets=hero,storyblock,carousel,floating&fw=lazy",
+      "lighthouse": {
+        "score": 94,
+        "lcp": 3089.0770249999996,
+        "fcp": 907.4540999999999,
+        "cls": 0,
+        "tbt": 56.99999999999977,
+        "si": 907.4540999999999,
+        "tti": 3103.8906724999997
+      },
+      "network": {
+        "requests": 24,
+        "bytes": 268046,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 20,
+            "bytes": 235558,
+            "scriptMs": 50.48
+          },
+          "firework-sdk": {
+            "requests": 2,
+            "bytes": 32488,
+            "scriptMs": 105.27200000000008
+          },
+          "firework-api": {
+            "requests": 2,
+            "bytes": 0,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 8.059999999999999
+          }
+        },
+        "types": {
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 77690,
+          "Script": 70811,
+          "Ping": 0,
+          "Other": 449
+        },
+        "biggest": [
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30928,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/fwn-async.js",
+            "bytes": 1560,
+            "type": "Script"
+          },
+          {
+            "url": "https://p2.fwpixel.com/trk/system:page_load",
+            "bytes": 0,
+            "type": "Ping"
+          },
+          {
+            "url": "https://p2.fwpixel.com/trk/user:page_viewed",
+            "bytes": 0,
+            "type": "Ping"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 246,
+        "longTasks": 3,
+        "longTaskMs": 224,
+        "longestTaskMs": 79,
+        "mainThreadMs": 597.9679999999996,
+        "sdkLoaded": false,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.home-hero > div.container > img",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2330.8594249999996,
+          3317.3902999999996
+        ],
+        "tbt": [
+          4.5,
+          56.99999999999977
+        ],
+        "bytes": [
+          268044,
+          268047
+        ],
+        "videoBytes": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "scenario": "home-all",
+      "mode": "on",
+      "url": "/?widgets=hero,storyblock,carousel,floating&fw=on",
+      "lighthouse": {
+        "score": 86,
+        "lcp": 2330.1839250000003,
+        "fcp": 905.0494999999999,
+        "cls": 0,
+        "tbt": 460.48940000000107,
+        "si": 3580.1363497864927,
+        "tti": 9189.343410000007
+      },
+      "network": {
+        "requests": 282,
+        "bytes": 4091619,
+        "videoBytes": 2349522,
+        "groups": {
+          "site": {
+            "requests": 24,
+            "bytes": 327859,
+            "scriptMs": 41.27999999999999
+          },
+          "firework-sdk": {
+            "requests": 192,
+            "bytes": 1330187,
+            "scriptMs": 2991.2839999999865
+          },
+          "firework-api": {
+            "requests": 50,
+            "bytes": 56460,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 13,
+            "bytes": 2377116,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 3,
+            "bytes": -3,
+            "scriptMs": 436.0439999999996
+          }
+        },
+        "types": {
+          "Document": 20525,
+          "Font": 85252,
+          "Stylesheet": 13319,
+          "Image": 182494,
+          "Script": 784187,
+          "Ping": 1409,
+          "Other": 59256,
+          "Fetch": 577777,
+          "Preflight": 0,
+          "XHR": 17878,
+          "Media": 2349522
+        },
+        "biggest": [
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 640850,
+            "type": "Media"
+          },
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 640841,
+            "type": "Media"
+          },
+          {
+            "url": "https://cdn5.fireworktv.com/medias/2026/10/27/1793101177-tlkuxfwv/watermarked/720/fjb-09-brand-hero.en.mp4",
+            "bytes": 533920,
+            "type": "Media"
+          },
+          {
+            "url": "https://cdn5.fireworktv.com/medias/2026/10/27/1793101177-tlkuxfwv/watermarked/720/fjb-09-brand-hero.en.mp4",
+            "bytes": 533911,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/assets/shared/CC8KP1wy.wasm",
+            "bytes": 519686,
+            "type": "Fetch"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/C6nsHqFM.js",
+            "bytes": 117104,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
+            "bytes": 60737,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/assets/shared/Dpk_q80y.js",
+            "bytes": 57638,
+            "type": "Other"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 923,
+        "longTasks": 14,
+        "longTaskMs": 1349.0000000000018,
+        "longestTaskMs": 192.0000000000001,
+        "mainThreadMs": 5713.18799999988,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.home-hero > div.container > img",
+          "firework": false
+        }
+      },
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          2330.1839250000003,
+          3101.2995500000006
+        ],
+        "tbt": [
+          390.50000000000045,
+          460.48940000000107
+        ],
+        "bytes": [
+          2276467,
+          4091619
+        ],
+        "videoBytes": [
+          535150,
+          2349522
+        ]
+      }
     }
   ]
 }

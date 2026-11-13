@@ -38,6 +38,7 @@ const pages = [
   '/lab/bookmarklet',
   '/lab/bookmarklet/practice',
   '/lab/performance',
+  '/lab/performance/details',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -432,27 +433,69 @@ test.describe('bookmarklet', () => {
 });
 
 test.describe('performance lab', () => {
-  test('shows the measured numbers with a table view for every chart', async ({ page }) => {
+  test('the overview explains each typical setup in plain words', async ({ page }) => {
     await page.goto('/lab/performance?fw=off');
-    await expect(page.locator('.perf-delta')).toHaveCount(3);
-    await expect(page.locator('.perf-delta').first()).toContainText('page weight');
-    await expect(page.locator('.perf-delta .rating').first()).toContainText(/Good|Needs improvement|Poor/);
-    const charts = page.locator('.chart');
-    expect(await charts.count()).toBeGreaterThanOrEqual(3);
-    await expect(page.locator('details.table-view')).toHaveCount(3);
-    await page.locator('details.table-view').first().locator('summary').click();
-    await expect(page.locator('details.table-view').first().locator('tbody tr')).toHaveCount(9);
+    await expect(page.locator('.summary-list li')).not.toHaveCount(0);
+    const cards = page.locator('.perf-card');
+    await expect(cards).toHaveCount(3);
+    await expect(cards.first()).toContainText('How much heavier?');
+    await expect(cards.first()).toContainText('Does the page show up as fast?');
+    await expect(cards.first()).toContainText('Does it respond to taps?');
+    await expect(cards.first()).toContainText('Does anything jump around?');
+    await expect(cards.first().locator('.chip').first()).toContainText(/Good|Needs improvement|Poor/);
+    await expect(page.getByRole('link', { name: 'full numbers for engineers' })).toHaveAttribute('href', '/lab/performance/details/');
+    await expect(page.locator('h2', { hasText: 'What we recommend' })).toBeVisible();
   });
 
-  test('measures the home page in this browser, in all three modes', async ({ page }) => {
+  test('the details page has every setup with a table view for every chart', async ({ page }) => {
+    await page.goto('/lab/performance/details?fw=off');
+    await expect(page.locator('.perf-delta')).toHaveCount(7);
+    expect(await page.locator('.chart').count()).toBeGreaterThanOrEqual(3);
+    await expect(page.locator('details.table-view')).toHaveCount(3);
+    await page.locator('details.table-view').first().locator('summary').click();
+    await expect(page.locator('details.table-view').first().locator('tbody tr')).toHaveCount(21);
+  });
+
+  test('?widgets= keeps only the listed widgets, including AVA', async ({ page }) => {
+    await page.goto('/?widgets=carousel&fw=off');
+    await expect(page.locator('[data-fw-managed]')).toHaveCount(1);
+    await expect(page.locator('[data-fw-managed]').first()).toHaveAttribute('data-fw-slot', 'carousel');
+    await expect(page.locator('#override-banner')).toContainText('Only these widgets: carousel');
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.abort());
+    await page.goto('/products/cloudberry-vitamin-c-serum/?widgets=pdp');
+    await expect(page.locator('fw-ava')).toHaveCount(0);
+    await expect(page.locator('script[data-ava-sdk]')).toHaveCount(0);
+    await page.goto('/products/cloudberry-vitamin-c-serum/?widgets=pdp,ava');
+    await expect(page.locator('fw-ava')).toHaveCount(1);
+    await page.goto('/products/cloudberry-vitamin-c-serum/?widgets=%3Cscript%3E,deck&fw=off');
+    await expect(page.locator('[data-fw-managed]')).toHaveCount(1);
+    await expect(page.locator('#override-banner')).toContainText('Only these widgets: deck');
+  });
+
+  test('widgets keep their space with Firework on, and none with it off or hidden', async ({ page }) => {
+    // Firework's scripts are blocked: the widgets never render, so only the reserved space is measured.
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.abort());
+    await page.goto('/shop/?widgets=grid,stories');
+    await expect(page.locator('.fw-reserve')).toHaveCount(2);
+    expect(Math.round((await page.locator('.fw-reserve').first().boundingBox())!.height)).toBe(136);
+    await page.goto('/shop/?widgets=grid');
+    await expect(page.locator('.fw-reserve')).toHaveCount(1);
+    await page.goto('/shop/?widgets=grid,stories&fw=off');
+    await expect(page.locator('html')).toHaveAttribute('data-fw-early', 'off');
+    for (const box of await page.locator('.fw-reserve').all()) expect((await box.boundingBox())!.height).toBe(0);
+  });
+
+  test('measures a setup in this browser, in all three modes', async ({ page }) => {
     test.setTimeout(120_000);
     // Firework's scripts are blocked, so the "on" and "lazy" steps load nothing from Firework and finish quickly.
     await page.route(/asset\.(fwcdn3|fwscripts)\.com|fwpixel\.com/, (route) => route.abort());
-    await page.goto('/lab/performance?fw=off');
-    for (const id of ['product', 'shop']) await page.locator(`input[name="page"][value="${id}"]`).uncheck();
+    await page.goto('/lab/performance/details?fw=off');
+    for (const box of await page.locator('input[name="scenario"]').all()) {
+      if ((await box.getAttribute('value')) !== 'home-carousel') await box.uncheck();
+    }
     await page.getByRole('button', { name: 'Run in this browser' }).click();
-    await page.waitForURL(/\/\?fw=off&perf=/);
-    await page.waitForURL(/lab\/performance\/?#live/, { timeout: 90_000 });
+    await page.waitForURL(/\/\?widgets=carousel&fw=off&perf=/);
+    await page.waitForURL(/lab\/performance\/details\/?#live/, { timeout: 90_000 });
     const rows = page.locator('.perf-live-table tbody tr');
     await expect(rows).toHaveCount(3);
     await expect(rows.nth(0)).toContainText('Without Firework');

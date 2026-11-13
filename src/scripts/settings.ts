@@ -4,6 +4,10 @@ import { firework, playlistSlots, type PlaylistSlot } from '../site.config';
 
 export type FwMode = 'on' | 'lazy' | 'off';
 
+/** Names a widget can be picked by in ?widgets=: its playlist slot, or a key for widgets without one. */
+export const WIDGET_KEYS = ['hero', 'storyblock', 'carousel', 'grid', 'deck', 'floating', 'live', 'showroom', 'horizontal', 'howto', 'pdp', 'stories', 'ava'] as const;
+export type WidgetKey = (typeof WIDGET_KEYS)[number];
+
 export interface SavedSettings {
   channel?: string;
   playlists?: Partial<Record<PlaylistSlot, string>>;
@@ -20,6 +24,8 @@ export interface EffectiveSettings {
   pagePlaylist: string | null;
   fwMode: FwMode;
   debug: boolean;
+  /** ?widgets=carousel,ava keeps only those widgets on the page (lab and measurements). null means all. */
+  widgets: WidgetKey[] | null;
   /** True when the page uses the sandbox channel from site.config.ts. */
   isSandbox: boolean;
   /** True when anything differs from site.config.ts. */
@@ -85,15 +91,19 @@ export function effectiveSettings(search: string = location.search): EffectiveSe
   const fwParam = q.get('fw');
   const fwMode: FwMode = isMode(fwParam) ? fwParam : isMode(saved.fwMode) ? saved.fwMode : 'on';
   const debug = q.has('debug') ? q.get('debug') !== '0' : Boolean(saved.debug);
+  const widgets = q.has('widgets')
+    ? (q.get('widgets') ?? '').split(',').map((w) => w.trim()).filter((w): w is WidgetKey => (WIDGET_KEYS as readonly string[]).includes(w))
+    : null;
 
   const overridden =
     channelSource === 'url' ||
     channelSource === 'settings' ||
     playlistOverridden ||
     pagePlaylist !== null ||
-    fwMode !== 'on';
+    fwMode !== 'on' ||
+    widgets !== null;
 
-  return { channel, channelSource, playlists, pagePlaylist, fwMode, debug, isSandbox, overridden };
+  return { channel, channelSource, playlists, pagePlaylist, fwMode, debug, widgets, isSandbox, overridden };
 }
 
 /** The playlist a given widget should use, or '' for the whole channel. */

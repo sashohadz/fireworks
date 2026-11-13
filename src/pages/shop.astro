@@ -14,7 +14,7 @@ const categories = [...new Set(products.map((p) => p.category))];
       <h1>Everything Fjordbloom</h1>
       <p class="lede">Twelve products, including a few deliberate edge cases: a sale, a sold-out tool, a six-shade balm and a very long product name.</p>
       <div class="shop-stories">
-        <FwWidget tag="fw-embed-feed" slot="carousel" label="Circle Stories" attrs={{ mode: 'row', thumbnail_shape: 'circle', size: 'small' }} />
+        <FwWidget tag="fw-embed-feed" slot="carousel" key="stories" reserve="136px" label="Circle Stories" attrs={{ mode: 'row', thumbnail_shape: 'circle', size: 'small' }} />
         <p class="small muted" data-demo-chrome>
           Circle Stories: the same <code>&lt;fw-embed-feed&gt;</code> as the grid below, with <code>thumbnail_shape="circle"</code>.
           <a href="/lab/layouts#circle_stories">All 12 layouts</a>
@@ -25,7 +25,7 @@ const categories = [...new Set(products.map((p) => p.category))];
         {categories.map((c) => <button type="button" class="chip" aria-pressed="false" data-filter={c}>{c}</button>)}
       </div>
       <div class="product-grid" id="product-grid">
-        {products.map((p) => <ProductCard product={p} />)}
+        {products.map((p, i) => <ProductCard product={p} eager={i < 2} />)}
       </div>
     </div>
   </section>
@@ -34,7 +34,7 @@ const categories = [...new Set(products.map((p) => p.category))];
     <div class="container">
       <p class="eyebrow">Grid</p>
       <h2 id="grid-heading">Shop by video</h2>
-      <FwWidget tag="fw-embed-feed" slot="grid" label="Grid" attrs={{ mode: 'grid', max_videos: 8 }} />
+      <FwWidget tag="fw-embed-feed" slot="grid" label="Grid" reserve="700px" attrs={{ mode: 'grid', max_videos: 8 }} />
     </div>
   </section>
 </Base>

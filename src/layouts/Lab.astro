@@ -30,7 +30,7 @@ const tools = [
 
 <Base title={`${title} · Lab`} description={description} eventTap>
   <div class="container lab-layout">
-    <nav class="lab-nav" aria-label="Lab">
+    <nav class="lab-nav" aria-label="Lab" data-demo-chrome>
       <p class="lab-nav-title">Tools</p>
       <ul>
         {tools.map((t) => <li><a href={t.href} aria-current={current(t.href)}>{t.label}</a></li>)}

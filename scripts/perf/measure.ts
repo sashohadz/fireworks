@@ -1,6 +1,7 @@
-// Measures what Firework adds to three pages of this site, with Lighthouse's mobile profile (Moto G Power,
-// slow 4G, 4x CPU slowdown, cold cache), in three modes: fw=off (no Firework at all), fw=lazy (fwn-async.js)
-// and fw=on (the full SDK, plus AVA where the page has it). Writes src/data/perf/latest.json for /lab/performance.
+// Measures what Firework adds to this site's pages in the setups listed in src/lib/perf.ts (?widgets= picks the
+// widgets), with Lighthouse's mobile profile (Moto G Power, slow 4G, 4x CPU slowdown, cold cache), in three modes:
+// fw=off (no Firework at all), fw=lazy (fwn-async.js) and fw=on (the full SDK). Writes src/data/perf/latest.json
+// for /lab/performance.
 //
 // Usage: build and preview the site first, then
 //   BASE_URL=http://127.0.0.1:4391 npm run perf:measure -- --runs 3
@@ -14,7 +15,8 @@ import lighthouse from 'lighthouse';
 import { chromium } from 'playwright';
 import {
   groupOfHost,
-  perfPages,
+  perfScenarios,
+  scenarioUrl,
   type FwMode,
   type GroupTotals,
   type PerfGroup,
@@ -24,7 +26,7 @@ import {
 
 const base = (process.env.BASE_URL ?? 'http://127.0.0.1:4321').replace(/\/$/, '');
 const runs = Math.max(1, Number(process.argv[process.argv.indexOf('--runs') + 1]) || 1);
-const only = process.argv.includes('--page') ? process.argv[process.argv.indexOf('--page') + 1] : null;
+const only = process.argv.includes('--scenario') ? process.argv[process.argv.indexOf('--scenario') + 1] : null;
 const fromRaw = process.argv.includes('--from-raw');
 const modes: FwMode[] = ['off', 'lazy', 'on'];
 const OUT = path.resolve('src/data/perf/latest.json');
@@ -63,6 +65,7 @@ function summarise(lhr: Lhr): Run {
   const add = (g: PerfGroup) => (groups[g] ??= { requests: 0, bytes: 0, scriptMs: 0 });
   const requests = items(lhr, 'network-requests').filter((r) => typeof r.url === 'string' && !String(r.url).startsWith('data:'));
   const fw: { url: string; bytes: number; type: string }[] = [];
+  let videoBytes = 0;
   for (const r of requests) {
     const url = String(r.url);
     const bytes = Number(r.transferSize ?? 0);
@@ -72,6 +75,8 @@ function summarise(lhr: Lhr): Run {
     t.requests++;
     t.bytes += bytes;
     types[type] = (types[type] ?? 0) + bytes;
+    // Lighthouse types the streamed video files (watermarked 720p MP4) as Media.
+    if (type === 'Media' && g !== 'site') videoBytes += bytes;
     if (g !== 'site') fw.push({ url, bytes, type });
   }
   for (const b of items(lhr, 'bootup-time')) {
@@ -102,6 +107,7 @@ function summarise(lhr: Lhr): Run {
     network: {
       requests: requests.length,
       bytes: requests.reduce((a, r) => a + Number(r.transferSize ?? 0), 0),
+      videoBytes,
       groups,
       types,
       biggest: fw.sort((a, b) => b.bytes - a.bytes).slice(0, 8),
@@ -111,6 +117,7 @@ function summarise(lhr: Lhr): Run {
       domNodes: num(lhr, 'dom-size-insight') || num(lhr, 'dom-size'),
       longTasks: longTasks.length,
       longTaskMs: longTasks.reduce((a, t) => a + Number(t.duration ?? 0), 0),
+      longestTaskMs: Math.max(0, ...longTasks.map((t) => Number(t.duration ?? 0))),
       mainThreadMs: num(lhr, 'mainthread-work-breakdown'),
       // The module build loads chunks under /js/module/chunks/; the lazy loader fetches the legacy /js/fwn.js build.
       sdkLoaded: requests.some((r) => /asset\.fwcdn3\.com\/js\/(module\/chunks\/|chunks\/|fwn\.js$)/.test(String(r.url))),
@@ -125,6 +132,14 @@ function median(all: Run[]): Run {
   const sorted = [...all].sort((a, b) => a.lighthouse.score - b.lighthouse.score || a.lighthouse.lcp - b.lighthouse.lcp);
   return sorted[Math.floor((sorted.length - 1) / 2)]!;
 }
+
+const span = (values: number[]): [number, number] => [Math.min(...values), Math.max(...values)];
+const ranges = (all: Run[]): PerfResult['ranges'] => ({
+  lcp: span(all.map((r) => r.lighthouse.lcp)),
+  tbt: span(all.map((r) => r.lighthouse.tbt)),
+  bytes: span(all.map((r) => r.network.bytes)),
+  videoBytes: span(all.map((r) => r.network.videoBytes ?? 0)),
+});
 
 async function sdkRelease(): Promise<string> {
   try {
@@ -148,15 +163,15 @@ async function main(): Promise<void> {
   let chromeUa = '';
   let measuredSite = '';
   try {
-    for (const page of perfPages.filter((p) => !only || p.id === only)) {
+    for (const scenario of perfScenarios.filter((p) => !only || p.id === only)) {
       for (const mode of modes) {
-        const url = `${base}${page.path}?fw=${mode}`;
+        const url = `${base}${scenarioUrl(scenario, mode)}`;
         const all: Run[] = [];
-        const saved = fs.readdirSync(RAW).filter((f) => f.startsWith(`${page.id}-${mode}-`) && f.endsWith('.json')).length;
+        const saved = fs.readdirSync(RAW).filter((f) => f.startsWith(`${scenario.id}-${mode}-`) && f.endsWith('.json')).length;
         const count = fromRaw ? saved : runs;
         for (let i = 0; i < count; i++) {
-          process.stdout.write(`${page.id} fw=${mode} run ${i + 1}/${count}${fromRaw ? ' (saved)' : ''} … `);
-          const file = path.join(RAW, `${page.id}-${mode}-${i + 1}.json`);
+          process.stdout.write(`${scenario.id} fw=${mode} run ${i + 1}/${count}${fromRaw ? ' (saved)' : ''} … `);
+          const file = path.join(RAW, `${scenario.id}-${mode}-${i + 1}.json`);
           let lhr: Lhr;
           if (fromRaw) {
             lhr = JSON.parse(fs.readFileSync(file, 'utf8')) as Lhr;
@@ -180,14 +195,20 @@ async function main(): Promise<void> {
           all.push(run);
           console.log(`score ${run.lighthouse.score}, LCP ${Math.round(run.lighthouse.lcp)} ms, TBT ${Math.round(run.lighthouse.tbt)} ms, ${run.network.requests} requests, ${Math.round(run.network.bytes / 1024)} KB`);
         }
-        if (!all.length) throw new Error(`No saved reports for ${page.id} fw=${mode} in ${path.relative(process.cwd(), RAW)}`);
-        results.push({ page: page.id, mode, url: `${page.path}?fw=${mode}`, ...median(all), runs: all.length });
+        if (!all.length) throw new Error(`No saved reports for ${scenario.id} fw=${mode} in ${path.relative(process.cwd(), RAW)}`);
+        results.push({ scenario: scenario.id, mode, url: scenarioUrl(scenario, mode), ...median(all), runs: all.length, ranges: ranges(all) });
       }
     }
   } finally {
     await chrome?.kill();
   }
   const previous = fs.existsSync(OUT) ? (JSON.parse(fs.readFileSync(OUT, 'utf8')) as PerfReport) : null;
+  // With --scenario, only that setup was measured: keep the other setups' results from the previous file.
+  if (only && previous) {
+    const kept = previous.results.filter((r) => r.scenario !== only && perfScenarios.some((s) => s.id === r.scenario));
+    results.unshift(...kept);
+    results.sort((a, b) => perfScenarios.findIndex((s) => s.id === a.scenario) - perfScenarios.findIndex((s) => s.id === b.scenario));
+  }
   const report: PerfReport = {
     // Re-summarised reports keep the date they were measured.
     measuredAt: fromRaw && previous ? previous.measuredAt : new Date().toISOString(),
@@ -202,7 +223,7 @@ async function main(): Promise<void> {
       cache: 'Cold: storage and cache cleared before each run',
       tracking: "Firework's tracking pixel blocked, so the runs are not counted as visits",
     },
-    pages: perfPages,
+    scenarios: perfScenarios,
     results,
   };
   fs.mkdirSync(path.dirname(OUT), { recursive: true });

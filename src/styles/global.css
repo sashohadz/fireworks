@@ -196,11 +196,21 @@ kbd {
   color: #fff;
 }
 
+/* Demo chrome: shown after load, so it floats over the page instead of pushing it down (no layout shift). */
 .override-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: max-content;
+  max-width: min(720px, calc(100vw - 24px));
   background: var(--warning-bg);
-  border-bottom: 1px solid #f0d9b0;
-  font-size: 0.9rem;
-  padding: 8px var(--gutter);
+  border: 1px solid #f0d9b0;
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  font-size: 0.85rem;
+  padding: 8px 16px;
   text-align: center;
 }
 
@@ -585,6 +595,24 @@ kbd {
 .fw-frame {
   display: block;
   width: 100%;
+}
+
+/* FwWidget wraps a widget with a known height in this box, so the page keeps the widget's space before the SDK
+   renders it and during the upgrade, when the element briefly has no box at all. On phones the hero unit renders
+   about 250px taller than its height attribute (the title block under the video). */
+.fw-reserve {
+  min-height: var(--fw-reserve);
+}
+
+@media (max-width: 600px) {
+  .fw-reserve[data-fw-hero] {
+    min-height: calc(var(--fw-reserve) + 250px);
+  }
+}
+
+/* Firework off (?fw=off or Settings): nothing will render, so no space is kept. Set before first paint in Base.astro. */
+html[data-fw-early='off'] .fw-reserve {
+  min-height: 0 !important;
 }
 
 /* Set by src/scripts/firework-loader.ts when a feed returns no content. */

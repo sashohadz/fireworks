@@ -29,7 +29,7 @@ function materialise(placeholder: HTMLElement, settings: EffectiveSettings): HTM
   const el = document.createElement(tag);
   const attrs = JSON.parse(placeholder.dataset.fwAttrs ?? '{}') as Record<string, string>;
   for (const [name, value] of Object.entries(attrs)) el.setAttribute(name, value);
-  for (const key of ['fwSlot', 'fwUsePlaylist', 'fwManaged'] as const) {
+  for (const key of ['fwSlot', 'fwKey', 'fwUsePlaylist', 'fwManaged'] as const) {
     if (placeholder.dataset[key] !== undefined) el.dataset[key] = placeholder.dataset[key];
   }
   if (placeholder.getAttribute('style')) el.setAttribute('style', placeholder.getAttribute('style')!);
@@ -61,6 +61,8 @@ function hideWhenFeedFails(el: HTMLElement): void {
   el.addEventListener('fw:embed-feed:error', () => {
     if (el.classList.contains('fw-failed')) return;
     el.classList.add('fw-failed');
+    // No widget, so no space to keep for it.
+    el.closest<HTMLElement>('.fw-reserve')?.style.removeProperty('--fw-reserve');
     const note = document.createElement('p');
     note.className = 'fw-failed-note';
     note.textContent = `Firework returned no videos for ${describeSource(el)}, so this widget is hidden.`;
@@ -68,8 +70,20 @@ function hideWhenFeedFails(el: HTMLElement): void {
   });
 }
 
+/** With ?widgets=, a widget stays only if its key (or slot) is listed. The lab measures setups this way. */
+function keptByWidgetList(el: HTMLElement, settings: EffectiveSettings): boolean {
+  if (!settings.widgets) return true;
+  const key = el.dataset.fwKey ?? el.dataset.fwSlot ?? '';
+  return (settings.widgets as string[]).includes(key);
+}
+
 export function applyOverrides(settings: EffectiveSettings): void {
   document.querySelectorAll<HTMLElement>(MANAGED).forEach((el) => {
+    if (!keptByWidgetList(el, settings)) {
+      // Its reserved space goes with it. Base.astro already hid both before first paint.
+      (el.parentElement?.classList.contains('fw-reserve') ? el.parentElement : el).remove();
+      return;
+    }
     if (el.dataset.fwDefer === 'true') return;
     const live = el.dataset.fwTag ? materialise(el, settings) : el;
     if (!live) return;
@@ -133,6 +147,10 @@ export function loadAnalyticsScript(settings: EffectiveSettings): void {
  * It only loads on pages that have an <fw-ava> element.
  */
 export function loadAvaScript(settings: EffectiveSettings): void {
+  if (settings.widgets && !(settings.widgets as string[]).includes('ava')) {
+    document.querySelectorAll('fw-ava').forEach((el) => el.remove());
+    return;
+  }
   if (settings.fwMode === 'off' || !ava.assistantId) return;
   if (!document.querySelector('fw-ava') || document.querySelector('script[data-ava-sdk]')) return;
   const s = document.createElement('script');

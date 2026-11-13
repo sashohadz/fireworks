@@ -164,6 +164,7 @@ const jsonLd = [
       <FwWidget
         tag="fw-storyblock"
         usePlaylist={false}
+        key="pdp"
         label="Product videos (skus filter)"
         attrs={{ skus: product.id, height: '560px', name: `pdp-${product.id}` }}
       />
@@ -174,7 +175,7 @@ const jsonLd = [
     <div class="container">
       <p class="eyebrow">Player Deck</p>
       <h2 id="deck-heading">More from Fjordbloom TV</h2>
-      <FwWidget tag="fw-player-deck" slot="deck" label="Player Deck" />
+      <FwWidget tag="fw-player-deck" slot="deck" label="Player Deck" reserve="520px" />
     </div>
   </section>
 
@@ -213,6 +214,7 @@ const jsonLd = [
     border-radius: var(--radius);
     background: var(--surface);
     width: 100%;
+    aspect-ratio: 1 / 1;
   }
   .pdp-thumbs {
     display: flex;
