@@ -4,6 +4,7 @@ import { syncSwitchesFromUrl } from '../lab/shopping';
 import { mountDebugOverlay } from './debug-overlay';
 import { installEventTap } from './event-tap';
 import { applyOverrides, loadAnalyticsScript, loadAvaScript, loadFireworkSdk } from './firework-loader';
+import { continueRun } from './perf-runner';
 import { initPitchMode } from './pitch';
 import { effectiveSettings } from './settings';
 import { initShopping } from './shopping';
@@ -11,6 +12,8 @@ import { initTracking } from './tracking';
 import { initUi } from './ui';
 
 export function boot(): void {
+  // A performance run (?perf=) watches this page from the start, then moves to the next one.
+  continueRun();
   syncSwitchesFromUrl();
   const settings = effectiveSettings();
   window.__fjb = { ...(window.__fjb ?? {}), settings };

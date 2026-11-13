@@ -1,0 +1,681 @@
+---
+import reportJson from '../../data/perf/latest.json';
+import Lab from '../../layouts/Lab.astro';
+import { groupLabels, modeLabels, thresholds, type FwMode, type PerfReport, type Rating } from '../../lib/perf';
+import {
+  activeGroups,
+  describeRequest,
+  fmtCls,
+  fmtKb,
+  fmtMs,
+  groupColors,
+  metricSpecs,
+  modeColors,
+  pageDelta,
+  ratingOf,
+  result,
+  signed,
+  thresholdFor,
+  type PageDelta,
+} from '../../lib/perf-view';
+import { repoUrl } from '../../site.config';
+
+const report = reportJson as PerfReport;
+const modes: FwMode[] = ['off', 'lazy', 'on'];
+const shortMode: Record<FwMode, string> = { off: 'Without Firework', lazy: 'Lazy loader', on: 'Firework on' };
+const groups = activeGroups(report);
+const rows = report.pages.flatMap((page) => modes.map((mode) => ({ page, mode, r: result(report, page.id, mode)! })).filter((x) => x.r));
+const maxBytes = Math.max(1, ...rows.map((x) => x.r.network.bytes));
+const deltas = report.pages.map((p) => pageDelta(report, p.id)).filter((d): d is PageDelta => Boolean(d));
+const measuredOn = new Date(report.measuredAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const pct = (v: number, max: number) => `${Math.max(0, Math.min(100, (v / max) * 100)).toFixed(2)}%`;
+
+// Main-thread script time by group, Firework on.
+const scriptRows = report.pages.map((page) => ({ page, r: result(report, page.id, 'on')! })).filter((x) => x.r);
+const scriptTotal = (r: (typeof scriptRows)[number]['r']) => groups.reduce((a, g) => a + (r.network.groups[g]?.scriptMs ?? 0), 0);
+const maxScript = Math.max(1, ...scriptRows.map((x) => scriptTotal(x.r)));
+
+// Metric charts: one scale per metric, wide enough to show the "poor" band.
+const metricScale = (id: string, values: number[]) => Math.max(...values, thresholdFor(id).poor * 1.3) * 1.08;
+const ratingIcon: Record<Rating, string> = { good: '●', 'needs-improvement': '▲', poor: '■' };
+const Rating = (id: string, value: number) => {
+  const { rating, label } = ratingOf(id, value);
+  return { rating, label, icon: ratingIcon[rating] };
+};
+
+// What the lazy loader saves, per page.
+const lazySavings = report.pages
+  .map((p) => ({ page: p, on: result(report, p.id, 'on'), lazy: result(report, p.id, 'lazy') }))
+  .filter((x) => x.on && x.lazy)
+  .map((x) => `${x.page.label}: ${fmtKb(x.on!.network.bytes - x.lazy!.network.bytes)} and ${fmtMs(x.on!.lighthouse.tbt - x.lazy!.lighthouse.tbt)} of blocking time less until a widget scrolls into view`);
+
+// Lazy mode per page: did a widget sit in the first screen, so the loader fetched the SDK?
+const lazyPages = report.pages.map((p) => ({ page: p, lazy: result(report, p.id, 'lazy') })).filter((x) => x.lazy);
+const belowFold = lazyPages.filter((x) => !x.lazy!.runtime.sdkLoaded).map((x) => x.page.label);
+const inView = lazyPages.filter((x) => x.lazy!.runtime.sdkLoaded).map((x) => `${x.page.label} (${fmtKb(x.lazy!.network.groups['firework-sdk']?.bytes ?? 0)} of SDK)`);
+// The tracking tag alone: Firework bytes on a lazy page where the SDK never loaded.
+const trackingOnly = lazyPages.find((x) => !x.lazy!.runtime.sdkLoaded)?.lazy?.network.groups['firework-sdk'];
+
+// Context figures from the sources listed at the bottom.
+const almanac = { mobileHome: '2.56 MB', desktopHome: '2.86 MB', mobileJs: '632 KB', mobileImages: '911 KB' };
+---
+
+<Lab title="Page weight and vitals" description="What Firework adds to this store's pages: weight, requests, main-thread time and Core Web Vitals, measured with Lighthouse, with and without the SDK.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>Page weight and vitals</h1>
+  <p class="lede">
+    What Firework adds to a page, measured rather than claimed. Three pages of this store, loaded with Lighthouse's
+    mobile profile without Firework, with the lazy loader, and with the full integration. Then the same comparison in
+    your own browser.
+  </p>
+  <p class="note note-info">
+    Measured {measuredOn} with Lighthouse {report.lighthouseVersion} on Chrome {report.chrome}, Firework SDK
+    {report.sdkRelease}. {report.conditions.device}, {report.conditions.network.toLowerCase()}, CPU {report.conditions.cpu}.
+    {report.conditions.cache}. Median of {report.results[0]?.runs ?? 1} run{(report.results[0]?.runs ?? 1) === 1 ? '' : 's'} per page and mode.
+  </p>
+
+  <h2>What Firework adds</h2>
+  <p class="small muted">Firework on, compared with the same page without it. Ratings use Google's thresholds, listed below.</p>
+  <div class="perf-tiles">
+    {
+      deltas.map((d) => (
+        <article class="perf-delta panel">
+          <h3>{report.pages.find((p) => p.id === d.page)?.label}</h3>
+          <p class="small muted">{report.pages.find((p) => p.id === d.page)?.widgets.join(', ')}</p>
+          <p class="perf-hero">
+            <span class="perf-hero-value">{signed(fmtKb(Math.abs(d.bytes)), d.bytes >= 0)}</span>
+            <span class="perf-hero-label">page weight</span>
+          </p>
+          <dl class="perf-facts">
+            <div><dt>Requests</dt><dd>{signed(String(Math.abs(d.requests)), d.requests >= 0)}</dd></div>
+            <div>
+              <dt>Blocking time (TBT)</dt>
+              <dd>
+                {signed(fmtMs(Math.abs(d.tbt)), d.tbt >= 0)}
+                <span class={`rating rating-${Rating('tbt', d.on.lighthouse.tbt).rating}`}>{Rating('tbt', d.on.lighthouse.tbt).icon} {Rating('tbt', d.on.lighthouse.tbt).label} at {fmtMs(d.on.lighthouse.tbt)}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Largest Contentful Paint</dt>
+              <dd>
+                {signed(fmtMs(Math.abs(d.lcp)), d.lcp >= 0)}
+                <span class={`rating rating-${Rating('lcp', d.on.lighthouse.lcp).rating}`}>{Rating('lcp', d.on.lighthouse.lcp).icon} {Rating('lcp', d.on.lighthouse.lcp).label} at {fmtMs(d.on.lighthouse.lcp)}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Layout shift (CLS)</dt>
+              <dd>
+                {signed(fmtCls(Math.abs(d.cls)), d.cls >= 0)}
+                <span class={`rating rating-${Rating('cls', d.on.lighthouse.cls).rating}`}>{Rating('cls', d.on.lighthouse.cls).icon} {Rating('cls', d.on.lighthouse.cls).label} at {fmtCls(d.on.lighthouse.cls)}</span>
+              </dd>
+            </div>
+            <div><dt>Lighthouse score</dt><dd>{d.scoreOff} → {d.scoreOn}</dd></div>
+          </dl>
+        </article>
+      ))
+    }
+  </div>
+
+  <h2>Page weight, by who sends it</h2>
+  <p class="small muted">Transferred bytes, compressed, for the whole page load. One bar per page and mode, on one scale.</p>
+  <ul class="legend" aria-label="Request groups">
+    {groups.map((g) => <li><span class="swatch" style={`background:${groupColors[g]}`}></span>{groupLabels[g]}</li>)}
+  </ul>
+  <div class="chart" role="img" aria-label="Page weight by request group, per page and mode">
+    {
+      report.pages.map((page) => (
+        <div class="chart-group">
+          <p class="chart-group-title">{page.label}</p>
+          {
+            modes.map((mode) => {
+              const r = result(report, page.id, mode);
+              if (!r) return null;
+              return (
+                <div class="bar-row">
+                  <span class="bar-label">{shortMode[mode]}</span>
+                  <div class="bar-track">
+                    {
+                      groups.map((g) => {
+                        const t = r.network.groups[g];
+                        if (!t || t.bytes <= 0) return null;
+                        return <span class="seg" style={`width:${pct(t.bytes, maxBytes)};background:${groupColors[g]}`} title={`${groupLabels[g]}: ${fmtKb(t.bytes)}, ${t.requests} requests`} />;
+                      })
+                    }
+                  </div>
+                  <span class="bar-value">{fmtKb(r.network.bytes)} · {r.network.requests} req</span>
+                </div>
+              );
+            })
+          }
+        </div>
+      ))
+    }
+  </div>
+  <details class="table-view">
+    <summary>Table view</summary>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Page</th><th>Mode</th>{groups.map((g) => <th>{groupLabels[g]}</th>)}<th>Total</th><th>Requests</th></tr></thead>
+        <tbody>
+          {
+            rows.map(({ page, mode, r }) => (
+              <tr>
+                <td>{page.label}</td>
+                <td>{modeLabels[mode]}</td>
+                {groups.map((g) => <td>{r.network.groups[g] ? `${fmtKb(r.network.groups[g]!.bytes)} (${r.network.groups[g]!.requests})` : '–'}</td>)}
+                <td>{fmtKb(r.network.bytes)}</td>
+                <td>{r.network.requests}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+  <p class="small muted">
+    For scale: the 2025 Web Almanac's median mobile home page weighs {almanac.mobileHome} ({almanac.desktopHome} on
+    desktop), of which {almanac.mobileJs} is JavaScript and {almanac.mobileImages} images.
+  </p>
+
+  <h2>Lighthouse metrics against the thresholds</h2>
+  <p class="small muted">
+    The shaded bands are Google's thresholds: good, needs improvement, poor. Lab numbers on a slow phone, so slower
+    than most real visits. The lazy loader bars show the page before any widget has scrolled into view. LCP varies
+    between runs: on a slow connection, Firework's requests compete with the page's own hero image, which paints later
+    in some runs. The table view names the LCP element of each run.
+  </p>
+  <ul class="legend" aria-label="Modes">
+    {modes.map((m) => <li><span class="swatch" style={`background:${modeColors[m]}`}></span>{modeLabels[m]}</li>)}
+  </ul>
+  <div class="metric-charts">
+    {
+      metricSpecs.map((spec) => {
+        const t = thresholdFor(spec.id);
+        const scale = metricScale(spec.id, rows.map((x) => spec.value(x.r)));
+        return (
+          <section class="metric-chart" aria-label={spec.label}>
+            <h3>{spec.label}</h3>
+            <p class="small muted">{t.about} Good ≤ {spec.format(t.good)}, poor > {spec.format(t.poor)}.</p>
+            <div class="chart" role="img" aria-label={`${spec.label} per page and mode`}>
+              {
+                report.pages.map((page) => (
+                  <div class="chart-group">
+                    <p class="chart-group-title">{page.label}</p>
+                    {
+                      modes.map((mode) => {
+                        const r = result(report, page.id, mode);
+                        if (!r) return null;
+                        const v = spec.value(r);
+                        const rt = Rating(spec.id, v);
+                        return (
+                          <div class="bar-row">
+                            <span class="bar-label">{shortMode[mode]}</span>
+                            <div class="bar-track bands" style={`--good:${pct(t.good, scale)};--poor:${pct(t.poor, scale)}`}>
+                              <span class="seg" style={`width:${pct(v, scale)};background:${modeColors[mode]}`} title={`${spec.label}: ${spec.format(v)} (${rt.label})`} />
+                            </div>
+                            <span class="bar-value">
+                              {spec.format(v)} <span class={`rating rating-${rt.rating}`}>{rt.icon} {rt.label}</span>
+                            </span>
+                          </div>
+                        );
+                      })
+                    }
+                  </div>
+                ))
+              }
+            </div>
+          </section>
+        );
+      })
+    }
+  </div>
+  <details class="table-view">
+    <summary>Table view</summary>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Page</th><th>Mode</th><th>Score</th><th>FCP</th><th>LCP</th><th>LCP element</th><th>TBT</th><th>CLS</th><th>What shifted</th><th>Speed Index</th><th>Long tasks</th><th>DOM nodes</th></tr></thead>
+        <tbody>
+          {
+            rows.map(({ page, mode, r }) => (
+              <tr>
+                <td>{page.label}</td>
+                <td>{modeLabels[mode]}</td>
+                <td>{r.lighthouse.score}</td>
+                <td>{fmtMs(r.lighthouse.fcp)}</td>
+                <td>{fmtMs(r.lighthouse.lcp)}</td>
+                <td>{r.runtime.lcpElement ? `${r.runtime.lcpElement.selector}${r.runtime.lcpElement.firework ? ' (Firework)' : ''}` : '–'}</td>
+                <td>{fmtMs(r.lighthouse.tbt)}</td>
+                <td>{fmtCls(r.lighthouse.cls)}</td>
+                <td>{r.runtime.shifts?.length ? r.runtime.shifts.map((x) => `${x.selector} (${fmtCls(x.score)})`).join('; ') : '–'}</td>
+                <td>{fmtMs(r.lighthouse.si)}</td>
+                <td>{r.runtime.longTasks} ({fmtMs(r.runtime.longTaskMs)})</td>
+                <td>{r.runtime.domNodes}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <h2>Where the main-thread time goes</h2>
+  <p class="small muted">
+    Script evaluation and parse time by who sent the script, Firework on. This is what blocking time is made of: the
+    phone is busy running JavaScript and can't respond to a tap.
+  </p>
+  <div class="chart" role="img" aria-label="Main-thread script time by group, Firework on">
+    {
+      scriptRows.map(({ page, r }) => (
+        <div class="bar-row">
+          <span class="bar-label">{page.label}</span>
+          <div class="bar-track">
+            {
+              groups.map((g) => {
+                const ms = r.network.groups[g]?.scriptMs ?? 0;
+                if (ms <= 0) return null;
+                return <span class="seg" style={`width:${pct(ms, maxScript)};background:${groupColors[g]}`} title={`${groupLabels[g]}: ${fmtMs(ms)}`} />;
+              })
+            }
+          </div>
+          <span class="bar-value">{fmtMs(scriptTotal(r))}</span>
+        </div>
+      ))
+    }
+  </div>
+  <details class="table-view">
+    <summary>Table view</summary>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Page</th>{groups.map((g) => <th>{groupLabels[g]}</th>)}<th>Total</th></tr></thead>
+        <tbody>{scriptRows.map(({ page, r }) => <tr><td>{page.label}</td>{groups.map((g) => <td>{fmtMs(r.network.groups[g]?.scriptMs ?? 0)}</td>)}<td>{fmtMs(scriptTotal(r))}</td></tr>)}</tbody>
+      </table>
+    </div>
+  </details>
+
+  <h2>The biggest Firework requests</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Page</th><th>What</th><th>Type</th><th>Size</th></tr></thead>
+      <tbody>
+        {
+          scriptRows.flatMap(({ page, r }) =>
+            r.network.biggest.slice(0, 5).map((b) => (
+              <tr>
+                <td>{page.label}</td>
+                <td><code>{describeRequest(b.url)}</code></td>
+                <td>{b.type}</td>
+                <td>{fmtKb(b.bytes)}</td>
+              </tr>
+            )),
+          )
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <h2>What changes it</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Option</th><th>What it does</th><th>Measured here</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Lazy loader (<code>fwn-async.js</code>)</td>
+          <td>A 2 KB script that loads the SDK only when a widget scrolls into view, or when the URL opens a shared video. It fetches the legacy <code>fwn.js</code> build (130 KB) rather than the module build.</td>
+          <td>{lazySavings.length ? lazySavings.join('. ') + '.' : 'Not measured yet.'}</td>
+        </tr>
+        <tr>
+          <td>Fewer widgets per page</td>
+          <td>Each widget adds its own feed requests, thumbnails and previews. The livestream hero also loads a live-video player.</td>
+          <td>{deltas.map((d) => `${report.pages.find((p) => p.id === d.page)?.label} (${report.pages.find((p) => p.id === d.page)?.widgets.length} widgets): ${fmtKb(d.bytes)}`).join('; ')}.</td>
+        </tr>
+        <tr>
+          <td>Reserve the widget's height</td>
+          <td>A <code>height</code> on the Storyblock and hero, and a sized container for carousels, so nothing jumps when the widget renders.</td>
+          <td>{deltas.length ? `CLS stays at ${deltas.map((d) => fmtCls(d.on.lighthouse.cls)).join(', ')} with Firework on.` : 'Not measured yet.'}</td>
+        </tr>
+        <tr>
+          <td>Scripts stay async</td>
+          <td>The SDK and analytics load with <code>async</code> and <code>type="module"</code>, so they never block the first paint.</td>
+          <td>{deltas.length ? `LCP changes by ${deltas.map((d) => signed(fmtMs(Math.abs(d.lcp)), d.lcp >= 0)).join(', ')}.` : 'Not measured yet.'}</td>
+        </tr>
+        <tr><td>Image thumbnails instead of video previews</td><td><code>thumbnail_style</code> on carousels. Video previews are the biggest media requests on a page that hasn't been tapped.</td><td>Next to measure.</td></tr>
+        <tr>
+          <td>Widgets below the fold</td>
+          <td>With the lazy loader, a widget below the fold costs nothing until the shopper scrolls to it. Lighthouse never scrolls, so its lazy numbers are the page before any widget has loaded.</td>
+          <td>
+            {belowFold.length ? `On a phone, no widget on ${belowFold.join(' or ')} is in the first screen, so the lazy loader fetched nothing but itself. ` : ''}
+            {inView.length ? `On ${inView.join(', ')}, the first widget is in view, so the SDK loaded straight away.` : ''}
+          </td>
+        </tr>
+        <tr>
+          <td>Tracking without the SDK</td>
+          <td>The tracking tag (<code>analytics.js</code>) is only needed on pages that don't load the SDK, such as an order confirmation page. The SDK includes it.</td>
+          <td>{trackingOnly ? `${fmtKb(trackingOnly.bytes)} and ${fmtMs(trackingOnly.scriptMs)} of script time on a page where only the tag and the lazy loader ran.` : 'Not measured yet.'}</td>
+        </tr>
+        <tr><td>Load after consent</td><td>Hold the SDK until the shopper accepts, so the first paint is never affected and nothing loads for shoppers who decline.</td><td>Next to measure, with the consent banner.</td></tr>
+        <tr><td>Caching</td><td>Firework's scripts are cached for 30 minutes (<code>max-age=1800</code>), so a second page view within that time re-downloads none of them.</td><td>From the CDN's response headers.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="live">Measure in this browser</h2>
+  <p>
+    The same three modes, loaded one after another in this tab on your device and network, with the browser's own
+    measurements. Lighthouse's numbers above come from a slow phone; these are yours. The run takes about ten seconds
+    per page and mode, and nothing leaves the browser.
+  </p>
+  <form id="perf-form" class="perf-form">
+    <fieldset>
+      <legend>Pages</legend>
+      {report.pages.map((p) => <label class="check"><input type="checkbox" name="page" value={p.id} checked /> {p.label}</label>)}
+    </fieldset>
+    <p class="perf-actions">
+      <button type="submit" class="btn btn-small">Run in this browser</button>
+      <button type="button" class="btn btn-small btn-ghost" id="perf-clear" hidden>Clear results</button>
+    </p>
+  </form>
+  <div id="perf-live" aria-live="polite"></div>
+  <p class="small muted">
+    Sizes are only readable for requests whose server allows it (<code>Timing-Allow-Origin</code>): the site's own,
+    Firework's SDK and media, but not its API and analytics calls, which are small. Your cache state applies: a second
+    run within 30 minutes finds Firework's scripts cached. Blocking time here counts long tasks after load as well.
+    These visits count as page views on the sandbox channel.
+  </p>
+
+  <h2>What the numbers mean</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Metric</th><th>Good</th><th>Poor</th><th>Kind</th><th>What it is</th></tr></thead>
+      <tbody>
+        {
+          thresholds.map((t) => (
+            <tr>
+              <td>{t.label}</td>
+              <td>≤ {t.unit === 'ms' ? fmtMs(t.good) : t.good}</td>
+              <td>> {t.unit === 'ms' ? fmtMs(t.poor) : t.poor}</td>
+              <td>{t.kind === 'vital' ? 'Core Web Vital (real visits, 75th percentile)' : 'Lighthouse lab metric'}</td>
+              <td>{t.about}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Core Web Vitals are judged on real visits, at the 75th percentile, per page. Lighthouse is a lab test on a slow
+    simulated phone: good for comparing two versions of a page, pessimistic as a prediction of real visits. INP, the
+    interaction metric, has no lab equivalent; Total Blocking Time is its stand-in.
+  </p>
+
+  <h2>How to reproduce it</h2>
+  <p>
+    <code>npm run build</code>, <code>npm run preview</code>, then <code>BASE_URL=http://127.0.0.1:4321 npm run perf:measure -- --runs 3</code>.
+    The script is <a href={`${repoUrl}/blob/main/scripts/perf/measure.ts`}>scripts/perf/measure.ts</a>; it writes the
+    numbers this page shows. Firework's tracking pixel is blocked during the runs, so they are not counted as visits.
+  </p>
+
+  <h2>Sources</h2>
+  <ul>
+    <li><a href="https://web.dev/articles/vitals">Web Vitals</a>: the Core Web Vitals thresholds and the 75th percentile.</li>
+    <li><a href="https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time">Lighthouse: Total Blocking Time</a>: the 200 ms and 600 ms bands for mobile.</li>
+    <li><a href="https://almanac.httparchive.org/en/2025/page-weight">Web Almanac 2025: Page weight</a>: median page weights.</li>
+    <li><a href="https://docs.firework.com/firework-for-developers/web/integration-guide/web-sdk">Firework web SDK</a>, including <code>fwn-async.js</code>.</li>
+  </ul>
+</Lab>
+
+<script>
+  import { perfPages } from '../../lib/perf';
+  import { fmtCls, fmtKb, fmtMs } from '../../lib/perf-view';
+  import { clearRun, readRun, startRun, type LiveResult } from '../../scripts/perf-runner';
+
+  const form = document.getElementById('perf-form') as HTMLFormElement;
+  const live = document.getElementById('perf-live')!;
+  const clearBtn = document.getElementById('perf-clear') as HTMLButtonElement;
+  const modeName: Record<string, string> = { off: 'Without Firework', lazy: 'Lazy loader', on: 'Firework on' };
+
+  const cell = (tr: HTMLTableRowElement, text: string) => {
+    const td = document.createElement('td');
+    td.textContent = text;
+    tr.appendChild(td);
+  };
+
+  function render(): void {
+    const run = readRun();
+    live.replaceChildren();
+    clearBtn.hidden = !run;
+    if (!run) return;
+    const done = run.results.length >= run.steps.length;
+    const p = document.createElement('p');
+    p.className = 'small muted';
+    p.textContent = done
+      ? `Measured ${new Date(run.startedAt).toLocaleString()} in this browser.`
+      : `Run in progress: ${run.results.length} of ${run.steps.length} done. If it stopped, start it again.`;
+    live.appendChild(p);
+    if (!run.results.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    const table = document.createElement('table');
+    table.className = 'table perf-live-table';
+    const thead = table.createTHead();
+    const hr = thead.insertRow();
+    for (const h of ['Page', 'Mode', 'Requests', 'Weight', 'FCP', 'LCP', 'CLS', 'Long tasks', 'Blocking', 'DOM nodes', 'SDK loaded']) {
+      const th = document.createElement('th');
+      th.textContent = h;
+      hr.appendChild(th);
+    }
+    const tbody = table.createTBody();
+    for (const r of run.results as LiveResult[]) {
+      const tr = tbody.insertRow();
+      cell(tr, perfPages.find((x) => x.id === r.page)?.label ?? r.page);
+      cell(tr, modeName[r.mode] ?? r.mode);
+      cell(tr, String(r.requests));
+      cell(tr, r.sized < r.requests ? `${fmtKb(r.bytes)} (${r.sized} of ${r.requests} sized)` : fmtKb(r.bytes));
+      cell(tr, fmtMs(r.fcp));
+      cell(tr, r.lcp ? fmtMs(r.lcp) : 'n/a');
+      cell(tr, fmtCls(r.cls));
+      cell(tr, `${r.longTasks} (${fmtMs(r.longTaskMs)})`);
+      cell(tr, fmtMs(r.blockingMs));
+      cell(tr, String(r.domNodes));
+      cell(tr, r.mode === 'off' ? '–' : r.sdkLoaded ? 'yes' : 'no');
+    }
+    wrap.appendChild(table);
+    live.appendChild(wrap);
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const chosen = [...form.querySelectorAll<HTMLInputElement>('input[name="page"]:checked')].map((i) => i.value);
+    const steps = perfPages.filter((p) => chosen.includes(p.id)).flatMap((p) => (['off', 'lazy', 'on'] as const).map((mode) => ({ page: p.id, mode, path: p.path })));
+    if (!steps.length) return;
+    startRun(steps, `${location.pathname}#live`);
+  });
+  clearBtn.addEventListener('click', () => {
+    clearRun();
+    render();
+  });
+  render();
+</script>
+
+<style>
+  .perf-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+    margin: 14px 0 8px;
+  }
+  .perf-delta h3 {
+    margin: 0 0 2px;
+    font-size: 1.1rem;
+  }
+  .perf-hero {
+    margin: 10px 0 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .perf-hero-value {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 2.2rem;
+    line-height: 1;
+  }
+  .perf-hero-label {
+    color: var(--ink-soft);
+  }
+  .perf-facts {
+    margin: 0;
+    display: grid;
+    gap: 6px;
+    font-size: 0.92rem;
+  }
+  .perf-facts > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+  }
+  .perf-facts dt {
+    color: var(--ink-soft);
+    flex: 0 0 auto;
+  }
+  .perf-facts dd {
+    margin: 0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .rating {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .rating-good {
+    color: #006300;
+  }
+  .rating-needs-improvement {
+    color: #8a5a00;
+  }
+  .rating-poor {
+    color: var(--danger);
+  }
+  .legend {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  .legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .chart {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0 6px;
+  }
+  .chart-group {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .chart-group-title {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .bar-row {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) 150px;
+    align-items: center;
+    gap: 10px;
+    min-height: 22px;
+  }
+  .bar-label,
+  .bar-value {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .bar-value {
+    text-align: left;
+  }
+  .bar-track {
+    display: flex;
+    height: 18px;
+    background: var(--mist);
+    border-radius: 4px;
+    overflow: visible;
+  }
+  .bar-track.bands {
+    background: linear-gradient(to right, rgba(12, 163, 12, 0.14) 0 var(--good), rgba(250, 178, 25, 0.2) var(--good) var(--poor), rgba(208, 59, 59, 0.14) var(--poor) 100%);
+  }
+  .seg {
+    display: block;
+    height: 100%;
+    min-width: 1px;
+  }
+  .seg + .seg {
+    margin-left: 2px;
+  }
+  .seg:last-child {
+    border-radius: 0 4px 4px 0;
+  }
+  .metric-charts {
+    display: grid;
+    gap: 18px;
+  }
+  .metric-chart h3 {
+    margin: 10px 0 2px;
+    font-size: 1.05rem;
+  }
+  .table-view {
+    margin: 4px 0 12px;
+  }
+  .table-view summary {
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--fjord);
+  }
+  .perf-form fieldset {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .perf-form legend {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    padding: 0 4px;
+  }
+  .perf-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+  .perf-live-table td {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .bar-row {
+      grid-template-columns: 1fr;
+      gap: 2px;
+      margin-bottom: 6px;
+    }
+  }
+</style>

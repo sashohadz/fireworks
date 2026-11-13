@@ -19,6 +19,7 @@ Nothing here is for sale. Products, images and videos are illustrated or AI-gene
 | Live and Showroom | `/live`, `/showroom` | Live: the hosted show, its countdown and replays. Showroom: a daily restream with AI Copilot answering the chat, and the next session in the visitor's time zone |
 | OBS overlays | `/live/overlays` | Browser-source overlays at 720x1280 (name strap, product spotlight, giveaway, starting soon) and the OBS settings Firework needs |
 | Pitch mode | `/pitch` | Presents the store as a customer demo: demo tools hidden, presenter notes in a second window |
+| Page weight and vitals | `/lab/performance` | What Firework adds to three pages, measured with Lighthouse without it, with the lazy loader and with the full SDK: weight by sender, main-thread time, LCP, TBT, CLS against Google's thresholds, plus a run in the visitor's own browser. `npm run perf:measure` regenerates the numbers |
 | Your site with Firework | `/lab/bookmarklet` | A bookmark that adds any of the 12 layouts, or AVA, to a prospect's website, only in the presenter's browser, with a practice page and steps for a prospect's own assistant |
 | Custom arrows | `/lab/arrows`, `/arrows/*.svg` | Six SVG arrow styles for `ui_asset_next` and `ui_asset_previous`, switchable on a live carousel, served with CORS for reuse |
 | Layouts | `/lab/layouts` | All 12 Business Portal layouts live, grouped by the five elements behind them, with the attributes that make each one |
@@ -89,6 +90,7 @@ npm run validate      # catalog and video specs
 npm run check         # TypeScript and Astro
 npm run lint:secrets  # secret scan (also runs on every commit)
 npm run test:smoke    # Playwright, desktop and mobile; set BASE_URL to test a deploy preview
+npm run perf:measure  # Lighthouse, three pages in three modes, writes src/data/perf/latest.json; needs a running preview and BASE_URL
 ```
 
 ## Deploy

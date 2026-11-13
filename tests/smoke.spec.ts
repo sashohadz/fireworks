@@ -37,6 +37,7 @@ const pages = [
   '/lab/tracking',
   '/lab/bookmarklet',
   '/lab/bookmarklet/practice',
+  '/lab/performance',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -427,6 +428,42 @@ test.describe('bookmarklet', () => {
     await page.fill('#bm-assistant', 'x" onload="alert(1)');
     await expect(page.locator('#bm-error')).toContainText('assistant ID');
     await expect(page.locator('#bm-link')).toHaveAttribute('aria-disabled', 'true');
+  });
+});
+
+test.describe('performance lab', () => {
+  test('shows the measured numbers with a table view for every chart', async ({ page }) => {
+    await page.goto('/lab/performance?fw=off');
+    await expect(page.locator('.perf-delta')).toHaveCount(3);
+    await expect(page.locator('.perf-delta').first()).toContainText('page weight');
+    await expect(page.locator('.perf-delta .rating').first()).toContainText(/Good|Needs improvement|Poor/);
+    const charts = page.locator('.chart');
+    expect(await charts.count()).toBeGreaterThanOrEqual(3);
+    await expect(page.locator('details.table-view')).toHaveCount(3);
+    await page.locator('details.table-view').first().locator('summary').click();
+    await expect(page.locator('details.table-view').first().locator('tbody tr')).toHaveCount(9);
+  });
+
+  test('measures the home page in this browser, in all three modes', async ({ page }) => {
+    test.setTimeout(120_000);
+    // Firework's scripts are blocked, so the "on" and "lazy" steps load nothing from Firework and finish quickly.
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com|fwpixel\.com/, (route) => route.abort());
+    await page.goto('/lab/performance?fw=off');
+    for (const id of ['product', 'shop']) await page.locator(`input[name="page"][value="${id}"]`).uncheck();
+    await page.getByRole('button', { name: 'Run in this browser' }).click();
+    await page.waitForURL(/\/\?fw=off&perf=/);
+    await page.waitForURL(/lab\/performance\/?#live/, { timeout: 90_000 });
+    const rows = page.locator('.perf-live-table tbody tr');
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(0)).toContainText('Without Firework');
+    await expect(rows.nth(2)).toContainText('Firework on');
+    const run = await page.evaluate(() => JSON.parse(sessionStorage.getItem('fjb.perf.v1') ?? 'null'));
+    expect(run.results.map((r: { mode: string }) => r.mode)).toEqual(['off', 'lazy', 'on']);
+    expect(run.results[0].requests).toBeGreaterThan(5);
+    expect(run.results[0].bytes).toBeGreaterThan(10_000);
+    expect(run.results[0].fcp).toBeGreaterThan(0);
+    await page.getByRole('button', { name: 'Clear results' }).click();
+    await expect(rows).toHaveCount(0);
   });
 });
 
