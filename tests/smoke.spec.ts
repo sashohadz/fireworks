@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 
 const pages = [
@@ -481,6 +482,61 @@ test.describe('performance lab', () => {
     await page.goto('/lab/performance/details?fw=off');
     await expect(page.locator('.dt-table')).not.toHaveCount(0);
     await expect(page.locator('.dt-table').first()).toContainText('Storyblock');
+  });
+
+  test('each tile explains its title: on hover, and on tap on a phone', async ({ page, isMobile }) => {
+    await page.goto('/lab/performance/?fw=off');
+    const btn = page.locator('.pv-tile').first().locator('.pv-tip-btn');
+    const tip = page.locator('#pv-tip-speed');
+    await expect(btn).toHaveAttribute('aria-describedby', 'pv-tip-speed');
+    await expect(tip).toBeHidden();
+    if (isMobile) await btn.tap();
+    else await btn.hover();
+    await expect(tip).toBeVisible();
+    await expect(tip).toContainText('Largest Contentful Paint');
+    if (isMobile) {
+      await page.locator('h1').tap();
+      await expect(tip).toBeHidden();
+    }
+  });
+
+  test('the Slow 4G note opens a map of Europe from real Chrome data', async ({ page, isMobile }) => {
+    await page.goto('/lab/performance/?fw=off');
+    const trigger = page.locator('button.pv-real');
+    const pop = page.locator('#pv-netmap');
+    await expect(trigger).toContainText('in 100 phone visits in Europe');
+    await expect(pop).toBeHidden();
+    if (isMobile) await trigger.tap();
+    else await trigger.click();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(pop).toBeVisible();
+    await expect(pop.locator('path[data-iso]')).toHaveCount(30);
+    await expect(pop.locator('.pv-euro-label')).toHaveCount(10);
+    await expect(pop.locator('[data-r="name"]')).toHaveText('Europe');
+    if (isMobile) await pop.locator('path[data-iso="DE"]').tap();
+    else await pop.locator('path[data-iso="DE"]').hover();
+    await expect(pop.locator('[data-r="name"]')).toHaveText('Germany');
+    await page.mouse.move(1, 1);
+    await page.keyboard.press('Escape');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(pop).toBeHidden();
+    // After a switch re-renders the strip, the new trigger still opens the panel.
+    await page.locator('[data-load="lazy"]').click();
+    if (isMobile) await page.locator('button.pv-real').tap();
+    else await page.locator('button.pv-real').click();
+    await expect(pop).toBeVisible();
+    await expect(page.locator('button.pv-real')).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('the connection data covers every country, with shares that add up', () => {
+    const data = JSON.parse(fs.readFileSync('src/data/perf/crux-rtt.json', 'utf8')) as {
+      sample?: boolean;
+      countries: Record<string, { low: number; medium: number; high: number }>;
+    };
+    // Real numbers from the Chrome UX Report, not the sample used while building the page.
+    expect(data.sample).toBeUndefined();
+    expect(Object.keys(data.countries)).toHaveLength(30);
+    for (const c of Object.values(data.countries)) expect(Math.abs(c.low + c.medium + c.high - 1)).toBeLessThan(0.002);
   });
 
   test('?widgets= keeps only the listed widgets, including AVA', async ({ page }) => {

@@ -46,12 +46,29 @@ export const icons = {
   weight: icon('<path d="M6 8h12l2 12H4L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/>'),
   lazy: icon('<path d="M12 4v10M8 10l4 4 4-4"/><path d="M5 20h14"/>'),
   widgets: icon('<rect x="3" y="5" width="7" height="14" rx="1.5"/><rect x="14" y="5" width="7" height="6" rx="1.5"/><path d="M14 15h7M14 19h4"/>'),
+  map: icon('<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>'),
   consent: icon('<path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/>'),
 };
 
 // ---------- shared pieces ----------
 
 const badge = (level: Level, label: string) => `<span class="pv-badge pv-badge-${level}"><span aria-hidden="true">${LEVEL_ICON[level]}</span> ${esc(label)}</span>`;
+
+/** What each title means, in plain words first and the metric's name for engineers after. */
+export const tipTexts = {
+  speed: 'When the main image or text on the first screen appears. Google’s Largest Contentful Paint: good under 2.5 s.',
+  tap: 'The longest moment the phone is too busy to react to a tap while the page loads. Under 100 ms feels instant. Engineers: the longest main-thread task.',
+  still: 'Whether things jump while the page loads, so a shopper doesn’t tap the wrong thing. Google’s Cumulative Layout Shift: good under 0.1.',
+  weight: 'Data the phone downloads before any video plays, against the same page without Firework. Video (striped) streams only while it plays.',
+  blocking: 'Time the page couldn’t respond to taps while loading. Lighthouse’s Total Blocking Time.',
+} as const;
+
+/**
+ * A small ⓘ button with a tooltip: shown on hover and keyboard focus (CSS), and toggled by a tap
+ * (perf-configurator.ts), so it also works on phones.
+ */
+export const tip = (key: keyof typeof tipTexts, label: string) =>
+  `<span class="pv-tip"><button type="button" class="pv-tip-btn" aria-label="What “${esc(label)}” means" aria-describedby="pv-tip-${key}"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 7.2v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="4.9" r="1" fill="currentColor"/></svg></button><span role="tooltip" id="pv-tip-${key}" class="pv-tip-text">${esc(tipTexts[key])}</span></span>`;
 
 export const MARKERS = [
   { mode: 'off' as const, label: 'Without Firework', short: 'Without' },
@@ -130,10 +147,24 @@ export function renderMethod(state: ViewState, report: PerfReport): string {
     { icon: icons.gauge, big: 'Google Lighthouse', small: 'Google’s own test' },
   ];
   return `<ol class="pv-method-steps">${steps.map((m) => `<li>${m.icon}<span><b>${esc(m.big)}</b><small>${esc(m.small)}</small></span></li>`).join('')}</ol>
-    <div class="pv-real" title="Google rates a page on real visits, at the 75th percentile">
-      <span class="pv-real-phones" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
-      <span><b>${esc(net.label)}:</b> ${esc(state.net === 'slow4g' ? 'slower than 85% of mobile visits. Google rates real visits: 3 of 4 must be fast.' : 'a typical mobile connection. Google rates real visits: 3 of 4 must be fast.')}</span>
-    </div>`;
+    ${renderReal(state, report)}`;
+}
+
+/**
+ * The note next to the test steps: how common the chosen connection is, and Google's 3-of-4 rule. With the Chrome UX
+ * Report data on the page it says how many phone visits in Europe are this slow, and opens the map by country.
+ */
+function renderReal(state: ViewState, report: PerfReport): string {
+  const conn = report.connections;
+  const net = netProfiles[state.net];
+  const slow = conn ? Math.round(conn.europe.high * 100) : null;
+  const sentence =
+    state.net === 'fast4g' ? 'a typical mobile connection.' : slow !== null ? `about ${slow} in 100 phone visits in Europe are this slow${conn?.sample ? ' (sample data)' : ''}.` : 'slower than 85% of mobile visits.';
+  const inner = `<span class="pv-real-phones" aria-hidden="true" title="Google rates a page on real visits, at the 75th percentile"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+      <span><b>${esc(net.label)}:</b> ${esc(sentence)} Google rates real visits: 3 of 4 must be fast.${conn ? `<span class="pv-real-more">${icons.map}By country</span>` : ''}</span>`;
+  return conn
+    ? `<button type="button" class="pv-real" aria-haspopup="dialog" aria-expanded="false" aria-controls="pv-netmap">${inner}</button>`
+    : `<div class="pv-real">${inner}</div>`;
 }
 
 // ---------- 1. switches ----------
@@ -218,9 +249,9 @@ export function renderPhone(state: ViewState, report: PerfReport): string {
 
 // ---------- 3. the four verdict tiles ----------
 
-function tileShell(iconSvg: string, question: string, verdictHtml: string, visual: string, numbers: string, state: ViewState): string {
+function tileShell(iconSvg: string, question: string, tipKey: keyof typeof tipTexts, verdictHtml: string, visual: string, numbers: string, state: ViewState): string {
   return `<article class="pv-tile">
-    <header>${iconSvg}<h3>${esc(question)}</h3></header>
+    <header>${iconSvg}<h3>${esc(question)}</h3>${tip(tipKey, question)}</header>
     <div class="pv-verdict">${verdictHtml}</div>
     ${visual}
     ${state.numbers ? `<p class="pv-nums">${numbers}</p>` : ''}
@@ -238,8 +269,9 @@ export function renderTiles(state: ViewState, report: PerfReport): string {
   const speed = speedVerdict(t.off, sel);
   const lcpMax = Math.max(5000, ...MARKERS.map((m) => t[m.mode].lighthouse.lcp)) * 1.08;
   const speedTile = tileShell(
-    '<span class="pv-ti">' + '' + '</span>' + iconsHtml('speed'),
+    iconsHtml('speed'),
     'Loads as fast?',
+    'speed',
     `<strong>${esc(speed.headline)}</strong>${badge(speed.level, speed.label)}`,
     band({
       title: 'Time until the main content shows, on Google’s scale',
@@ -268,6 +300,7 @@ export function renderTiles(state: ViewState, report: PerfReport): string {
   const tapTile = tileShell(
     iconsHtml('tap'),
     'Responds to taps?',
+    'tap',
     `<strong>${esc(tap.label)}</strong>${badge(tap.level, `${fmtMs(sel.runtime.longestTaskMs)} pause`)}`,
     band({
       title: 'Longest pause a tap could hit while loading, on the perception scale',
@@ -290,6 +323,7 @@ export function renderTiles(state: ViewState, report: PerfReport): string {
   const stillTile = tileShell(
     iconsHtml('still'),
     'Stays still?',
+    'still',
     `<strong>${esc(still.headline)}</strong>${badge(still.level, `Layout shift ${fmtCls(sel.lighthouse.cls)}`)}`,
     band({
       title: 'How much the page moves while loading, on Google’s scale',
@@ -329,6 +363,7 @@ export function renderTiles(state: ViewState, report: PerfReport): string {
   const weightTile = tileShell(
     iconsHtml('weight'),
     'How much heavier?',
+    'weight',
     `<strong>${addedBytes > 1024 ? signed(fmtKb(addedBytes), true) : 'Nothing'}</strong><span class="pv-badge pv-badge-neutral">≈ ${esc(weightShare(Math.max(0, addedBytes)))}</span>`,
     `<div class="pv-weight" role="img" aria-label="Page weight without Firework, with standard and with lazy loading">${bars}
       <div class="pv-wref" style="left:calc(58px + (100% - 64px) * ${(ALMANAC_MOBILE_HOME_BYTES / wMax).toFixed(4)})"><span>Typical page 2.6 MB</span></div></div>
@@ -402,12 +437,13 @@ export function renderLazy(state: ViewState, report: PerfReport): string {
   const other: NetProfile = state.net === 'slow4g' ? 'fast4g' : 'slow4g';
   const otherReveal = revealOf(report, id, other);
   const lazyLoadsAtOnce = t.lazy.runtime.sdkLoaded;
-  const delta = (big: string, small: string, good: boolean) => `<div class="pv-delta${good ? ' good' : ''}"><span class="big">${esc(big)}</span><span>${esc(small)}</span></div>`;
+  const delta = (big: string, small: string, good: boolean, tipKey?: keyof typeof tipTexts) =>
+    `<div class="pv-delta${good ? ' good' : ''}"><span class="big">${esc(big)}</span><span>${esc(small)}${tipKey ? tip(tipKey, small) : ''}</span></div>`;
   const deltas = lazyLoadsAtOnce
     ? `<p class="pv-lazy-note">${icons.widgets}<span>A widget is in the first screen, so lazy loading fetches Firework right away and changes little on this page.</span></p>`
     : `<div class="pv-deltas">
         ${delta(saved > 1024 ? signed(fmtKb(saved), false) : 'Same', 'loaded before the shopper scrolls', saved > 1024)}
-        ${delta(tbtSaved > 20 ? signed(fmtMs(tbtSaved), false) : 'Same', 'blocking time', tbtSaved > 20)}
+        ${delta(tbtSaved > 20 ? signed(fmtMs(tbtSaved), false) : 'Same', 'blocking time', tbtSaved > 20, 'blocking')}
         ${delta(lcpGain > 100 ? `${fmtMs(lcpGain)} sooner` : 'Same', 'main content', lcpGain > 100)}
       </div>`;
   const end = Math.min(20000, Math.max(...[t.on, t.lazy].flatMap((r) => Object.values(r.lanes ?? {}).flat().map((iv) => iv[1])), t.on.lighthouse.lcp, 3000) * 1.05);

@@ -293,4 +293,20 @@ export interface PerfReport {
   reveals: Record<string, Reveal[]>;
   /** The same pages without Firework on another site (the store before its own fixes), measured the same way. */
   baseline?: { site: string; measuredAt: string; results: PerfResult[] };
+  /** Real phone connections in Europe (Chrome UX Report), added by the page from src/data/perf/crux-rtt.json. */
+  connections?: Connections;
+}
+
+/** Shares of phone visits by connection round trip: low < 75 ms, medium 75–275 ms, high ≥ 275 ms (like Slow 4G). */
+export interface RttShares {
+  low: number;
+  medium: number;
+  high: number;
+}
+
+export interface Connections {
+  month: string;
+  europe: RttShares;
+  /** Made-up numbers used while building the page. */
+  sample?: boolean;
 }

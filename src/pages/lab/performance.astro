@@ -2,11 +2,13 @@
 import reportJson from '../../data/perf/latest.json';
 import Lab from '../../layouts/Lab.astro';
 import type { PerfReport } from '../../lib/perf';
+import { connections, renderNetMap } from '../../lib/perf-netmap';
 import { renderControls, renderFilm, renderLazy, renderLevers, renderMethod, renderPhone, renderTiles } from '../../lib/perf-render';
 import { defaultState } from '../../lib/perf-state';
 import { safeJson } from '../../lib/safe-json';
 
-const report = reportJson as unknown as PerfReport;
+// Real phone connections in Europe (Chrome UX Report) travel with the report: the method strip's sentence uses them.
+const report: PerfReport = { ...(reportJson as unknown as PerfReport), connections };
 const state = defaultState(report);
 const measuredOn = new Date(report.measuredAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 // A Netlify deploy preview serves the same build from the same CDN as the live store, so name it as the live store.
@@ -32,7 +34,10 @@ const clientData = {
       <h1>Page speed with Firework</h1>
     </header>
 
-    <section id="pv-method" class="pv-method" aria-label="How we test" set:html={renderMethod(state, report)} />
+    <div class="pv-method-wrap">
+      <section id="pv-method" class="pv-method" aria-label="How we test" set:html={renderMethod(state, report)} />
+      <Fragment set:html={renderNetMap()} />
+    </div>
 
     <div id="pv-controls" class="pv-controls" set:html={renderControls(state, report)} />
 
@@ -61,7 +66,8 @@ const clientData = {
       Thresholds: <a href="https://web.dev/articles/vitals">Google's Core Web Vitals</a>; tap research:
       <a href="https://web.dev/articles/defining-core-web-vitals-thresholds">how Google set them</a>; typical page:
       <a href="https://almanac.httparchive.org/en/2025/page-weight">Web Almanac 2025</a>; lazy loading:
-      <a href="https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting">Firework FAQ</a>.
+      <a href="https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting">Firework FAQ</a>; connections by country:
+      <a href="https://developer.chrome.com/docs/crux">Chrome UX Report</a> (CC BY 4.0).
       <a href="/lab/performance/details/">All numbers for engineers →</a>
     </p>
   </div>
@@ -141,10 +147,304 @@ const clientData = {
     font-size: 0.82rem;
     color: var(--ink-soft);
     margin-left: auto;
-    max-width: 330px;
+    max-width: 370px;
   }
   .pv-real b {
     color: var(--ink);
+  }
+  button.pv-real {
+    appearance: none;
+    font: inherit;
+    font-size: 0.82rem;
+    text-align: left;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 6px 8px;
+    margin: -6px -8px -6px auto;
+    cursor: pointer;
+  }
+  button.pv-real:hover,
+  button.pv-real[aria-expanded='true'] {
+    background: var(--paper);
+    border-color: var(--line);
+  }
+  button.pv-real:focus-visible {
+    outline: 2px solid var(--fjord);
+    outline-offset: 2px;
+  }
+  .pv-real-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+    color: var(--fjord);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .pv .pv-real-more .pv-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* the map panel: hover opens it (pointer devices only), a click or tap pins it (.open, perf-configurator.ts) */
+  .pv-method-wrap {
+    position: relative;
+  }
+  .pv-pop {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% - 6px);
+    right: 0;
+    width: min(660px, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 4px 20px;
+    align-items: start;
+    padding: 16px 18px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 14px 36px rgba(20, 33, 43, 0.18);
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 0.15s ease 0.25s,
+      visibility 0s linear 0.4s;
+  }
+  .pv-pop.open {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+  }
+  @media (hover: hover) {
+    .pv-method-wrap:has(button.pv-real:hover) .pv-pop,
+    .pv-pop:hover {
+      visibility: visible;
+      opacity: 1;
+      transition:
+        opacity 0.15s ease 0.1s,
+        visibility 0s linear 0.1s;
+    }
+  }
+  .pv-pop > h3,
+  .pv-pop > .pv-pop-sub,
+  .pv-pop > .pv-sample,
+  .pv-pop > .pv-pop-foot,
+  .pv-pop > .pv-euro-table {
+    grid-column: 1 / -1;
+  }
+  .pv-pop h3 {
+    margin: 0;
+    padding-right: 32px;
+    font-size: 1.1rem;
+  }
+  .pv-pop-sub {
+    margin: 0 0 6px;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+  .pv-sample {
+    margin: 0;
+    color: var(--danger);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .pv-pop-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    appearance: none;
+    border: 0;
+    background: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 8px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .pv-pop-close:hover {
+    background: var(--paper);
+  }
+  .pv-euro {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .pv-euro path {
+    stroke: #fff;
+    stroke-width: 0.7;
+    stroke-linejoin: round;
+  }
+  .pv-euro .pv-euro-rest {
+    fill: #eceae6;
+  }
+  .pv-euro .pv-euro-none {
+    fill: #dedbd5;
+  }
+  .pv-euro path[data-iso] {
+    cursor: crosshair;
+  }
+  .pv-euro path.hot {
+    stroke: var(--ink);
+    stroke-width: 1.6;
+  }
+  .pv-euro-label {
+    pointer-events: none;
+  }
+  .pv-euro-label rect {
+    fill: #fff;
+    stroke: var(--ink);
+    stroke-width: 0.6;
+  }
+  .pv-euro-label text {
+    font-family: var(--font-body);
+    font-size: 10.5px;
+    font-weight: 600;
+    fill: var(--ink);
+    text-anchor: middle;
+  }
+  .pv-pop-side {
+    display: grid;
+    gap: 6px;
+    padding-top: 4px;
+  }
+  .pv-euro-legend-h {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .pv-euro-legend {
+    list-style: none;
+    margin: 0 0 10px;
+    padding: 0;
+    display: grid;
+    gap: 3px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .pv-euro-legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pv-euro-legend i {
+    width: 18px;
+    height: 11px;
+    border-radius: 3px;
+  }
+  .pv-rtt {
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+  }
+  .pv-rtt p {
+    margin: 0 0 8px;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+  .pv-rtt-bar {
+    display: flex;
+    gap: 2px;
+    height: 12px;
+    margin-bottom: 8px;
+  }
+  .pv-rtt-bar span {
+    transition: width 0.15s ease;
+  }
+  .pv-rtt-bar span:first-child {
+    border-radius: 4px 0 0 4px;
+  }
+  .pv-rtt-bar span:last-child {
+    border-radius: 0 4px 4px 0;
+  }
+  .pv-rtt-low {
+    background: #86b6ef;
+  }
+  .pv-rtt-medium {
+    background: #3987e5;
+  }
+  .pv-rtt-high {
+    background: #104281;
+  }
+  .pv-rtt-key {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 5px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .pv-rtt-key li {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .pv-rtt-key i {
+    flex: 0 0 auto;
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    transform: translateY(1px);
+  }
+  .pv-rtt-key b {
+    color: var(--ink);
+  }
+  .pv-rtt-key small {
+    display: block;
+    font-size: 0.72rem;
+  }
+  .pv-pop-foot {
+    margin: 8px 0 0;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--ink-faint);
+  }
+  /* The table is for screen readers, and for everyone once "Show numbers" is on. */
+  .pv-euro-table {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .pv-numbers .pv-euro-table {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    margin-top: 10px;
+  }
+  .pv-euro-table table {
+    width: 100%;
+    font-size: 0.75rem;
+    border-collapse: collapse;
+  }
+  .pv-euro-table caption {
+    text-align: left;
+    font-weight: 600;
+    padding-bottom: 4px;
+  }
+  .pv-euro-table :is(th, td) {
+    padding: 2px 6px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+  }
+  .pv-euro-table th:first-child {
+    text-align: left;
+  }
+  @media (max-width: 700px) {
+    .pv-pop {
+      grid-template-columns: 1fr;
+      top: calc(100% + 4px);
+      padding: 14px;
+    }
   }
   .pv-real-phones {
     display: inline-flex;
@@ -727,9 +1027,73 @@ const clientData = {
   .pv-delta.good .big {
     color: #0a7a0a;
   }
-  .pv-delta span:last-child {
+  .pv-delta > span:last-child {
     color: var(--ink-soft);
     font-size: 0.85rem;
+  }
+
+  /* ⓘ tooltips: hover or keyboard focus shows them, a tap pins them (.open, set in perf-configurator.ts).
+     They span their tile's header (or the figure's box), so they never run off the screen. */
+  .pv-tile header,
+  .pv-delta {
+    position: relative;
+  }
+  .pv-tip {
+    display: inline-flex;
+    vertical-align: middle;
+  }
+  .pv-tip-btn {
+    appearance: none;
+    border: 0;
+    background: none;
+    padding: 4px;
+    margin: -4px -2px;
+    color: var(--ink-faint);
+    cursor: help;
+    display: inline-flex;
+    border-radius: 50%;
+  }
+  .pv-tip-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  .pv-tip-btn:hover,
+  .pv-tip.open .pv-tip-btn {
+    color: var(--fjord);
+  }
+  .pv-tip-btn:focus-visible {
+    outline: 2px solid var(--fjord);
+    outline-offset: 1px;
+  }
+  .pv-tip-text {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    max-width: 300px;
+    padding: 8px 10px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: left;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(20, 33, 43, 0.18);
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 0.12s,
+      visibility 0s 0.12s;
+    pointer-events: none;
+  }
+  .pv-tip:hover .pv-tip-text,
+  .pv-tip-btn:focus-visible + .pv-tip-text,
+  .pv-tip.open .pv-tip-text {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
   }
   .pv-lazy-note {
     display: flex;

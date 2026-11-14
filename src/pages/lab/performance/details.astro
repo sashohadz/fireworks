@@ -3,6 +3,7 @@ import reportJson from '../../../data/perf/latest.json';
 import Lab from '../../../layouts/Lab.astro';
 import { groupLabels, netProfiles, setupId, thresholds, type PerfReport, type PerfResult } from '../../../lib/perf';
 import { activeGroups, describeRequest, fmtCls, fmtKb, fmtMs, measuredNets, ratingOf, resultOf, revealOf, videoMax, weightOf, widgetLabel } from '../../../lib/perf-view';
+import { monthLabel, pctText, rtt, rttRows } from '../../../lib/perf-netmap';
 import { repoUrl } from '../../../site.config';
 
 const report = reportJson as unknown as PerfReport;
@@ -198,6 +199,62 @@ const sample = resultOf(report, setupId('product', ['pdp']), 'on');
     Sizes are only readable for requests whose server allows it (<code>Timing-Allow-Origin</code>): the site's own,
     Firework's SDK and media, but not its API and analytics calls. Your cache state applies. These visits count as page
     views on the sandbox channel.
+  </p>
+
+  <h2 id="connections">Connections by country</h2>
+  <p>
+    How often a phone visit is as slow as our Slow 4G test, from the <a href="https://developer.chrome.com/docs/crux">Chrome UX Report</a>
+    (CrUX): real visits by Chrome users, {monthLabel(rtt.month)}{rtt.sample ? ' (sample data, not real numbers yet)' : ''}. CrUX groups
+    each visit by its connection's round trip time (<code>navigator.connection.rtt</code>, Chrome's estimate of how long
+    a request takes to answer): under 75 ms, 75–275 ms, and 275 ms or more.
+  </p>
+  <ul>
+    <li>
+      Lighthouse describes its Slow 4G as <a href="https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md">roughly
+      the bottom 25% of 4G connections and top 25% of 3G connections</a>. Chrome's own edge between 4G and 3G is that same 275 ms,
+      so "275 ms or more" reads as "like Slow 4G, or slower". Lighthouse's 150 ms is the bare network round trip; Chrome times a
+      whole request, so its numbers run higher.
+    </li>
+    <li>Fast 4G (a 60 ms network round trip) falls in the middle group.</li>
+    <li>It is about delay only: CrUX has no bandwidth figure.</li>
+    <li>
+      CrUX rows are per website. A country's figure is the {rtt.basisLabel}, each website counting once; "Europe" weighs each
+      country by its population.
+    </li>
+  </ul>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Country</th><th>275 ms or more (like Slow 4G)</th><th>75–275 ms (like Fast 4G)</th><th>Under 75 ms</th><th>Websites</th><th>Median p75 RTT</th></tr>
+      </thead>
+      <tbody>
+        {
+          rttRows().map(([, c]) => (
+            <tr>
+              <td>{c.name}</td>
+              <td>{pctText(c.high)}</td>
+              <td>{pctText(c.medium)}</td>
+              <td>{pctText(c.low)}</td>
+              <td>{c.origins.toLocaleString('en-GB')}</td>
+              <td>{c.p75 === null ? '' : `${c.p75} ms`}</td>
+            </tr>
+          ))
+        }
+        <tr>
+          <td><b>Europe</b> (by population)</td>
+          <td><b>{pctText(rtt.europe.high)}</b></td>
+          <td>{pctText(rtt.europe.medium)}</td>
+          <td>{pctText(rtt.europe.low)}</td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">
+    To refresh it: run <a href={`${repoUrl}/blob/main/scripts/perf/crux-rtt.sql`}>scripts/perf/crux-rtt.sql</a> in the BigQuery
+    console, save the result as JSON, then <code>npm run perf:rtt -- &lt;file&gt;</code>. CrUX data is licensed CC BY 4.0;
+    map borders are Natural Earth (public domain).
   </p>
 
   <h2>Thresholds</h2>
