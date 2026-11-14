@@ -2,7 +2,8 @@
 // Precedence: URL parameters, then the Settings dialog (localStorage), then src/site.config.ts.
 import { firework, playlistSlots, type PlaylistSlot } from '../site.config';
 
-export type FwMode = 'on' | 'lazy' | 'off';
+/** 'head' is 'on' with Firework's tag in the <head> (injected by Base.astro while the page parses), for measuring. */
+export type FwMode = 'on' | 'lazy' | 'off' | 'head';
 
 /** Names a widget can be picked by in ?widgets=: its playlist slot, or a key for widgets without one. */
 export const WIDGET_KEYS = ['hero', 'storyblock', 'carousel', 'grid', 'deck', 'floating', 'live', 'showroom', 'horizontal', 'howto', 'pdp', 'stories', 'ava'] as const;
@@ -66,7 +67,7 @@ export function clearSettings(): void {
   }
 }
 
-const isMode = (v: unknown): v is FwMode => v === 'on' || v === 'lazy' || v === 'off';
+const isMode = (v: unknown): v is FwMode => v === 'on' || v === 'lazy' || v === 'off' || v === 'head';
 
 export function effectiveSettings(search: string = location.search): EffectiveSettings {
   const q = new URLSearchParams(search);

@@ -7,6 +7,7 @@ import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import SettingsDialog from '../components/SettingsDialog.astro';
 import { getPitches, pitchOutline } from '../lib/pitches';
+import { firework } from '../site.config';
 import { safeJson } from '../lib/safe-json';
 
 // The two brand fonts, latin subset, preloaded, with font-display: optional: a font that isn't ready within the
@@ -68,7 +69,7 @@ const fullTitle = title === 'Fjordbloom' ? 'Fjordbloom · Firework demo store' :
       try {
         var fjbQ = new URLSearchParams(location.search);
         var fjbMode = fjbQ.get('fw');
-        if (!/^(on|lazy|off)$/.test(fjbMode || '')) fjbMode = JSON.parse(localStorage.getItem('fjb.settings.v1') || '{}').fwMode;
+        if (!/^(on|lazy|off|head)$/.test(fjbMode || '')) fjbMode = JSON.parse(localStorage.getItem('fjb.settings.v1') || '{}').fwMode;
         // Without Firework nothing will render, so no space is kept for it.
         if (fjbMode === 'off') document.documentElement.setAttribute('data-fw-early', 'off');
         if (fjbQ.has('widgets')) {
@@ -83,6 +84,54 @@ const fullTitle = title === 'Fjordbloom' ? 'Fjordbloom · Firework demo store' :
           var fjbStyle = document.createElement('style');
           fjbStyle.textContent = fjbCss;
           document.head.appendChild(fjbStyle);
+        }
+      } catch (e) {}
+    </script>
+    <script
+      is:inline
+      define:vars={{ fwHead: { module: firework.scripts.module, nomodule: firework.scripts.nomodule, sandbox: firework.channel } }}
+    >
+      // ?fw=head: Firework's script tag in the <head>, the placement Firework's FAQ offers for putting widgets first.
+      // Normally the store adds it at the end of the page (src/scripts/firework-loader.ts); this mode exists to measure
+      // the difference. Same tags and attributes as the loader, which then sees them and adds nothing.
+      try {
+        var q = new URLSearchParams(location.search);
+        if (q.get('fw') === 'head') {
+          var saved = JSON.parse(localStorage.getItem('fjb.settings.v1') || '{}');
+          var channel = (q.get('channel') || '').trim() || (saved.channel || '').trim() || fwHead.sandbox;
+          var attrs = channel === fwHead.sandbox ? { 'data-fwparam_shopping_cart_style': 'bag' } : { 'data-fwparam_tracking_opt_in': 'true' };
+          [fwHead.module, fwHead.nomodule].forEach(function (src, i) {
+            var s = document.createElement('script');
+            s.src = src;
+            s.async = true;
+            if (i === 0) s.type = 'module';
+            else s.noModule = true;
+            s.setAttribute('data-fw-sdk', 'true');
+            for (var k in attrs) s.setAttribute(k, attrs[k]);
+            document.head.appendChild(s);
+          });
+          // With ?widgets=, the loader removes the other widgets, but here Firework may arrive first: remove them
+          // as the page parses, before Firework can load their videos.
+          if (q.has('widgets')) {
+            var keep = (q.get('widgets') || '').split(',').filter(function (k) { return /^[a-z]{2,20}$/.test(k); });
+            var drop = function (el) {
+              var key = el.getAttribute('data-fw-key') || el.getAttribute('data-fw-slot') || '';
+              if (keep.indexOf(key) !== -1) return;
+              var box = el.parentElement && el.parentElement.classList.contains('fw-reserve') ? el.parentElement : el;
+              box.remove();
+            };
+            var watcher = new MutationObserver(function (records) {
+              records.forEach(function (r) {
+                r.addedNodes.forEach(function (n) {
+                  if (n.nodeType !== 1) return;
+                  if (n.matches('[data-fw-managed]')) drop(n);
+                  n.querySelectorAll('[data-fw-managed]').forEach(drop);
+                });
+              });
+            });
+            watcher.observe(document.documentElement, { childList: true, subtree: true });
+            document.addEventListener('DOMContentLoaded', function () { watcher.disconnect(); });
+          }
         }
       } catch (e) {}
     </script>

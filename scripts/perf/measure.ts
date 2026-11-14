@@ -48,6 +48,7 @@ import {
   type PerfReport,
   type PerfResult,
   type PerfSetup,
+  type Placement,
   type Reveal,
 } from '../../src/lib/perf';
 
@@ -56,6 +57,10 @@ const base = (process.env.BASE_URL ?? 'http://127.0.0.1:4321').replace(/\/$/, ''
 const runs = Math.max(1, Number(arg('--runs')) || 3);
 const only = arg('--only') ?? null;
 const onlySetups = arg('--setups')?.split(',').filter(Boolean) ?? null;
+/** --modes head: measure only these modes for the chosen setups, keeping their other modes' results. */
+const onlyModes = arg('--modes')?.split(',').filter((m): m is FwMode => ['off', 'on', 'lazy', 'head'].includes(m)) ?? null;
+const modesFor = (s: PerfSetup): FwMode[] =>
+  !onlyModes ? setupModes(s) : s.off ? setupModes(s).filter((m) => onlyModes.includes(m)) : onlyModes.filter((m) => m !== 'off');
 const baselineSite = arg('--baseline')?.replace(/\/$/, '') ?? null;
 const fromRaw = process.argv.includes('--from-raw');
 const resume = process.argv.includes('--resume');
@@ -317,6 +322,63 @@ async function timeReveal(page: Page, setup: PerfSetup, mode: FwMode, key: strin
   return null;
 }
 
+/** A phone-sized page on this run's connection, with 4x CPU slowdown, as in the Lighthouse runs. */
+async function throttledPage(browser: Awaited<ReturnType<typeof chromium.launch>>): Promise<{ page: Page; close: () => Promise<void> }> {
+  const ctx = await browser.newContext({ viewport: PHONE, isMobile: true, hasTouch: true, deviceScaleFactor: 1.75 });
+  await ctx.route(BLOCKED_RE, (r) => r.abort());
+  const page = await ctx.newPage();
+  const cdp = await ctx.newCDPSession(page);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.emulateNetworkConditions', {
+    offline: false,
+    latency: NET.latencyMs,
+    downloadThroughput: (NET.downKbps * 1024) / 8,
+    uploadThroughput: (NET.upKbps * 1024) / 8,
+  });
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  return { page, close: () => ctx.close() };
+}
+
+/** From navigation start until a widget in the first screen shows its first thumbnail or video, in the page's own clock. */
+async function timeAppear(page: Page, setup: PerfSetup, mode: FwMode, key: string): Promise<number | null> {
+  const check = `(() => (${rendered(widgetSelector(key))} ? performance.now() : 0))()`;
+  const started = Date.now();
+  await page.goto(`${base}${setupUrl(setup, mode)}`, { waitUntil: 'commit', timeout: 60000 });
+  while (Date.now() - started < 30000) {
+    // The page may still be navigating; a failed check just means "not yet".
+    const at = (await page.evaluate(check).catch(() => 0)) as number;
+    if (at > 0) return Math.round(at);
+    await page.waitForTimeout(100);
+  }
+  return null;
+}
+
+/** Tag at the end of the page against tag in the head: when the first-screen widget shows its videos. 3 runs each. */
+async function placementTimes(setup: PerfSetup, map: PageMap | undefined): Promise<Placement[]> {
+  const first = (map?.boxes ?? []).filter((b) => b.key !== 'ava' && !b.fixed && b.top < PHONE.height).sort((a, b) => a.top - b.top)[0];
+  if (!first) return [];
+  const browser = await chromium.launch();
+  const median = (xs: number[]) => (xs.length ? xs.sort((a, b) => a - b)[Math.floor((xs.length - 1) / 2)]! : null);
+  try {
+    const times = async (mode: FwMode) => {
+      const out: number[] = [];
+      for (let i = 0; i < 3; i++) {
+        const { page, close } = await throttledPage(browser);
+        try {
+          const ms = await timeAppear(page, setup, mode, first.key);
+          if (ms !== null) out.push(ms);
+        } finally {
+          await close();
+        }
+      }
+      return median(out);
+    };
+    return [{ profile: net, widget: first.label, endMs: await times('on'), headMs: await times('head') }];
+  } finally {
+    await browser.close();
+  }
+}
+
 async function reveals(setup: PerfSetup, map: PageMap | undefined): Promise<Reveal[]> {
   // The first widget below the first screen, the one a scrolling shopper reaches first. AVA is not lazy-loaded.
   const below = (map?.boxes ?? []).filter((b) => b.key !== 'ava' && (b.fixed || b.top > PHONE.height)).sort((a, b) => a.top - b.top)[0];
@@ -324,22 +386,11 @@ async function reveals(setup: PerfSetup, map: PageMap | undefined): Promise<Reve
   const browser = await chromium.launch();
   try {
     const time = async (mode: FwMode) => {
-      const ctx = await browser.newContext({ viewport: PHONE, isMobile: true, hasTouch: true, deviceScaleFactor: 1.75 });
-      await ctx.route(BLOCKED_RE, (r) => r.abort());
-      const page = await ctx.newPage();
-      const cdp = await ctx.newCDPSession(page);
-      await cdp.send('Network.enable');
-      await cdp.send('Network.emulateNetworkConditions', {
-        offline: false,
-        latency: NET.latencyMs,
-        downloadThroughput: (NET.downKbps * 1024) / 8,
-        uploadThroughput: (NET.upKbps * 1024) / 8,
-      });
-      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+      const { page, close } = await throttledPage(browser);
       try {
         return await timeReveal(page, setup, mode, below.key);
       } finally {
-        await ctx.close();
+        await close();
       }
     };
     const lazy: number[] = [];
@@ -426,7 +477,7 @@ async function main(): Promise<void> {
   let measuredSite = '';
   try {
     for (const setup of mapsOnly ? [] : setups) {
-      for (const mode of setupModes(setup)) {
+      for (const mode of modesFor(setup)) {
         const url = `${base}${setupUrl(setup, mode)}`;
         const all: Run[] = [];
         const saved = fs.existsSync(RAW) ? fs.readdirSync(RAW).filter((f) => f.startsWith(`${rawPrefix}${setup.id}-${mode}-`) && f.endsWith('.json')).length : 0;
@@ -463,6 +514,15 @@ async function main(): Promise<void> {
   // Page maps and the lazy trade-off: kept from the previous file unless measured now.
   const pageMaps: Record<string, PageMap> = { ...(previous?.pageMaps ?? {}) };
   const revealMap: Record<string, Reveal[]> = { ...(previous?.reveals ?? {}) };
+  const placementMap: Record<string, Placement[]> = { ...(previous?.placement ?? {}) };
+  if (onlyModes?.includes('head') && !fromRaw && !process.argv.includes('--skip-placement')) {
+    for (const setup of setups.filter((s) => !s.off && s.widgets.length)) {
+      process.stdout.write(`tag placement ${setup.id} … `);
+      const found = await placementTimes(setup, pageMaps[setup.id]);
+      placementMap[setup.id] = [...(placementMap[setup.id] ?? []).filter((r) => netOf(r) !== net), ...found];
+      console.log(found.map((p) => `${p.widget}: end of page ${p.endMs} ms, head ${p.headMs} ms`).join('; ') || 'no widget in the first screen');
+    }
+  }
   if (!skipMaps) {
     const browser = await chromium.launch();
     const ctx = await browser.newContext({ viewport: PHONE, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
@@ -488,7 +548,11 @@ async function main(): Promise<void> {
   const prev = (previous?.results ?? []).filter((r) => r.setup);
   const kept = [
     ...prev.filter((r) => netOf(r) !== net),
-    ...(mapsOnly ? prev.filter((r) => netOf(r) === net) : only || onlySetups ? prev.filter((r) => netOf(r) === net && !setups.some((s) => s.id === r.setup)) : []),
+    ...(mapsOnly
+      ? prev.filter((r) => netOf(r) === net)
+      : only || onlySetups
+        ? prev.filter((r) => netOf(r) === net && (!setups.some((s) => s.id === r.setup) || (onlyModes !== null && !onlyModes.includes(r.mode))))
+        : []),
   ];
   const order = perfSetups().map((s) => s.id);
   const allResults = [...kept, ...results].sort(
@@ -514,6 +578,7 @@ async function main(): Promise<void> {
     results: allResults,
     pageMaps,
     reveals: revealMap,
+    ...(Object.keys(placementMap).length ? { placement: placementMap } : {}),
     // The baseline is measured separately (--baseline) and kept.
     ...(previous?.baseline ? { baseline: previous.baseline } : {}),
   };

@@ -549,6 +549,16 @@ test.describe('performance lab', () => {
     for (const c of Object.values(data.countries)) expect(Math.abs(c.low + c.medium + c.high - 1)).toBeLessThan(0.002);
   });
 
+  test('?fw=head puts Firework in the head and still leaves out unlisted widgets', async ({ page }) => {
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.abort());
+    await page.goto('/products/cloudberry-vitamin-c-serum/?widgets=pdp&fw=head');
+    await expect(page.locator('head script[data-fw-sdk]')).toHaveCount(2);
+    await expect(page.locator('head script[data-fw-sdk][type="module"]')).toHaveAttribute('data-fwparam_shopping_cart_style', 'bag');
+    await expect(page.locator('[data-fw-key="pdp"]')).toHaveCount(1);
+    await expect(page.locator('[data-fw-key="deck"]')).toHaveCount(0);
+    await expect(page.locator('fw-ava')).toHaveCount(0);
+  });
+
   test('?widgets= keeps only the listed widgets, including AVA', async ({ page }) => {
     await page.goto('/?widgets=carousel&fw=off');
     await expect(page.locator('[data-fw-managed]')).toHaveCount(1);

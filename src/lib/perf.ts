@@ -1,7 +1,8 @@
 // Shared by the measurement script (scripts/perf/measure.ts), /lab/performance and the bookmark's report page.
 // Safe to import from client code: no filesystem access.
 
-export type FwMode = 'off' | 'lazy' | 'on';
+/** 'head': standard loading with Firework's tag in the page's <head> instead of at the end (measured for a few setups). */
+export type FwMode = 'off' | 'lazy' | 'on' | 'head';
 
 /**
  * The two connections the pages are measured on. Same phone (Lighthouse's mobile profile, 4x CPU slowdown); only
@@ -177,6 +178,7 @@ export const modeLabels: Record<FwMode, string> = {
   off: 'Without Firework',
   lazy: 'Lazy loading',
   on: 'Standard loading',
+  head: 'Standard, tag in the head',
 };
 
 export interface GroupTotals {
@@ -293,8 +295,22 @@ export interface PerfReport {
   reveals: Record<string, Reveal[]>;
   /** The same pages without Firework on another site (the store before its own fixes), measured the same way. */
   baseline?: { site: string; measuredAt: string; results: PerfResult[] };
+  /**
+   * Where Firework's tag goes, by setup id: when a widget in the first screen shows its first video, with the tag at the
+   * end of the page (this store's standard) and in the <head>. Measured with --modes head.
+   */
+  placement?: Record<string, Placement[]>;
   /** Real phone connections in Europe (Chrome UX Report), added by the page from src/data/perf/crux-rtt.json. */
   connections?: Connections;
+}
+
+export interface Placement {
+  profile?: NetProfile;
+  /** The first widget in the first screen, e.g. "Circle stories". */
+  widget: string;
+  /** From navigation start until its first thumbnail or video shows: tag at the end of the page, and in the head. */
+  endMs: number | null;
+  headMs: number | null;
 }
 
 /** Shares of phone visits by connection round trip: low < 75 ms, medium 75–275 ms, high ≥ 275 ms (like Slow 4G). */
