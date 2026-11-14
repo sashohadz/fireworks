@@ -169,9 +169,69 @@ const sample = resultOf(report, setupId('product', ['pdp']), 'on');
     <li><b>Lazy loader</b> (<code>fwn-async.js</code>, 1.5 KB): loads the SDK when a widget scrolls into view or the URL opens a shared video. It fetches the legacy <code>fwn.js</code> build. A widget in the first screen loads at once; a floating player loads when the shopper reaches the spot where it sits in the page.</li>
     <li><b>Reserved space:</b> a wrapper with a <code>min-height</code> around each widget. On the element itself it doesn't work: it has no box before the SDK upgrades it, and briefly during the upgrade. On phones the hero unit renders about 250px taller than its <code>height</code>.</li>
     <li><b>Async scripts:</b> the SDK, AVA and analytics load with <code>async</code> or <code>type="module"</code>, so they never block the first paint. On a slow connection they still share the bandwidth with the page's own images.</li>
+    <li>
+      <b>Where the tag goes:</b> Firework's <a href="https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting">FAQ</a>
+      gives two options. At the end of the page, the page's own content comes first and Firework renders last; in the
+      <code>&lt;head&gt;</code>, Firework's widgets come first. This store adds Firework's scripts from its own script at the
+      end of the page, so they start loading after the HTML: these numbers show the first option. Firework's first request
+      starts after the main image has appeared (on Slow 4G about 2.4 s, against 1.3 s). A tag in the head starts Firework
+      sooner, sharing the connection with the main image; that variant isn't measured here.
+    </li>
     <li><b>Caching:</b> Firework's scripts are cached for 30 minutes (<code>max-age=1800</code>); these runs are first visits with an empty cache.</li>
     <li><b>Video:</b> autoplay streams the 720p file while it plays, a few hundred KB in the first seconds. Whether a video starts within a run varies, so weight is compared before any video plays.</li>
   </ul>
+
+  <h2 id="measure-yourself">Measure it on your own site</h2>
+  <p>
+    The same comparison as ours, on your own pages: with Firework, and with Firework's requests blocked. Blocking needs no
+    code change, so you can measure your live or staging pages as they are.
+  </p>
+
+  <h3>Before launch: a lab test in WebPageTest (about an hour)</h3>
+  <ol>
+    <li>
+      Pick the pages that will carry Firework, usually a product page, plus a page without widgets if the script goes on
+      every page. If Firework isn't live yet, use a staging copy with it added, placed where you plan to put it.
+    </li>
+    <li>
+      In <a href="https://www.webpagetest.org/">WebPageTest</a>'s advanced settings, choose a test location near your
+      shoppers, Chrome on a mobile device, and the connection <b>3G Fast (1.6 Mbps/768 Kbps 150ms RTT)</b>: the same profile
+      as Lighthouse's Slow 4G and our tests. Repeat with <b>4G (9 Mbps, 170ms RTT)</b> for a typical connection.
+    </li>
+    <li>Set <b>Number of Tests to Run</b> to 9 and keep <b>First View Only</b>: an empty cache, like a first visit.</li>
+    <li>Run the page as it is: that's "with Firework".</li>
+    <li>
+      Run it again with the <b>Block</b> tab's <b>Block Requests Containing (URL substrings)</b> set to
+      <code>fwcdn fwscripts fireworktv fwpixel</code>: that's "without Firework". Firework's scripts come from the first two;
+      without them nothing else from Firework loads, and the other two are a safety net.
+    </li>
+    <li>
+      Compare the median runs side by side: Largest Contentful Paint, Total Blocking Time, Cumulative Layout Shift, the
+      bytes loaded, and the two filmstrips.
+    </li>
+  </ol>
+  <ul>
+    <li>Look at all 9 runs, not just the medians: if the two sets of runs overlap, the difference is noise. Here a page without Firework varies by 100 ms or more between runs.</li>
+    <li>To try the lazy loader, swap Firework's script for <code>fwn-async.js</code> on staging and run the "with" test again.</li>
+    <li>Tools the team already uses work the same way: SpeedCurve or DebugBear with Firework's hosts blocked, or Lighthouse (<code>--blocked-url-patterns</code> on the command line, <code>blockedUrlPatterns</code> in <a href="https://github.com/GoogleChrome/lighthouse-ci">Lighthouse CI</a>'s settings).</li>
+  </ul>
+
+  <h3>After launch: real shoppers (about 4 weeks)</h3>
+  <ol>
+    <li>
+      <a href="https://support.google.com/webmasters/answer/9205520">Google Search Console's Core Web Vitals report</a>
+      (mobile) shows Google's verdict on real Chrome visits per group of similar pages, over 28 days. Note the launch date
+      and compare the 28 days before with the 28 days after. Other releases in the same weeks move these numbers too.
+    </li>
+    <li><a href="https://pagespeed.web.dev/">PageSpeed Insights</a> shows the same real-visit data for one page or the whole site, next to a lab test.</li>
+    <li>
+      Most reliable: a holdout. Show Firework to half your shoppers with your A/B testing tool, and record Core Web Vitals
+      for each half with your real-user monitoring tool or Google's free <a href="https://github.com/GoogleChrome/web-vitals">web-vitals</a>
+      library sent to your analytics. Then compare speed and conversion between the halves: the only way to separate
+      Firework's effect from everything else that changes.
+    </li>
+    <li>Watch Interaction to Next Paint (INP) there: a lab test can't measure real taps, only real visits can.</li>
+  </ol>
 
   <h2 id="live">Measure in this browser</h2>
   <p>

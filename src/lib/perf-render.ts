@@ -46,6 +46,7 @@ export const icons = {
   weight: icon('<path d="M6 8h12l2 12H4L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/>'),
   lazy: icon('<path d="M12 4v10M8 10l4 4 4-4"/><path d="M5 20h14"/>'),
   widgets: icon('<rect x="3" y="5" width="7" height="14" rx="1.5"/><rect x="14" y="5" width="7" height="6" rx="1.5"/><path d="M14 15h7M14 19h4"/>'),
+  people: icon('<circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M15.8 14.2A4.8 4.8 0 0 1 21 19"/>'),
   map: icon('<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>'),
   consent: icon('<path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/>'),
 };

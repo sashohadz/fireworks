@@ -528,6 +528,16 @@ test.describe('performance lab', () => {
     await expect(page.locator('button.pv-real')).toHaveAttribute('aria-expanded', 'true');
   });
 
+  test('both pages explain how a customer can measure Firework on their own site', async ({ page }) => {
+    await page.goto('/lab/performance/?fw=off');
+    await expect(page.locator('#pv-yours-h')).toHaveText('Measure it on your own site');
+    await expect(page.locator('.pv-yours-card')).toHaveCount(2);
+    await page.locator('a[href="/lab/performance/details/#measure-yourself"]').click();
+    await expect(page.locator('#measure-yourself')).toBeVisible();
+    await expect(page.locator('main')).toContainText('Block Requests Containing (URL substrings)');
+    await expect(page.locator('main')).toContainText('fwcdn fwscripts fireworktv fwpixel');
+  });
+
   test('the connection data covers every country, with shares that add up', () => {
     const data = JSON.parse(fs.readFileSync('src/data/perf/crux-rtt.json', 'utf8')) as {
       sample?: boolean;

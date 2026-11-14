@@ -3,7 +3,7 @@ import reportJson from '../../data/perf/latest.json';
 import Lab from '../../layouts/Lab.astro';
 import type { PerfReport } from '../../lib/perf';
 import { connections, renderNetMap } from '../../lib/perf-netmap';
-import { renderControls, renderFilm, renderLazy, renderLevers, renderMethod, renderPhone, renderTiles } from '../../lib/perf-render';
+import { icons, renderControls, renderFilm, renderLazy, renderLevers, renderMethod, renderPhone, renderTiles } from '../../lib/perf-render';
 import { defaultState } from '../../lib/perf-state';
 import { safeJson } from '../../lib/safe-json';
 
@@ -59,6 +59,30 @@ const clientData = {
     <section class="pv-section" aria-labelledby="pv-levers-h">
       <h2 id="pv-levers-h">Ways to keep it fast</h2>
       <div id="pv-levers" set:html={renderLevers(state, report)} />
+    </section>
+
+    <section class="pv-section" aria-labelledby="pv-yours-h">
+      <h2 id="pv-yours-h">Measure it on your own site</h2>
+      <p class="pv-yours-lead">The same comparison on your own pages: with Firework, and with Firework blocked. No code changes needed.</p>
+      <div class="pv-yours">
+        <article class="pv-yours-card">
+          <header><Fragment set:html={icons.gauge} /><h3>Before launch: a lab test</h3></header>
+          <p class="pv-yours-meta">Your engineers · about an hour</p>
+          <p>
+            Test your product page twice in WebPageTest, as it is and with Firework's requests blocked: the same phone and
+            Slow 4G as here, 9 runs each. Then compare main content, taps and layout shift side by side.
+          </p>
+        </article>
+        <article class="pv-yours-card">
+          <header><Fragment set:html={icons.people} /><h3>After launch: real shoppers</h3></header>
+          <p class="pv-yours-meta">Your performance team · about 4 weeks</p>
+          <p>
+            Compare Google's Core Web Vitals from real visits before and after. Best of all, show Firework to half your
+            shoppers and compare speed and conversion between the two halves.
+          </p>
+        </article>
+      </div>
+      <p class="pv-yours-more"><a href="/lab/performance/details/#measure-yourself">Step by step for engineers →</a></p>
     </section>
 
     <p class="pv-foot small muted">
@@ -1030,6 +1054,51 @@ const clientData = {
   .pv-delta > span:last-child {
     color: var(--ink-soft);
     font-size: 0.85rem;
+  }
+
+  /* measure it on your own site */
+  .pv-yours-lead {
+    margin: -4px 0 12px;
+    color: var(--ink-soft);
+  }
+  .pv-yours {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .pv-yours-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .pv-yours-card header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pv-yours-card h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+  }
+  .pv-yours-card p {
+    margin: 8px 0 0;
+    font-size: 0.9rem;
+  }
+  .pv-yours-card .pv-yours-meta {
+    margin-top: 4px;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+  }
+  .pv-yours-more {
+    margin: 10px 0 0;
+  }
+  @media (max-width: 700px) {
+    .pv-yours {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* ⓘ tooltips: hover or keyboard focus shows them, a tap pins them (.open, set in perf-configurator.ts).
