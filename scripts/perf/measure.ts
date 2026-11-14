@@ -1,36 +1,66 @@
-// Measures what Firework adds to this site's pages in the setups listed in src/lib/perf.ts (?widgets= picks the
-// widgets), with Lighthouse's mobile profile (Moto G Power, slow 4G, 4x CPU slowdown, cold cache), in three modes:
-// fw=off (no Firework at all), fw=lazy (fwn-async.js) and fw=on (the full SDK). Writes src/data/perf/latest.json
-// for /lab/performance.
+// Measures what Firework does to this store's pages, for /lab/performance. For every page in src/lib/perf.ts and
+// every combination of its widgets (?widgets= picks them), with standard loading and with the lazy loader, plus each
+// page without Firework:
 //
-// Usage: build and preview the site first, then
-//   BASE_URL=http://127.0.0.1:4391 npm run perf:measure -- --runs 3
+// 1. Lighthouse with real (devtools) throttling: a slow 4G connection, 4x CPU slowdown, Moto G Power emulation and
+//    an empty cache. Metrics, the loading filmstrip (as small WebP files under public/perf/) and the request
+//    timeline all come from the same slowed-down load. Median of --runs runs (default 3).
+// 2. Page maps: the whole page with Firework on, as a phone shows it, and where each widget sits.
+// 3. The lazy trade-off: on a throttled phone, how long after the shopper scrolls to the first widget below the
+//    first screen its first thumbnail shows, with the lazy loader and with standard loading.
+//
+// Usage: BASE_URL=https://deploy-preview-12--fjordbloom.netlify.app npm run perf:measure
+//   --runs 3        Lighthouse runs per setup and mode
+//   --only product  one page (product, category or home); other pages keep their previous results
+//   --setups product--pdp,product--off   only these setups (for quick checks); the others keep their results
+//   --from-raw      rebuild the JSON and filmstrips from the saved reports in out/perf/, without measuring
+//   --skip-maps / --skip-reveal   keep the previous page maps / lazy trade-off numbers
+//   --maps-only     only the page maps (and the lazy trade-off unless --skip-reveal); Lighthouse results are kept
+//   --baseline https://fjordbloom.netlify.app   measure only the pages without Firework on that site, the same way,
+//                   and store them as the "before" for the store's own fixes; everything else is kept
 // Firework's tracking pixel is blocked, so the runs don't count as visits in the sandbox channel's Insights.
-// The raw Lighthouse reports go to out/perf/. After a change to this script's summary, --from-raw rebuilds the
-// JSON from them without running Lighthouse again.
 import fs from 'node:fs';
 import path from 'node:path';
 import { launch } from 'chrome-launcher';
 import lighthouse from 'lighthouse';
-import { chromium } from 'playwright';
+import { chromium, type Page } from 'playwright';
+import sharp from 'sharp';
 import {
+  PHONE,
+  REVEAL_AFTER_MS,
   groupOfHost,
-  perfScenarios,
-  scenarioUrl,
+  perfPages,
+  perfSetups,
+  setupModes,
+  setupUrl,
   type FwMode,
   type GroupTotals,
+  type LaneId,
+  type PageMap,
   type PerfGroup,
   type PerfReport,
   type PerfResult,
+  type PerfSetup,
+  type Reveal,
 } from '../../src/lib/perf';
 
+const arg = (name: string) => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : undefined);
 const base = (process.env.BASE_URL ?? 'http://127.0.0.1:4321').replace(/\/$/, '');
-const runs = Math.max(1, Number(process.argv[process.argv.indexOf('--runs') + 1]) || 1);
-const only = process.argv.includes('--scenario') ? process.argv[process.argv.indexOf('--scenario') + 1] : null;
+const runs = Math.max(1, Number(arg('--runs')) || 3);
+const only = arg('--only') ?? null;
+const onlySetups = arg('--setups')?.split(',').filter(Boolean) ?? null;
+const baselineSite = arg('--baseline')?.replace(/\/$/, '') ?? null;
 const fromRaw = process.argv.includes('--from-raw');
-const modes: FwMode[] = ['off', 'lazy', 'on'];
+const mapsOnly = process.argv.includes('--maps-only');
+const skipMaps = fromRaw || process.argv.includes('--skip-maps');
+const skipReveal = fromRaw || process.argv.includes('--skip-reveal');
 const OUT = path.resolve('src/data/perf/latest.json');
 const RAW = path.resolve('out/perf');
+const PUBLIC_PERF = path.resolve('public/perf');
+const FILM_WIDTH = 140;
+const MAP_WIDTH = 180;
+/** Lighthouse's slow 4G for devtools throttling, also used for the lazy trade-off runs. */
+const SLOW_4G = { latencyMs: 562.5, downKbps: 1474.56, upKbps: 675 };
 
 /** The parts of a Lighthouse result this script reads. */
 interface Lhr {
@@ -45,6 +75,8 @@ interface Run {
   lighthouse: PerfResult['lighthouse'];
   network: PerfResult['network'];
   runtime: PerfResult['runtime'];
+  lanes: NonNullable<PerfResult['lanes']>;
+  frames: { t: number; data: string }[];
 }
 
 const num = (lhr: Lhr, id: string) => lhr.audits[id]?.numericValue ?? 0;
@@ -56,15 +88,30 @@ const hostOf = (url: string) => {
     return '';
   }
 };
+const laneOf = (g: PerfGroup): LaneId =>
+  g === 'site' ? 'page' : g === 'firework-sdk' ? 'script' : g === 'firework-media' || g === 'livestream' ? 'media' : g === 'ava' ? 'ava' : 'tracking';
+
+/** Overlapping (or nearly touching) request intervals merged into one bar. */
+function merge(intervals: [number, number][]): [number, number][] {
+  const sorted = intervals.filter(([a, b]) => b > a).sort((x, y) => x[0] - y[0]);
+  const out: [number, number][] = [];
+  for (const [a, b] of sorted) {
+    const last = out[out.length - 1];
+    if (last && a <= last[1] + 40) last[1] = Math.max(last[1], b);
+    else out.push([a, b]);
+  }
+  return out.map(([a, b]) => [Math.round(a), Math.round(b)]);
+}
 
 function summarise(lhr: Lhr): Run {
-  // The site is whatever host the report was measured on, so saved reports re-summarise on any port.
+  // The site is whatever host the report was measured on, so saved reports re-summarise anywhere.
   const siteHosts = [...new Set([hostOf(lhr.requestedUrl ?? ''), new URL(base).host].filter(Boolean))];
   const groups: Partial<Record<PerfGroup, GroupTotals>> = {};
   const types: Record<string, number> = {};
   const add = (g: PerfGroup) => (groups[g] ??= { requests: 0, bytes: 0, scriptMs: 0 });
   const requests = items(lhr, 'network-requests').filter((r) => typeof r.url === 'string' && !String(r.url).startsWith('data:'));
   const fw: { url: string; bytes: number; type: string }[] = [];
+  const laneIntervals: Partial<Record<LaneId, [number, number][]>> = {};
   let videoBytes = 0;
   for (const r of requests) {
     const url = String(r.url);
@@ -78,6 +125,9 @@ function summarise(lhr: Lhr): Run {
     // Lighthouse types the streamed video files (watermarked 720p MP4) as Media.
     if (type === 'Media' && g !== 'site') videoBytes += bytes;
     if (g !== 'site') fw.push({ url, bytes, type });
+    const start = Number(r.networkRequestTime ?? NaN);
+    const end = Number(r.networkEndTime ?? NaN);
+    if (Number.isFinite(start) && Number.isFinite(end)) (laneIntervals[laneOf(g)] ??= []).push([start, end]);
   }
   for (const b of items(lhr, 'bootup-time')) {
     // Script execution and parse only. "total" also counts layout and paint attributed to the document.
@@ -91,9 +141,10 @@ function summarise(lhr: Lhr): Run {
   const longTasks = items(lhr, 'long-tasks');
   // The element Lighthouse took as the largest contentful paint, and whether Firework rendered it.
   const lcpNode = items(lhr, 'lcp-breakdown-insight').find((it) => it.type === 'node') as { selector?: string; path?: string } | undefined;
-  const lcpElement = lcpNode
-    ? { selector: String(lcpNode.selector ?? '?'), firework: /FW-[A-Z-]+/.test(String(lcpNode.path ?? '')) }
-    : undefined;
+  const lcpElement = lcpNode ? { selector: String(lcpNode.selector ?? '?'), firework: /FW-[A-Z-]+/.test(String(lcpNode.path ?? '')) } : undefined;
+  const frames = items(lhr, 'screenshot-thumbnails').map((f) => ({ t: Math.round(Number(f.timing ?? 0)), data: String(f.data ?? '') }));
+  const lanes: Run['lanes'] = {};
+  for (const [lane, intervals] of Object.entries(laneIntervals)) lanes[lane as LaneId] = merge(intervals);
   return {
     lighthouse: {
       score: Math.round((lhr.categories.performance.score ?? 0) * 100),
@@ -124,6 +175,8 @@ function summarise(lhr: Lhr): Run {
       shifts,
       lcpElement,
     },
+    lanes,
+    frames,
   };
 }
 
@@ -139,7 +192,24 @@ const ranges = (all: Run[]): PerfResult['ranges'] => ({
   tbt: span(all.map((r) => r.lighthouse.tbt)),
   bytes: span(all.map((r) => r.network.bytes)),
   videoBytes: span(all.map((r) => r.network.videoBytes ?? 0)),
+  longest: span(all.map((r) => r.runtime.longestTaskMs)),
 });
+
+/** The filmstrip of the middle run as small WebP files: public/perf/<setup>-<mode>/film-<n>.webp. */
+async function writeFilm(setup: string, mode: FwMode, frames: Run['frames']): Promise<PerfResult['film']> {
+  const dir = path.join(PUBLIC_PERF, `${setup}-${mode}`);
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(dir, { recursive: true });
+  const out: NonNullable<PerfResult['film']> = [];
+  for (const [i, f] of frames.entries()) {
+    const b64 = f.data.split(',', 2)[1];
+    if (!b64) continue;
+    const file = path.join(dir, `film-${i}.webp`);
+    await sharp(Buffer.from(b64, 'base64')).resize({ width: FILM_WIDTH }).webp({ quality: 60 }).toFile(file);
+    out.push({ t: f.t, src: `/perf/${setup}-${mode}/film-${i}.webp` });
+  }
+  return out;
+}
 
 async function sdkRelease(): Promise<string> {
   try {
@@ -150,85 +220,273 @@ async function sdkRelease(): Promise<string> {
   }
 }
 
+const widgetSelector = (key: string) => (key === 'ava' ? 'fw-ava' : `[data-fw-key="${key}"], [data-fw-slot="${key}"]:not([data-fw-key])`);
+const widgetLabel = (setup: PerfSetup, key: string) => perfPages.find((p) => p.id === setup.page)?.widgets.find((w) => w.key === key)?.label ?? key;
+
+// ---------- 2. page maps ----------
+
+async function pageMap(page: Page, setup: PerfSetup): Promise<PageMap> {
+  const mode: FwMode = setup.off ? 'off' : 'on';
+  await page.goto(`${base}${setupUrl(setup, mode)}`, { waitUntil: 'load' });
+  // The floating lab notice ("Only these widgets…") is demo chrome, not part of the page a shopper sees.
+  await page.addStyleTag({ content: '#override-banner { display: none !important; }' });
+  await page.waitForTimeout(setup.off ? 1500 : 7000);
+  const boxes = await page.evaluate(
+    ({ keys, selectors }) =>
+      keys.flatMap((key, i) => {
+        const el = document.querySelector<HTMLElement>(selectors[i]!);
+        if (!el) return [];
+        // The reserved space around a widget, or the widget itself (AVA, the floating player).
+        const box = el.parentElement?.classList.contains('fw-reserve') ? el.parentElement : el;
+        const r = box.getBoundingClientRect();
+        const fixed = key === 'floating';
+        return [{ key, top: Math.round(r.top + (fixed ? 0 : window.scrollY)), height: Math.round(r.height), left: Math.round(r.left), width: Math.round(r.width), fixed }];
+      }),
+    { keys: setup.widgets, selectors: setup.widgets.map(widgetSelector) },
+  );
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  const shot = await page.screenshot({ fullPage: true, type: 'png' });
+  const dir = path.join(PUBLIC_PERF, setup.id);
+  fs.mkdirSync(dir, { recursive: true });
+  await sharp(shot).resize({ width: MAP_WIDTH }).webp({ quality: 55 }).toFile(path.join(dir, 'page.webp'));
+  return { src: `/perf/${setup.id}/page.webp`, height, boxes: boxes.map((b) => ({ ...b, label: widgetLabel(setup, b.key) })) };
+}
+
+// ---------- 3. the lazy trade-off ----------
+
+/** Has the widget shown a thumbnail or a playing video? Looks through open shadow roots. */
+const rendered = (selector: string) =>
+  `(() => {
+    const host = document.querySelector(${JSON.stringify(selector)});
+    if (!host || !customElements.get(host.tagName.toLowerCase())) return false;
+    const seen = [];
+    const walk = (root) => {
+      for (const el of root.querySelectorAll('*')) {
+        if (el.shadowRoot) walk(el.shadowRoot);
+        if (el.tagName === 'IMG' || el.tagName === 'VIDEO') seen.push(el);
+      }
+    };
+    if (host.shadowRoot) walk(host.shadowRoot);
+    return seen.some((m) => {
+      const r = m.getBoundingClientRect();
+      const ready = m.tagName === 'IMG' ? m.complete && m.naturalWidth > 0 : m.readyState >= 2;
+      return ready && r.width > 20 && r.height > 20;
+    });
+  })()`;
+
+async function timeReveal(page: Page, setup: PerfSetup, mode: FwMode, key: string): Promise<number | null> {
+  await page.goto(`${base}${setupUrl(setup, mode)}`, { waitUntil: 'load', timeout: 60000 });
+  await page.waitForTimeout(REVEAL_AFTER_MS);
+  const selector = widgetSelector(key);
+  const started = Date.now();
+  await page.evaluate((sel) => document.querySelector(sel)?.scrollIntoView({ block: 'center' }), selector);
+  while (Date.now() - started < 25000) {
+    if (await page.evaluate(rendered(selector))) return Date.now() - started;
+    await page.waitForTimeout(100);
+  }
+  return null;
+}
+
+async function reveals(setup: PerfSetup, map: PageMap | undefined): Promise<Reveal[]> {
+  // The first widget below the first screen, the one a scrolling shopper reaches first. AVA is not lazy-loaded.
+  const below = (map?.boxes ?? []).filter((b) => b.key !== 'ava' && (b.fixed || b.top > PHONE.height)).sort((a, b) => a.top - b.top)[0];
+  if (!below) return [];
+  const browser = await chromium.launch();
+  try {
+    const time = async (mode: FwMode) => {
+      const ctx = await browser.newContext({ viewport: PHONE, isMobile: true, hasTouch: true, deviceScaleFactor: 1.75 });
+      await ctx.route(/\/trk\//, (r) => r.abort());
+      const page = await ctx.newPage();
+      const cdp = await ctx.newCDPSession(page);
+      await cdp.send('Network.enable');
+      await cdp.send('Network.emulateNetworkConditions', {
+        offline: false,
+        latency: SLOW_4G.latencyMs,
+        downloadThroughput: (SLOW_4G.downKbps * 1024) / 8,
+        uploadThroughput: (SLOW_4G.upKbps * 1024) / 8,
+      });
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+      try {
+        return await timeReveal(page, setup, mode, below.key);
+      } finally {
+        await ctx.close();
+      }
+    };
+    const lazy: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      const ms = await time('lazy');
+      if (ms !== null) lazy.push(ms);
+    }
+    const standard = await time('on');
+    if (!lazy.length) return [];
+    lazy.sort((a, b) => a - b);
+    return [{ widget: below.label, lazyMs: lazy[Math.floor((lazy.length - 1) / 2)]!, standardMs: standard ?? 0 }];
+  } finally {
+    await browser.close();
+  }
+}
+
+// ---------- main ----------
+
+/** Lighthouse with the same settings as the main runs, on any URL. */
+async function measureUrl(port: number, url: string, file: string): Promise<Lhr> {
+  const result = await lighthouse(url, {
+    port,
+    output: 'json',
+    logLevel: 'error',
+    onlyCategories: ['performance'],
+    // Real throttling, so the filmstrip and the timeline show the same slowed-down load as the metrics.
+    throttlingMethod: 'devtools',
+    // A playing video keeps the network busy; the metrics are settled long before this.
+    maxWaitForLoad: 30000,
+    // Tracking events only. Everything else loads as it would for a visitor.
+    blockedUrlPatterns: ['*/trk/*'],
+  });
+  if (!result) throw new Error('Lighthouse returned nothing');
+  fs.writeFileSync(file, String(result.report));
+  return result.lhr as unknown as Lhr;
+}
+
+/** The pages without Firework on another site, as the "before" of the store's own fixes. */
+async function measureBaseline(site: string): Promise<void> {
+  if (!fs.existsSync(OUT)) throw new Error('Run the main measurement first: the baseline is added to its results.');
+  const report = JSON.parse(fs.readFileSync(OUT, 'utf8')) as PerfReport;
+  const chrome = await launch({ chromePath: chromium.executablePath(), chromeFlags: ['--headless=new', '--disable-gpu'] });
+  const results: PerfResult[] = [];
+  try {
+    for (const setup of perfSetups().filter((s) => s.off)) {
+      const all: Run[] = [];
+      for (let i = 0; i < runs; i++) {
+        process.stdout.write(`baseline ${setup.id} run ${i + 1}/${runs} … `);
+        const lhr = await measureUrl(chrome.port, `${site}${setupUrl(setup, 'off')}`, path.join(RAW, `baseline-${setup.id}-${i + 1}.json`));
+        const run = summarise(lhr);
+        all.push(run);
+        console.log(`LCP ${Math.round(run.lighthouse.lcp)} ms, ${Math.round(run.network.bytes / 1024)} KB`);
+      }
+      const { frames: _frames, ...rest } = median(all);
+      rest.runtime = { ...rest.runtime, longestTaskMs: Math.min(...all.map((r) => r.runtime.longestTaskMs)) };
+      results.push({ setup: setup.id, mode: 'off', url: setupUrl(setup, 'off'), ...rest, runs: all.length, ranges: ranges(all) });
+    }
+  } finally {
+    await chrome.kill();
+  }
+  report.baseline = { site, measuredAt: new Date().toISOString(), results };
+  fs.writeFileSync(OUT, `${JSON.stringify(report, null, 2)}\n`);
+  console.log(`\nAdded the baseline of ${site} to ${path.relative(process.cwd(), OUT)}.`);
+}
+
 async function main(): Promise<void> {
   fs.mkdirSync(RAW, { recursive: true });
+  if (baselineSite) return measureBaseline(baselineSite);
+  const setups = perfSetups().filter((s) => (!only || s.page === only) && (!onlySetups || onlySetups.includes(s.id)));
+  if (!setups.length) throw new Error('No setups match --only / --setups. Pages: product, category, home.');
   let chrome: Awaited<ReturnType<typeof launch>> | null = null;
-  if (!fromRaw) {
-    const health = await fetch(`${base}/`).catch(() => null);
-    if (!health?.ok) throw new Error(`Nothing is serving ${base}. Build and preview the site first, then set BASE_URL.`);
+  if (!fromRaw && !mapsOnly) {
+    for (const page of perfPages) {
+      const res = await fetch(`${base}${page.path}`).catch(() => null);
+      if (!res?.ok) throw new Error(`${base}${page.path} did not answer. Set BASE_URL to the site to measure.`);
+    }
     chrome = await launch({ chromePath: chromium.executablePath(), chromeFlags: ['--headless=new', '--disable-gpu'] });
   }
+  const previous = fs.existsSync(OUT) ? (JSON.parse(fs.readFileSync(OUT, 'utf8')) as Partial<PerfReport>) : null;
   const results: PerfResult[] = [];
   let lhVersion = '';
   let chromeUa = '';
   let measuredSite = '';
   try {
-    for (const scenario of perfScenarios.filter((p) => !only || p.id === only)) {
-      for (const mode of modes) {
-        const url = `${base}${scenarioUrl(scenario, mode)}`;
+    for (const setup of mapsOnly ? [] : setups) {
+      for (const mode of setupModes(setup)) {
+        const url = `${base}${setupUrl(setup, mode)}`;
         const all: Run[] = [];
-        const saved = fs.readdirSync(RAW).filter((f) => f.startsWith(`${scenario.id}-${mode}-`) && f.endsWith('.json')).length;
+        const saved = fs.existsSync(RAW) ? fs.readdirSync(RAW).filter((f) => f.startsWith(`${setup.id}-${mode}-`) && f.endsWith('.json')).length : 0;
         const count = fromRaw ? saved : runs;
         for (let i = 0; i < count; i++) {
-          process.stdout.write(`${scenario.id} fw=${mode} run ${i + 1}/${count}${fromRaw ? ' (saved)' : ''} … `);
-          const file = path.join(RAW, `${scenario.id}-${mode}-${i + 1}.json`);
+          process.stdout.write(`${setup.id} ${mode} run ${i + 1}/${count}${fromRaw ? ' (saved)' : ''} … `);
+          const file = path.join(RAW, `${setup.id}-${mode}-${i + 1}.json`);
           let lhr: Lhr;
           if (fromRaw) {
             lhr = JSON.parse(fs.readFileSync(file, 'utf8')) as Lhr;
           } else {
-            const result = await lighthouse(url, {
-              port: chrome!.port,
-              output: 'json',
-              logLevel: 'error',
-              onlyCategories: ['performance'],
-              // Tracking events only. Everything else loads as it would for a visitor.
-              blockedUrlPatterns: ['*/trk/*'],
-            });
-            if (!result) throw new Error('Lighthouse returned nothing');
-            lhr = result.lhr as unknown as Lhr;
-            fs.writeFileSync(file, String(result.report));
+            lhr = await measureUrl(chrome!.port, url, file);
           }
           lhVersion = lhr.lighthouseVersion;
           chromeUa = lhr.environment.hostUserAgent;
           if (lhr.requestedUrl) measuredSite = new URL(lhr.requestedUrl).origin;
           const run = summarise(lhr);
           all.push(run);
-          console.log(`score ${run.lighthouse.score}, LCP ${Math.round(run.lighthouse.lcp)} ms, TBT ${Math.round(run.lighthouse.tbt)} ms, ${run.network.requests} requests, ${Math.round(run.network.bytes / 1024)} KB`);
+          console.log(`LCP ${Math.round(run.lighthouse.lcp)} ms, TBT ${Math.round(run.lighthouse.tbt)} ms, ${run.network.requests} requests, ${Math.round(run.network.bytes / 1024)} KB`);
         }
-        if (!all.length) throw new Error(`No saved reports for ${scenario.id} fw=${mode} in ${path.relative(process.cwd(), RAW)}`);
-        results.push({ scenario: scenario.id, mode, url: scenarioUrl(scenario, mode), ...median(all), runs: all.length, ranges: ranges(all) });
+        if (!all.length) throw new Error(`No saved reports for ${setup.id} ${mode} in ${path.relative(process.cwd(), RAW)}`);
+        const mid = median(all);
+        const { frames, ...rest } = mid;
+        // Pauses are CPU-bound, and other programs on the test machine lengthen them at random. The shortest across
+        // the runs is the least disturbed; it is used the same way for every variant.
+        rest.runtime = { ...rest.runtime, longestTaskMs: Math.min(...all.map((r) => r.runtime.longestTaskMs)) };
+        results.push({ setup: setup.id, mode, url: setupUrl(setup, mode), ...rest, film: await writeFilm(setup.id, mode, frames), runs: all.length, ranges: ranges(all) });
       }
     }
   } finally {
     await chrome?.kill();
   }
-  const previous = fs.existsSync(OUT) ? (JSON.parse(fs.readFileSync(OUT, 'utf8')) as PerfReport) : null;
-  // With --scenario, only that setup was measured: keep the other setups' results from the previous file.
-  if (only && previous) {
-    const kept = previous.results.filter((r) => r.scenario !== only && perfScenarios.some((s) => s.id === r.scenario));
-    results.unshift(...kept);
-    results.sort((a, b) => perfScenarios.findIndex((s) => s.id === a.scenario) - perfScenarios.findIndex((s) => s.id === b.scenario));
+
+  // Page maps and the lazy trade-off: kept from the previous file unless measured now.
+  const pageMaps: Record<string, PageMap> = { ...(previous?.pageMaps ?? {}) };
+  const revealMap: Record<string, Reveal[]> = { ...(previous?.reveals ?? {}) };
+  if (!skipMaps) {
+    const browser = await chromium.launch();
+    const ctx = await browser.newContext({ viewport: PHONE, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+    await ctx.route(/\/trk\//, (r) => r.abort());
+    const page = await ctx.newPage();
+    for (const setup of setups) {
+      process.stdout.write(`page map ${setup.id} … `);
+      pageMaps[setup.id] = await pageMap(page, setup);
+      console.log(`${pageMaps[setup.id]!.height}px, ${pageMaps[setup.id]!.boxes.length} widgets`);
+    }
+    await browser.close();
   }
+  if (!skipReveal) {
+    for (const setup of setups.filter((s) => !s.off && s.widgets.length)) {
+      process.stdout.write(`lazy trade-off ${setup.id} … `);
+      revealMap[setup.id] = await reveals(setup, pageMaps[setup.id]);
+      console.log(revealMap[setup.id]!.map((r) => `${r.widget}: lazy ${r.lazyMs} ms, standard ${r.standardMs} ms`).join('; ') || 'nothing below the first screen');
+    }
+  }
+
+  // With --only, --setups or --maps-only, keep the other results.
+  const kept =
+    mapsOnly && previous?.results
+      ? previous.results
+      : (only || onlySetups) && previous?.results
+        ? previous.results.filter((r) => r.setup && !setups.some((s) => s.id === r.setup))
+        : [];
+  const order = perfSetups().map((s) => s.id);
+  const allResults = [...kept, ...results].sort((a, b) => order.indexOf(a.setup) - order.indexOf(b.setup) || a.mode.localeCompare(b.mode));
   const report: PerfReport = {
     // Re-summarised reports keep the date they were measured.
-    measuredAt: fromRaw && previous ? previous.measuredAt : new Date().toISOString(),
-    site: fromRaw ? measuredSite || base : base,
+    measuredAt: (fromRaw || mapsOnly) && previous?.measuredAt ? previous.measuredAt : new Date().toISOString(),
+    site: fromRaw ? measuredSite || base : mapsOnly && previous?.site ? previous.site : base,
     sdkRelease: await sdkRelease(),
-    lighthouseVersion: lhVersion,
-    chrome: /Chrome\/([\d.]+)/.exec(chromeUa)?.[1] ?? chromeUa,
+    lighthouseVersion: lhVersion || previous?.lighthouseVersion || '',
+    chrome: /Chrome\/([\d.]+)/.exec(chromeUa)?.[1] ?? (chromeUa || previous?.chrome || ''),
     conditions: {
-      device: 'Lighthouse mobile profile (Moto G Power emulation)',
-      network: 'Simulated slow 4G (1.6 Mbps down, 150 ms RTT)',
-      cpu: '4x slowdown',
-      cache: 'Cold: storage and cache cleared before each run',
+      device: 'Mid-range phone (Moto G Power, Lighthouse mobile profile)',
+      network: 'Slow 4G, applied for real: 1.47 Mbps down, 562 ms latency',
+      cpu: '4x slower than this computer',
+      cache: 'First visit: empty cache',
       tracking: "Firework's tracking pixel blocked, so the runs are not counted as visits",
+      runs: Math.max(...allResults.map((r) => r.runs)),
     },
-    scenarios: perfScenarios,
-    results,
+    pages: perfPages,
+    setups: perfSetups(),
+    results: allResults,
+    pageMaps,
+    reveals: revealMap,
+    // The baseline is measured separately (--baseline) and kept.
+    ...(previous?.baseline ? { baseline: previous.baseline } : {}),
   };
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, `${JSON.stringify(report, null, 2)}\n`);
-  console.log(`\nWrote ${path.relative(process.cwd(), OUT)} (${results.length} results, median of ${results[0]?.runs ?? 0}).`);
+  console.log(`\nWrote ${path.relative(process.cwd(), OUT)}: ${allResults.length} results, ${Object.keys(pageMaps).length} page maps.`);
 }
 
 main().catch((e) => {

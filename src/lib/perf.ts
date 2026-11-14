@@ -64,42 +64,103 @@ export function rate(id: string, value: number): Rating {
 
 export const ratingLabels: Record<Rating, string> = { good: 'Good', 'needs-improvement': 'Needs improvement', poor: 'Poor' };
 
-/**
- * A setup to measure: a page of this store with a chosen set of widgets (?widgets=). "core" setups are what most
- * customers start with and lead the overview; "addon" setups show what one more feature costs; "stress" is the demo
- * store's showcase home page with everything on.
- */
-export interface PerfScenario {
-  id: string;
+/** A widget the performance view can switch on, by its ?widgets= key (see WIDGET_KEYS in settings.ts). */
+export interface PerfWidget {
+  key: string;
   label: string;
-  /** Page path, with a trailing slash. */
-  path: string;
-  /** Keys for ?widgets= (see WIDGET_KEYS in settings.ts). */
-  widgets: string[];
-  /** What the shopper sees when Firework is on. */
-  shows: string[];
-  tier: 'core' | 'addon' | 'stress';
-  /** For an add-on: the core scenario it adds to. */
-  addsTo?: string;
 }
 
-export const perfScenarios: PerfScenario[] = [
-  { id: 'home-carousel', label: 'Home page with a carousel', path: '/', widgets: ['carousel'], shows: ['Carousel'], tier: 'core' },
-  { id: 'product-storyblock', label: 'Product page with a Storyblock', path: '/products/cloudberry-vitamin-c-serum/', widgets: ['pdp'], shows: ['Storyblock of videos tagged with the product'], tier: 'core' },
-  { id: 'shop-grid', label: 'Category page with a video grid', path: '/shop/', widgets: ['grid', 'stories'], shows: ['Grid', 'Circle stories'], tier: 'core' },
-  { id: 'home-carousel-floating', label: 'Home page: carousel plus a floating player', path: '/', widgets: ['carousel', 'floating'], shows: ['Carousel', 'Floating player'], tier: 'addon', addsTo: 'home-carousel' },
-  { id: 'product-storyblock-ava', label: 'Product page: Storyblock plus AVA', path: '/products/cloudberry-vitamin-c-serum/', widgets: ['pdp', 'ava'], shows: ['Storyblock', 'AVA Product FAQ'], tier: 'addon', addsTo: 'product-storyblock' },
-  { id: 'live-hero', label: 'Livestream page with a hero unit', path: '/live/', widgets: ['hero'], shows: ['Hero unit: countdown, live show or replay'], tier: 'addon' },
-  { id: 'home-all', label: 'Home page with everything on', path: '/', widgets: ['hero', 'storyblock', 'carousel', 'floating'], shows: ['Hero unit (livestream)', 'Storyblock', 'Carousel', 'Floating player'], tier: 'stress' },
+export type PerfPageId = 'product' | 'category' | 'home';
+
+/** A page of this store, with the widgets that can be switched on there. */
+export interface PerfPage {
+  id: PerfPageId;
+  label: string;
+  /** Path with a trailing slash. */
+  path: string;
+  widgets: PerfWidget[];
+  /** What the view starts with on this page. */
+  defaults: string[];
+}
+
+export const perfPages: PerfPage[] = [
+  {
+    id: 'product',
+    label: 'Product page',
+    path: '/products/cloudberry-vitamin-c-serum/',
+    widgets: [
+      { key: 'pdp', label: 'Storyblock' },
+      { key: 'deck', label: 'Player Deck' },
+      { key: 'ava', label: 'AVA' },
+    ],
+    defaults: ['pdp'],
+  },
+  {
+    id: 'category',
+    label: 'Category page',
+    path: '/shop/',
+    widgets: [
+      { key: 'stories', label: 'Circle stories' },
+      { key: 'grid', label: 'Video grid' },
+    ],
+    defaults: ['grid'],
+  },
+  {
+    id: 'home',
+    label: 'Home page',
+    path: '/',
+    widgets: [
+      { key: 'carousel', label: 'Carousel' },
+      { key: 'floating', label: 'Floating player' },
+    ],
+    defaults: [],
+  },
 ];
 
-/** The URL a scenario is measured at. */
-export const scenarioUrl = (s: PerfScenario, mode: FwMode): string => `${s.path}?widgets=${s.widgets.join(',')}&fw=${mode}`;
+/**
+ * One measured setup: a page with a set of widgets, or the page without Firework ("off"). With no widgets but
+ * Firework on, the page still loads the script: what a site-wide script tag costs on pages without widgets.
+ */
+export interface PerfSetup {
+  id: string;
+  page: PerfPageId;
+  /** Widget keys, in the page's order. Empty for "script only" and for "off". */
+  widgets: string[];
+  off: boolean;
+}
+
+/** "product--pdp-ava", "product--none" (script only), "product--off" (no Firework). */
+export const setupId = (page: PerfPageId, widgets: string[] | null): string =>
+  `${page}--${widgets === null ? 'off' : widgets.length ? widgets.join('-') : 'none'}`;
+
+/** Every subset of a page's widgets, in the page's order, the empty set first. */
+export function widgetCombos(page: PerfPage): string[][] {
+  const keys = page.widgets.map((w) => w.key);
+  const out: string[][] = [];
+  for (let mask = 0; mask < 1 << keys.length; mask++) out.push(keys.filter((_, i) => mask & (1 << i)));
+  return out.sort((a, b) => a.length - b.length);
+}
+
+export function perfSetups(): PerfSetup[] {
+  return perfPages.flatMap((p) => [
+    { id: setupId(p.id, null), page: p.id, widgets: [], off: true },
+    ...widgetCombos(p).map((w) => ({ id: setupId(p.id, w), page: p.id, widgets: w, off: false })),
+  ]);
+}
+
+/** Modes measured for a setup: "off" for the page without Firework, standard ("on") and lazy for the others. */
+export const setupModes = (s: PerfSetup): FwMode[] => (s.off ? ['off'] : ['on', 'lazy']);
+
+/** The URL a setup is measured at. */
+export function setupUrl(s: PerfSetup, mode: FwMode): string {
+  const page = perfPages.find((p) => p.id === s.page)!;
+  return `${page.path}?widgets=${s.widgets.join(',')}&fw=${mode}`;
+}
 
 export const modeLabels: Record<FwMode, string> = {
   off: 'Without Firework',
-  lazy: 'Lazy loader (fwn-async.js)',
-  on: 'Firework on',
+  lazy: 'Lazy loading',
+  on: 'Standard loading',
 };
 
 export interface GroupTotals {
@@ -110,8 +171,19 @@ export interface GroupTotals {
   scriptMs: number;
 }
 
+/** Where requests happened on the loading timeline, merged per lane, in ms from the start of navigation. */
+export type LaneId = 'page' | 'script' | 'media' | 'tracking' | 'ava';
+
+export const laneLabels: Record<LaneId, string> = {
+  page: 'Your page',
+  script: 'Firework script',
+  media: 'Thumbnails and video',
+  tracking: 'Tracking and API',
+  ava: 'AVA',
+};
+
 export interface PerfResult {
-  scenario: string;
+  setup: string;
   mode: FwMode;
   url: string;
   lighthouse: {
@@ -151,10 +223,39 @@ export interface PerfResult {
     /** The element Lighthouse took as the largest contentful paint, and whether Firework rendered it. */
     lcpElement?: { selector: string; firework: boolean };
   };
+  /** Loading filmstrip of the middle run: frame times in ms and their image under public/. */
+  film?: { t: number; src: string }[];
+  /** Request lanes of the middle run, for the timeline. */
+  lanes?: Partial<Record<LaneId, [number, number][]>>;
   /** Number of runs this result is the median of. */
   runs: number;
   /** Lowest and highest value across the runs, to tell a real change from run-to-run noise. */
-  ranges?: { lcp: [number, number]; tbt: [number, number]; bytes: [number, number]; videoBytes?: [number, number] };
+  ranges?: { lcp: [number, number]; tbt: [number, number]; bytes: [number, number]; videoBytes?: [number, number]; longest?: [number, number] };
+}
+
+/** The whole page as a phone shows it, with where each widget sits. Taken with Firework on, unthrottled. */
+export interface PageMap {
+  /** Full-page screenshot under public/, scaled to MAP_WIDTH. */
+  src: string;
+  /** Page height in CSS px at the phone width (PHONE.width). */
+  height: number;
+  /** In CSS px of the phone-wide page. A fixed widget (the floating player) is placed in the first screen. */
+  boxes: { key: string; label: string; top: number; height: number; left: number; width: number; fixed: boolean }[];
+}
+
+/** The phone the measurements emulate: Lighthouse's mobile profile. */
+export const PHONE = { width: 412, height: 823 } as const;
+
+/** How long after the page has loaded the measured shopper scrolls to the first widget. */
+export const REVEAL_AFTER_MS = 4000;
+
+/** With the lazy loader, how long after the shopper scrolls to a widget its first thumbnail shows. */
+export interface Reveal {
+  widget: string;
+  /** Median ms from scrolling the widget into view until its first thumbnail or player showed. */
+  lazyMs: number;
+  /** The same with standard loading. */
+  standardMs: number;
 }
 
 export interface PerfReport {
@@ -163,7 +264,13 @@ export interface PerfReport {
   sdkRelease: string;
   lighthouseVersion: string;
   chrome: string;
-  conditions: { device: string; network: string; cpu: string; cache: string; tracking: string };
-  scenarios: PerfScenario[];
+  conditions: { device: string; network: string; cpu: string; cache: string; tracking: string; runs: number };
+  pages: PerfPage[];
+  setups: PerfSetup[];
   results: PerfResult[];
+  pageMaps: Record<string, PageMap>;
+  /** By setup id. */
+  reveals: Record<string, Reveal[]>;
+  /** The same pages without Firework on another site (the store before its own fixes), measured the same way. */
+  baseline?: { site: string; measuredAt: string; results: PerfResult[] };
 }

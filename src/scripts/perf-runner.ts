@@ -8,14 +8,14 @@ export const PERF_KEY = 'fjb.perf.v1';
 const SETTLE_MS = 8000;
 
 export interface LiveStep {
-  scenario: string;
+  setup: string;
   mode: FwMode;
   /** Path and query of the page to load, without the perf parameter. */
   url: string;
 }
 
 export interface LiveResult {
-  scenario: string;
+  setup: string;
   mode: FwMode;
   url: string;
   at: string;
@@ -101,7 +101,7 @@ function collect(step: LiveStep): LiveResult {
   }
   const m = window.__fjbPerf ?? { lcp: 0, cls: 0, longTasks: 0, longTaskMs: 0, blockingMs: 0 };
   return {
-    scenario: step.scenario,
+    setup: step.setup,
     mode: step.mode,
     url: location.pathname + location.search,
     at: new Date().toISOString(),

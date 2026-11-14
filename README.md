@@ -19,7 +19,7 @@ Nothing here is for sale. Products, images and videos are illustrated or AI-gene
 | Live and Showroom | `/live`, `/showroom` | Live: the hosted show, its countdown and replays. Showroom: a daily restream with AI Copilot answering the chat, and the next session in the visitor's time zone |
 | OBS overlays | `/live/overlays` | Browser-source overlays at 720x1280 (name strap, product spotlight, giveaway, starting soon) and the OBS settings Firework needs |
 | Pitch mode | `/pitch` | Presents the store as a customer demo: demo tools hidden, presenter notes in a second window |
-| Page weight and vitals | `/lab/performance`, `/lab/performance/details` | What adding Firework does to a page, in plain words for a marketing manager (how much heavier, does it show up as fast, does it respond to taps, does anything jump, with the research on what people notice), then every number for engineers: seven setups via `?widgets=`, three modes, weight by sender, main-thread time, Lighthouse metrics on Google's thresholds, and a run in the visitor's own browser. `npm run perf:measure` regenerates the numbers |
+| Page speed with Firework | `/lab/performance`, `/lab/performance/details` | A visual view for customer calls: switch the page (product, category, home), its widgets and standard or lazy loading, and see the whole page in a phone with the first screen marked, Google's verdicts as band charts, the loading filmstrip, the page weight and what lazy loading saves and costs. A numbers switch and a details page for engineers. `npm run perf:measure` measures every combination with Lighthouse on real throttling |
 | Your site with Firework | `/lab/bookmarklet` | A bookmark that adds any of the 12 layouts, or AVA, to a prospect's website, only in the presenter's browser, with a practice page and steps for a prospect's own assistant |
 | Custom arrows | `/lab/arrows`, `/arrows/*.svg` | Six SVG arrow styles for `ui_asset_next` and `ui_asset_previous`, switchable on a live carousel, served with CORS for reuse |
 | Layouts | `/lab/layouts` | All 12 Business Portal layouts live, grouped by the five elements behind them, with the attributes that make each one |
@@ -91,7 +91,8 @@ npm run validate      # catalog and video specs
 npm run check         # TypeScript and Astro
 npm run lint:secrets  # secret scan (also runs on every commit)
 npm run test:smoke    # Playwright, desktop and mobile; set BASE_URL to test a deploy preview
-npm run perf:measure  # Lighthouse, three pages in three modes, writes src/data/perf/latest.json; needs a running preview and BASE_URL
+npm run perf:measure  # Lighthouse with real throttling, every page and widget combination, standard and lazy; BASE_URL = the deploy preview
+npm run gen:webp      # WebP copies of the product images for srcset, after new images are generated
 ```
 
 ## Deploy

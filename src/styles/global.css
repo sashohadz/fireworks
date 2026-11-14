@@ -352,6 +352,11 @@ kbd {
 
 /* ---------- footer ---------- */
 .site-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}
+
+.site-footer {
   margin-top: 64px;
   border-top: 1px solid var(--line);
   background: var(--surface);

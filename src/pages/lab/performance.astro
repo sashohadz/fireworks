@@ -2,487 +2,934 @@
 import reportJson from '../../data/perf/latest.json';
 import Lab from '../../layouts/Lab.astro';
 import type { PerfReport } from '../../lib/perf';
-import {
-  addonDelta,
-  extraWait,
-  fmtCls,
-  fmtKb,
-  fmtMs,
-  lcpStory,
-  lowerFirst,
-  pageDelta,
-  perceivedLabels,
-  ratingOf,
-  result,
-  signed,
-  tapPause,
-  thresholdFor,
-  videoMax,
-  weightContext,
-  weightOf,
-  type LcpStory,
-  type PageDelta,
-  type Perception,
-} from '../../lib/perf-view';
+import { icons, renderControls, renderFilm, renderLazy, renderLevers, renderPhone, renderTiles } from '../../lib/perf-render';
+import { defaultState } from '../../lib/perf-state';
+import { safeJson } from '../../lib/safe-json';
 
 const report = reportJson as unknown as PerfReport;
-const core = report.scenarios.filter((s) => s.tier === 'core');
-const addons = report.scenarios.filter((s) => s.tier === 'addon');
-const stress = report.scenarios.find((s) => s.tier === 'stress');
+const state = defaultState(report);
+const runs = report.conditions?.runs ?? 3;
 const measuredOn = new Date(report.measuredAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-
-interface Card {
-  id: string;
-  label: string;
-  shows: string;
-  d: PageDelta;
-  lcp: { before: string; after: string; rating: ReturnType<typeof ratingOf>; story: LcpStory };
-  tap: { before: string; after: string; perception: Perception; tbtRating: ReturnType<typeof ratingOf>; tbt: string };
-  cls: { before: string; after: string; rating: ReturnType<typeof ratingOf>; jumps: boolean };
-  weight: { before: string; after: string; added: string; context: string; requests: number; video: number };
-  lazy?: { bytes: string; sdkLoaded: boolean };
-}
-
-const cards: Card[] = core
-  .map((s) => {
-    const d = pageDelta(report, s.id);
-    if (!d) return null;
-    const lazy = result(report, s.id, 'lazy');
-    const card: Card = {
-      id: s.id,
-      label: s.label,
-      shows: s.shows.join(', '),
-      d,
-      lcp: {
-        before: fmtMs(d.off.lighthouse.lcp),
-        after: fmtMs(d.on.lighthouse.lcp),
-        rating: ratingOf('lcp', d.on.lighthouse.lcp),
-        story: lcpStory(d.off, d.on, lazy),
-      },
-      tap: {
-        before: fmtMs(d.off.runtime.longestTaskMs),
-        after: fmtMs(d.on.runtime.longestTaskMs),
-        perception: tapPause(d.on.runtime.longestTaskMs),
-        tbtRating: ratingOf('tbt', d.on.lighthouse.tbt),
-        tbt: fmtMs(d.on.lighthouse.tbt),
-      },
-      cls: { before: fmtCls(d.off.lighthouse.cls), after: fmtCls(d.on.lighthouse.cls), rating: ratingOf('cls', d.on.lighthouse.cls), jumps: d.on.lighthouse.cls > 0.1 },
-      // Weight before any video plays: whether autoplay starts streaming within a run varies, so video is shown on its own.
-      weight: {
-        before: fmtKb(weightOf(d.off)),
-        after: fmtKb(weightOf(d.on)),
-        added: fmtKb(Math.max(0, d.bytes)),
-        context: weightContext(weightOf(d.on)),
-        requests: d.requests,
-        video: videoMax(d.on),
-      },
-      lazy: lazy ? { bytes: fmtKb(Math.max(0, weightOf(lazy) - weightOf(d.off))), sdkLoaded: lazy.runtime.sdkLoaded } : undefined,
-    };
-    return card;
-  })
-  .filter((c): c is Card => c !== null);
-
-// The short version, from the typical setups.
-const added = cards.map((c) => Math.max(0, c.d.bytes));
-// The setup where the main content showed up latest, if any did.
-const slowest = cards.filter((c) => c.lcp.story.kind === 'later').sort((a, b) => b.lcp.story.worst - a.lcp.story.worst)[0];
-const offLcps = cards.map((c) => c.d.off.lighthouse.lcp);
-const offLongest = Math.max(0, ...cards.map((c) => c.d.off.runtime.longestTaskMs));
-const lcpSummary = slowest
-  ? `On a slow connection, Firework's script competes with the page's main image: on the ${lowerFirst(slowest.label)} it showed up ${
-      slowest.lcp.story.typical > 100
-        ? `typically ${fmtMs(slowest.lcp.story.typical)} later, up to ${fmtMs(slowest.lcp.story.worst)} in the slowest run.`
-        : `as fast in most runs, and ${fmtMs(slowest.lcp.story.worst)} later in the slowest.`
-    }${slowest.lcp.story.lazyHelps ? " With Firework's lazy loader it showed up as fast as without Firework." : ''}`
-  : "The main content shows up just as fast: Firework's script loads after your own content.";
-const clsAllGood = cards.every((c) => !c.cls.jumps);
-const longestPause = Math.max(0, ...cards.map((c) => c.d.on.runtime.longestTaskMs));
-const pause = tapPause(longestPause);
-const lazyKept = cards.filter((c) => c.lazy && !c.lazy.sdkLoaded);
-const lazyExtra = lazyKept.map((c) => Math.max(0, result(report, c.id, 'lazy')!.network.bytes - c.d.off.network.bytes));
-const stressDelta = stress ? pageDelta(report, stress.id) : undefined;
-const stressLcp = stressDelta ? lcpStory(stressDelta.off, stressDelta.on) : undefined;
-const addonRows = addons.map((a) => ({ a, delta: addonDelta(report, a)! })).filter((x) => x.delta);
-const lcpOwn = report.results.filter((r) => r.mode === 'on').every((r) => r.runtime.lcpElement && !r.runtime.lcpElement.firework);
-const lcpLine = thresholdFor('lcp');
-const offMax = Math.max(0, ...offLcps);
-const baselineText = `On this deliberately slow test phone, even the pages without Firework take ${fmtMs(Math.min(...offLcps))} to ${fmtMs(offMax)}, ${
-  offMax > lcpLine.good * 1.15 ? `already over Google's ${fmtMs(lcpLine.good)} line` : offMax >= lcpLine.good * 0.85 ? `right at Google's ${fmtMs(lcpLine.good)} line` : `within Google's ${fmtMs(lcpLine.good)} line`
-}.`;
-const inpLine = thresholdFor('inp');
-const clsLine = thresholdFor('cls');
-const tbtLine = thresholdFor('tbt');
-
-const dotFor = (level: Perception['level']) => ({ instant: 'ok', borderline: 'warn', noticeable: 'warn', clear: 'bad' })[level];
-const dotForRating = (rating: string) => (rating === 'good' ? 'ok' : rating === 'poor' ? 'bad' : 'warn');
-const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-const changeText = (ms: number) => (Math.abs(ms) <= 100 ? 'No noticeable change' : `${signed(fmtMs(Math.abs(ms)), ms >= 0)}: ${extraWait(Math.abs(ms)).text}`);
+const host = (() => {
+  try {
+    return new URL(report.site).host;
+  } catch {
+    return report.site;
+  }
+})();
+// The client only needs what the visuals draw.
+const clientData = {
+  ...report,
+  results: report.results.map(({ network, ...r }) => ({ ...r, network: { ...network, biggest: [], types: {} } })),
+};
+const method = [
+  { icon: icons.phone, big: 'Mid-range phone', small: 'Moto G Power' },
+  { icon: icons.signal, big: 'Slow 4G', small: '1.5 Mbps' },
+  { icon: icons.empty, big: 'First visit', small: 'nothing cached' },
+  { icon: icons.repeat, big: `${runs} run${runs === 1 ? '' : 's'}`, small: runs > 1 ? 'middle one counts' : 'single run' },
+  { icon: icons.gauge, big: 'Google Lighthouse', small: 'Google’s own test' },
+];
 ---
 
-<Lab title="Page weight and vitals" description="What adding Firework does to a page, in plain words, measured on this store with Google's Lighthouse, with the full numbers for engineers on a second page.">
-  <p class="eyebrow">Lab tool</p>
-  <h1>Page weight and vitals</h1>
-  <p class="lede">
-    What adding Firework does to a page: how much heavier it gets, whether it shows up as fast, whether it still
-    responds to taps, and whether anything jumps around. Measured on this store with Google's own tool, on a slow
-    phone, so these are worst-case numbers. The short version first; the
-    <a href="/lab/performance/details/">full numbers for engineers</a> are on their own page.
-  </p>
+<Lab title="Page speed with Firework" description="What adding Firework does to a page's speed, shown visually: switch pages, widgets and lazy loading, and see Google's verdicts, the loading filmstrip and the page weight.">
+  <div id="pv-app" class="pv">
+    <header class="pv-head">
+      <p class="eyebrow">Lab tool</p>
+      <h1>Page speed with Firework</h1>
+    </header>
 
-  {cards.length === 0 && <p class="note">No measurements yet. Run <code>npm run perf:measure</code> and rebuild.</p>}
-
-  {
-    cards.length > 0 && (
-      <section class="panel summary" aria-labelledby="summary-heading">
-        <h2 id="summary-heading">The short version</h2>
-        <ul class="summary-list">
-          <li>
-            <span class="dot dot-ok" aria-hidden="true" />
-            <span>
-              On a typical page, Firework adds between <strong>{fmtKb(Math.min(...added))}</strong> and <strong>{fmtKb(Math.max(...added))}</strong>
-              before any video plays, mostly its own script. The heaviest of these pages ends up {weightContext(Math.max(...cards.map((c) => weightOf(c.d.on))))}.
-              A playing video streams more on top, like any video on a page, and only while it plays.
-            </span>
-          </li>
-          <li>
-            <span class={`dot dot-${slowest ? (slowest.lcp.story.lazyHelps ? 'warn' : dotFor(slowest.lcp.story.perception.level)) : 'ok'}`} aria-hidden="true" />
-            <span>
-              {lcpSummary} {baselineText}
-            </span>
-          </li>
-          <li>
-            <span class={`dot dot-${clsAllGood ? 'ok' : 'bad'}`} aria-hidden="true" />
-            <span>{clsAllGood ? 'Nothing jumps around: the space for the videos is reserved before they load.' : 'Something moves on at least one page while the videos load; see the cards below.'}</span>
-          </li>
-          <li>
-            <span class={`dot dot-${dotFor(pause.level)}`} aria-hidden="true" />
-            <span>
-              While the page is still loading, a tap could wait up to <strong>{fmtMs(longestPause)}</strong> on a slow phone (without Firework: up to {fmtMs(offLongest)}), which {pause.text}. Once loaded, the page responds as before.
-            </span>
-          </li>
-          {lazyKept.length > 0 && (
+    <section class="pv-method" aria-label="How we test">
+      <ol class="pv-method-steps">
+        {
+          method.map((m) => (
             <li>
-              <span class="dot dot-ok" aria-hidden="true" />
+              <Fragment set:html={m.icon} />
               <span>
-                With Firework's lazy loader, {lazyKept.length === cards.length ? 'each of these pages carries' : `${lazyKept.map((c) => `the ${lowerFirst(c.label)}`).join(' and ')} ${lazyKept.length > 1 ? 'each carry' : 'carries'}`} only about{' '}
-                <strong>{fmtKb(Math.max(...lazyExtra))}</strong> extra until the shopper scrolls to the videos.
+                <b>{m.big}</b>
+                <small>{m.small}</small>
               </span>
             </li>
-          )}
-        </ul>
-      </section>
-    )
-  }
+          ))
+        }
+      </ol>
+      <div class="pv-real" title="Google rates a page on real visits, at the 75th percentile">
+        <span class="pv-real-phones" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+        <span><b>Google rates real visits:</b> 3 of 4 must be fast. Most shoppers are faster than this test.</span>
+      </div>
+    </section>
 
-  {
-    cards.length > 0 && (
-      <>
-        <h2>Page by page</h2>
-        <p class="small muted">Each card compares the page without Firework with the same page with it. Google's words (good, needs improvement, poor) are kept, with what they mean in practice.</p>
-        <div class="cards">
-          {cards.map((c) => (
-            <article class="perf-card panel" aria-labelledby={`card-${c.id}`}>
-              <h3 id={`card-${c.id}`}>{c.label}</h3>
-              <p class="small muted">Shows: {c.shows}.</p>
-              <dl class="qa">
-                <div>
-                  <dt>How much heavier?</dt>
-                  <dd>
-                    <span class="val">{c.weight.before} → {c.weight.after}</span>
-                    <span class="why">
-                      {c.weight.added} more before any video plays, {c.weight.requests} more requests. {capital(c.weight.context)}.
-                      {c.weight.video > 50 * 1024 && ` A playing video streams more on top: up to ${fmtKb(c.weight.video)} in the first seconds of this test.`}
-                    </span>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Does the page show up as fast?</dt>
-                  <dd>
-                    <span class="val">{c.lcp.before} → {c.lcp.after}</span>
-                    <span class={`chip chip-${dotForRating(c.lcp.rating.rating)}`}>{c.lcp.rating.label}</span>
-                    <span class="why">
-                      {c.lcp.story.text} Google's line for "good" is {fmtMs(lcpLine.good)}; without Firework this page took {c.lcp.before} on the same slow phone.
-                    </span>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Does it respond to taps?</dt>
-                  <dd>
-                    <span class="val">Longest pause while loading: {c.tap.before} → {c.tap.after}</span>
-                    <span class={`chip chip-${dotFor(c.tap.perception.level)}`}>{perceivedLabels[c.tap.perception.level]}</span>
-                    <span class="why">
-                      A pause like that {c.tap.perception.text}. Lighthouse's blocking time: {c.tap.tbt} ({c.tap.tbtRating.label.toLowerCase()}; Lighthouse's line is {fmtMs(tbtLine.good)}).
-                    </span>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Does anything jump around?</dt>
-                  <dd>
-                    <span class="val">Layout shift {c.cls.before} → {c.cls.after}</span>
-                    <span class={`chip chip-${dotForRating(c.cls.rating.rating)}`}>{c.cls.rating.label}</span>
-                    <span class="why">{c.cls.jumps ? 'Yes: something moves while the videos load.' : 'No: the space for the videos is reserved before they load.'} Google's line is {clsLine.good}.</span>
-                  </dd>
-                </div>
-                {c.lazy && (
-                  <div>
-                    <dt>With the lazy loader</dt>
-                    <dd>
-                      <span class="why">
-                        {c.lazy.sdkLoaded
-                          ? 'The videos are in the first screen, so the loader fetches Firework at once and changes little here.'
-                          : `Only ${c.lazy.bytes} extra until the shopper scrolls to the videos. Nothing else loads before that.`}
-                      </span>
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </article>
-          ))}
-        </div>
-      </>
-    )
-  }
+    <div id="pv-controls" class="pv-controls" set:html={renderControls(state, report)} />
 
-  {
-    addonRows.length > 0 && (
-      <>
-        <h2>What one more feature costs</h2>
-        <p class="small muted">Each row is the extra on top of the setup it adds to, with Firework on in both. Weight is before any video plays.</p>
-        <div class="table-wrap">
-          <table class="table">
-            <thead><tr><th>Adding</th><th>On top of</th><th>Weight</th><th>Longest pause</th><th>Main content</th></tr></thead>
-            <tbody>
-              {addonRows.map(({ a, delta }) => (
-                <tr>
-                  <td>{a.shows[a.shows.length - 1]}</td>
-                  <td>{delta.base}</td>
-                  <td>
-                    {signed(fmtKb(Math.abs(delta.bytes)), delta.bytes >= 0)}, {signed(String(Math.abs(delta.requests)), delta.requests >= 0)} requests{delta.video > 50 * 1024 && <span class="small muted">, plus up to {fmtKb(delta.video)} of video while it plays</span>}
-                  </td>
-                  <td>{signed(fmtMs(Math.abs(delta.longest)), delta.longest >= 0)}</td>
-                  <td>{delta.lcpWithinNoise ? 'Within the run-to-run spread' : changeText(delta.lcp)}</td>
-                </tr>
-              ))}
-              {stress && stressDelta && (
-                <tr>
-                  <td>{stress.shows.join(' + ')}</td>
-                  <td>the page without Firework</td>
-                  <td>
-                    {signed(fmtKb(Math.abs(stressDelta.bytes)), stressDelta.bytes >= 0)}, {signed(String(Math.abs(stressDelta.requests)), stressDelta.requests >= 0)} requests{videoMax(stressDelta.on) > 50 * 1024 && <span class="small muted">, plus up to {fmtKb(videoMax(stressDelta.on))} of video while it plays</span>}
-                  </td>
-                  <td>{signed(fmtMs(Math.abs(stressDelta.on.runtime.longestTaskMs - stressDelta.off.runtime.longestTaskMs)), stressDelta.on.runtime.longestTaskMs >= stressDelta.off.runtime.longestTaskMs)}</td>
-                  <td>{stressLcp && stressLcp.kind !== 'later' ? 'No noticeable change' : changeText(stressDelta.lcp)}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        <p class="small muted">The last row is this demo store's showcase home page with four widgets at once, more than a shop would normally run on one page.</p>
-      </>
-    )
-  }
+    <div class="pv-main">
+      <figure id="pv-phone" class="pv-phone" set:html={renderPhone(state, report)} />
+      <div id="pv-tiles" class="pv-tiles-wrap" set:html={renderTiles(state, report)} />
+    </div>
 
-  <h2>What these measurements mean</h2>
-  <div class="meaning">
-    <section>
-      <h3>Does the page show up as fast?</h3>
-      <p>
-        Google calls this <strong>Largest Contentful Paint</strong>: when the biggest image or text block has painted.
-        Google counts a page as good when it happens within {fmtMs(lcpLine.good)} for most visits, and poor beyond
-        {' '}{fmtMs(lcpLine.poor)}. That line comes from research on how long people wait before losing focus, which
-        puts the limit somewhere between 0.3 and 3 seconds. Firework's script loads after your own content, so it
-        doesn't hold the page back; on a slow connection its requests can compete with your images for a moment.
-      </p>
+    <section class="pv-section" aria-labelledby="pv-film-h">
+      <h2 id="pv-film-h">What the shopper sees while it loads</h2>
+      <div id="pv-film" set:html={renderFilm(state, report)} />
     </section>
-    <section>
-      <h3>Does it respond to taps?</h3>
-      <p>
-        Google measures this on real visits as <strong>Interaction to Next Paint</strong>: good within {inpLine.good} ms,
-        poor beyond {inpLine.poor} ms. A lab test can't produce it, so this page shows the longest pause a tap could run
-        into while the page is still loading. The research behind Google's line: delays up to about 100 ms feel like
-        part of the tap, between 100 and 200 ms the link starts to break, over 200 ms the response no longer feels
-        caused by the tap, and at 300 ms people rate a button press as poor. On a slow phone, Firework's script causes
-        a few such pauses during loading; after that the page responds as before.
-      </p>
+
+    <section class="pv-section" aria-labelledby="pv-lazy-h">
+      <h2 id="pv-lazy-h">Lazy loading: Firework waits for the shopper</h2>
+      <div id="pv-lazy" set:html={renderLazy(state, report)} />
     </section>
-    <section>
-      <h3>Does anything jump around?</h3>
-      <p>
-        <strong>Cumulative Layout Shift</strong> scores how much content moves while the page loads: good up to
-        {' '}{clsLine.good}, poor above {clsLine.poor}. Firework's widgets don't cause this when their space is
-        reserved, which is how this store embeds them.
-      </p>
+
+    <section class="pv-section" aria-labelledby="pv-levers-h">
+      <h2 id="pv-levers-h">Ways to keep it fast</h2>
+      <div id="pv-levers" set:html={renderLevers(state, report)} />
     </section>
-    <section>
-      <h3>How much heavier?</h3>
-      <p>
-        Weight isn't one of Google's vitals, but it is what the shopper's data plan pays for and what a slow connection
-        spends time on. For scale, the 2025 Web Almanac puts the typical mobile home page at 2.56 MB. Firework's share is
-        mostly its script and thumbnails. Video streams on top while it plays, like any video: a few hundred KB in the
-        first seconds, only for shoppers who watch.
-      </p>
-    </section>
+
+    <p class="pv-foot small muted">
+      Measured {measuredOn} on {host} with Google Lighthouse {report.lighthouseVersion}, Firework SDK {report.sdkRelease}.
+      Thresholds: <a href="https://web.dev/articles/vitals">Google's Core Web Vitals</a>; tap research:
+      <a href="https://web.dev/articles/defining-core-web-vitals-thresholds">how Google set them</a>; typical page:
+      <a href="https://almanac.httparchive.org/en/2025/page-weight">Web Almanac 2025</a>; lazy loading:
+      <a href="https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting">Firework FAQ</a>.
+      <a href="/lab/performance/details/">All numbers for engineers →</a>
+    </p>
   </div>
-
-  <h2>What we recommend</h2>
-  <ol class="recs">
-    <li>
-      <strong>Use Firework's lazy loader on pages where the videos sit further down.</strong> Firework's own guidance:
-      "In case your page relies on very fast first load, you can inject the async script (fwn-async.js ~1kB). It
-      defers the main script injection until the widget components is visible in the viewport."
-      {lazyKept.length > 0 && ` Measured here: ${lazyKept.map((c) => `the ${lowerFirst(c.label)} carries ${c.lazy!.bytes} extra until then${c.lcp.story.lazyHelps ? ', and its main image shows up as fast as without Firework' : ''}`).join('; ')}.`}
-    </li>
-    <li>
-      <strong>One or two widgets per page.</strong> Every widget adds its own feed, thumbnails and previews.
-      {stressDelta && cards[0] && ` The showcase home page with four widgets adds ${fmtKb(stressDelta.bytes)} before any video plays, against ${cards[0].weight.added} for a single carousel.`}
-    </li>
-    <li>
-      <strong>Keep your own hero image as the biggest thing in the first screen.</strong> Then the "shows up as fast"
-      measurement stays about your content.{lcpOwn ? " In every run here, the largest element was the store's own image, never a Firework one." : ''}
-    </li>
-    <li>
-      <strong>Reserve the widget's space.</strong> Put each widget in a container with a minimum height that matches what
-      it shows (a carousel row is 400px tall). That is why nothing jumps on these pages.
-    </li>
-    <li>
-      <strong>Load after consent where a consent banner is required.</strong> Nothing loads for shoppers who decline,
-      and the first paint is never affected. To be measured once the consent banner is in place.
-    </li>
-  </ol>
-  <p>
-    Expect real visits to do better than these numbers: Lighthouse simulates a slow phone on a slow 4G connection with
-    an empty cache. A second page view within 30 minutes finds Firework's scripts already cached.
-  </p>
-
-  <h2>How it was measured</h2>
-  <p>
-    Measured {measuredOn} with Google Lighthouse {report.lighthouseVersion}, Firework SDK {report.sdkRelease}.
-    {report.conditions.device}; {report.conditions.network.toLowerCase()}; CPU {report.conditions.cpu}.
-    {' '}{report.conditions.cache}. Each number is the median of {report.results[0]?.runs ?? 0} runs. Every page was
-    loaded three ways: without Firework, with the lazy loader, and with the full integration. The
-    <a href="/lab/performance/details/">details page</a> has every number, a breakdown by sender, the biggest requests,
-    and a way to run the same comparison in your own browser.
-  </p>
-
-  <h2>Sources</h2>
-  <ul>
-    <li><a href="https://web.dev/articles/vitals">Web Vitals</a> (Google): the three Core Web Vitals and their thresholds.</li>
-    <li><a href="https://web.dev/articles/defining-core-web-vitals-thresholds">How the Core Web Vitals thresholds were defined</a> (Google): the perception research behind the 200 ms and 2.5 s lines, citing Michotte, Miller, Card and Kaaresoja et al.</li>
-    <li><a href="https://web.dev/articles/rail">The RAIL model</a> (Google): what people perceive at 100 ms, 1 second and 10 seconds, building on <a href="https://www.nngroup.com/articles/response-times-3-important-limits/">Nielsen's three response-time limits</a>.</li>
-    <li><a href="https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time">Lighthouse: Total Blocking Time</a>: the lab stand-in for responsiveness.</li>
-    <li><a href="https://almanac.httparchive.org/en/2025/page-weight">Web Almanac 2025: Page weight</a>: the typical page weights.</li>
-    <li><a href="https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting">Firework FAQ</a>: the asynchronous loader.</li>
-  </ul>
 </Lab>
 
-<style>
-  .summary {
-    margin: 16px 0 8px;
+<script type="application/json" id="pv-data" set:html={safeJson(clientData)} />
+
+<script>
+  import { mountPerformanceView } from '../../scripts/perf-configurator';
+  mountPerformanceView();
+</script>
+
+<style is:global>
+  .pv {
+    --pv-ok: #0ca30c;
+    --pv-edge: #fab219;
+    --pv-warn: #ec835a;
+    --pv-bad: #d03b3b;
+    --pv-ink: #14212b;
+    --pv-lazy: #2a78d6;
+    --pv-page: #2a78d6;
+    --pv-fw: #eb6834;
+    --pv-media: #1baf7a;
+    --pv-track: #eda100;
+    --pv-ava: #e87ba4;
   }
-  .summary h2 {
-    margin-top: 0;
+  .pv-head h1 {
+    margin-bottom: 10px;
   }
-  .summary-list {
+  .pv .pv-icon {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+    color: var(--fjord);
+  }
+
+  /* how we test */
+  .pv-method {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+  }
+  .pv-method-steps {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
-    gap: 10px;
-    font-size: 1.02rem;
-  }
-  .summary-list li {
-    display: grid;
-    grid-template-columns: 14px 1fr;
-    gap: 10px;
-    align-items: start;
-  }
-  .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 999px;
-    margin-top: 7px;
-    display: inline-block;
-  }
-  .dot-ok {
-    background: #0ca30c;
-  }
-  .dot-warn {
-    background: #fab219;
-  }
-  .dot-bad {
-    background: #d03b3b;
-  }
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 14px;
-    margin: 12px 0 6px;
-  }
-  .perf-card h3 {
-    margin: 0 0 2px;
-    font-size: 1.1rem;
-  }
-  .qa {
-    margin: 10px 0 0;
-    display: grid;
-    gap: 10px;
-  }
-  .qa > div {
-    border-top: 1px solid var(--line);
-    padding-top: 8px;
-  }
-  .qa dt {
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-  .qa dd {
-    margin: 2px 0 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 8px;
-    align-items: baseline;
+    gap: 8px 18px;
   }
-  .val {
-    font-variant-numeric: tabular-nums;
+  .pv-method-steps li {
+    display: flex;
+    gap: 8px;
+    align-items: center;
   }
-  .why {
-    flex-basis: 100%;
-    font-size: 0.88rem;
+  .pv-method-steps span {
+    display: grid;
+    line-height: 1.15;
+  }
+  .pv-method-steps b {
+    font-size: 0.9rem;
+  }
+  .pv-method-steps small {
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+  }
+  .pv-real {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin-left: auto;
+    max-width: 330px;
+  }
+  .pv-real b {
+    color: var(--ink);
+  }
+  .pv-real-phones {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .pv-real-phones i {
+    width: 9px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1.5px solid #b9c2c8;
+  }
+  .pv-real-phones i.on {
+    background: var(--pv-ok);
+    border-color: var(--pv-ok);
+  }
+
+  /* switches */
+  .pv-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    align-items: end;
+    margin-bottom: 14px;
+  }
+  .pv-control {
+    display: grid;
+    gap: 4px;
+  }
+  .pv-control-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .pv-seg {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    padding: 3px;
+  }
+  .pv-seg button {
+    border: 0;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .pv-seg button[aria-checked='true'] {
+    background: var(--ink);
+    color: #fff;
+  }
+  .pv-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pv-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    padding: 6px 12px 6px 8px;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .pv-chip-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 1.5px solid #9aa6ad;
+    display: inline-grid;
+    place-items: center;
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  .pv-chip[aria-checked='true'] {
+    border-color: var(--pv-fw);
+    background: #fff4ec;
+  }
+  .pv-chip[aria-checked='true'] .pv-chip-box {
+    background: var(--pv-fw);
+    border-color: var(--pv-fw);
+    color: #fff;
+  }
+  .pv-hint {
+    font-size: 0.78rem;
     color: var(--ink-soft);
   }
-  .chip {
-    font-size: 0.75rem;
-    padding: 1px 8px;
+  .pv-seg button:focus-visible,
+  .pv-chip:focus-visible,
+  .pv-switch input:focus-visible + span {
+    outline: 2px solid var(--fjord);
+    outline-offset: 2px;
+  }
+  .pv-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    margin-left: auto;
+    cursor: pointer;
+  }
+  .pv-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .pv-switch span {
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    background: #c8cfd3;
+    position: relative;
+    transition: background 0.15s;
+  }
+  .pv-switch span::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.15s;
+  }
+  .pv-switch input:checked + span {
+    background: var(--fjord);
+  }
+  .pv-switch input:checked + span::after {
+    transform: translateX(16px);
+  }
+
+  /* phone and tiles */
+  .pv-main {
+    display: grid;
+    grid-template-columns: 252px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .pv-phone {
+    margin: 0;
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+  }
+  .pv-phone-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .pv-strip {
+    position: relative;
+    width: 26px;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .pv-strip-fold {
+    position: absolute;
+    left: -4px;
+    right: -4px;
+    border-top: 2px dashed var(--ink);
+  }
+  .pv-strip-bar {
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: var(--pv-fw);
+    cursor: pointer;
+  }
+  .pv-strip-bar.is-later {
+    background: repeating-linear-gradient(135deg, var(--pv-lazy) 0 3px, #9cc3f0 3px 6px);
+  }
+  .pv-strip-bar:focus-visible {
+    outline: 2px solid var(--fjord);
+    outline-offset: 2px;
+  }
+  .pv-phone-frame {
+    width: 204px;
+    border-radius: 26px;
+    border: 7px solid #1d2a33;
+    background: #1d2a33;
+    padding: 0;
+    box-shadow: var(--shadow);
+  }
+  .pv-phone-screen {
+    height: 400px;
+    overflow-y: auto;
+    border-radius: 18px;
+    background: #fff;
+    scrollbar-width: thin;
+  }
+  .pv-map {
+    position: relative;
+    width: 180px;
+    margin: 0 auto;
+  }
+  .pv-map img {
+    display: block;
+    width: 180px;
+    height: auto;
+  }
+  .pv-fold {
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    border-top: 2px dashed var(--ink);
+  }
+  .pv-fold span {
+    position: absolute;
+    right: 4px;
+    top: -18px;
+    font-size: 0.66rem;
+    background: var(--ink);
+    color: #fff;
+    padding: 1px 6px;
+    border-radius: 999px;
+  }
+  .pv-box {
+    position: absolute;
+    border: 2px solid var(--pv-fw);
+    background: rgb(235 104 52 / 0.16);
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+  }
+  .pv-box.is-later {
+    border-style: dashed;
+    border-color: var(--pv-lazy);
+    background: rgb(42 120 214 / 0.12);
+  }
+  .pv-box span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: #fff;
+    border-radius: 6px;
+    padding: 2px 6px;
+    text-align: center;
+    line-height: 1.2;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  }
+  .pv-box em {
+    display: block;
+    font-style: normal;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .pv-open {
+    color: var(--fjord);
+  }
+  .pv-legend {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+  .pv-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pv-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .pv-tile {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+  }
+  .pv-tile header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pv-tile h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+  }
+  .pv-verdict {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+  }
+  .pv-verdict strong {
+    font-size: 1.55rem;
+    line-height: 1.1;
+    font-family: var(--font-body);
+  }
+  .pv-badge {
+    font-size: 0.78rem;
+    padding: 2px 9px;
     border-radius: 999px;
     border: 1px solid var(--line);
     white-space: nowrap;
   }
-  .chip-ok {
-    border-color: #0ca30c;
-    color: #006300;
+  .pv-badge-ok {
+    background: #eaf7ea;
+    border-color: #9fd59f;
   }
-  .chip-warn {
-    border-color: #c98500;
-    color: #8a5a00;
+  .pv-badge-ok span {
+    color: var(--pv-ok);
   }
-  .chip-bad {
-    border-color: #d03b3b;
-    color: var(--danger);
+  .pv-badge-edge {
+    background: #fff7e4;
+    border-color: #f2cf7d;
   }
-  .meaning {
+  .pv-badge-edge span {
+    color: #c98500;
+  }
+  .pv-badge-warn {
+    background: #fdeee7;
+    border-color: #f1b496;
+  }
+  .pv-badge-warn span {
+    color: #c45a2e;
+  }
+  .pv-badge-bad {
+    background: #fbe8e8;
+    border-color: #e9a3a3;
+  }
+  .pv-badge-bad span {
+    color: var(--pv-bad);
+  }
+  .pv-badge-neutral {
+    background: var(--paper);
+  }
+  .pv-band {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .pv-band .z-ok {
+    fill: rgb(12 163 12 / 0.15);
+  }
+  .pv-band .z-edge {
+    fill: rgb(250 178 25 / 0.18);
+  }
+  .pv-band .z-warn {
+    fill: rgb(236 131 90 / 0.2);
+  }
+  .pv-band .z-bad {
+    fill: rgb(208 59 59 / 0.17);
+  }
+  .pv-band .rule {
+    stroke: #c3c2b7;
+    stroke-width: 1;
+  }
+  .pv-band .tk {
+    stroke: #fff;
+    stroke-width: 2;
+  }
+  .pv-band .tl {
+    font-size: 9px;
+    fill: var(--ink-soft);
+    text-anchor: middle;
+  }
+  .pv-band .rl {
+    font-size: 10px;
+    fill: var(--ink-soft);
+  }
+  .pv-band .rl.sel {
+    fill: var(--ink);
+    font-weight: 700;
+  }
+  .pv-weight {
+    position: relative;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 6px 24px;
+    gap: 5px;
+    padding: 4px 0 16px;
   }
-  .meaning h3 {
-    font-size: 1.05rem;
-    margin: 12px 0 4px;
+  .pv-wrow {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
   }
-  .meaning p {
-    margin: 0 0 8px;
-    font-size: 0.95rem;
+  .pv-wrow .rl {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
   }
-  .recs li {
-    margin-bottom: 8px;
+  .pv-wrow.sel .rl {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .pv-wbar {
+    display: flex;
+    gap: 2px;
+    height: 14px;
+  }
+  .pv-wbar .seg {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+  }
+  .pv-wbar .seg:last-child {
+    border-radius: 0 4px 4px 0;
+  }
+  .seg-page {
+    background: var(--pv-page);
+  }
+  .seg-fw {
+    background: var(--pv-fw);
+  }
+  .seg-video {
+    background: repeating-linear-gradient(135deg, var(--pv-media) 0 4px, #8fdcc0 4px 7px);
+  }
+  .pv-wref {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-left: 1.5px solid var(--ink);
+  }
+  .pv-wref span {
+    position: absolute;
+    bottom: -2px;
+    right: 4px;
+    font-size: 0.66rem;
+    white-space: nowrap;
+    color: var(--ink-soft);
+  }
+  .pv-wlegend {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+  }
+  .pv-wlegend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .pv-wlegend i {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .pv-nums {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    border-top: 1px dashed var(--line);
+    padding-top: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .pv-nums b {
+    color: var(--ink);
+  }
+  .pv-empty {
+    color: var(--ink-soft);
+    padding: 16px;
+  }
+
+  /* sections */
+  .pv-section h2 {
+    font-size: 1.25rem;
+    margin: 26px 0 10px;
+  }
+  .pv-film {
+    display: grid;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .pv-film-row {
+    display: grid;
+    grid-template-columns: 96px repeat(6, 72px);
+    gap: 8px;
+    align-items: center;
+  }
+  .pv-film-head span {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  .pv-film-row .rl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+  }
+  .pv-film-row .rl small {
+    color: var(--ink-soft);
+  }
+  .pv-film-row.sel .rl {
+    font-weight: 700;
+  }
+  .pv-film-row.dim {
+    opacity: 0.7;
+  }
+  .pv-frame {
+    position: relative;
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+    height: 140px;
+  }
+  .pv-frame img {
+    width: 70px;
+    height: auto;
+    display: block;
+  }
+  .pv-blank {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    font-size: 0.62rem;
+    color: #9aa6ad;
+    background: repeating-linear-gradient(135deg, #fff 0 6px, #f4f4f2 6px 12px);
+  }
+  .pv-frame.is-lcp {
+    outline: 2.5px solid var(--pv-ok);
+    outline-offset: 1px;
+  }
+  .pv-frame em {
+    position: absolute;
+    bottom: 3px;
+    left: 3px;
+    right: 3px;
+    font-style: normal;
+    font-size: 0.6rem;
+    text-align: center;
+    background: var(--pv-ok);
+    color: #fff;
+    border-radius: 4px;
+    padding: 1px 2px;
+  }
+  .pv-deltas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .pv-delta {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: grid;
+    gap: 2px;
+  }
+  .pv-delta .big {
+    font-size: 1.7rem;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .pv-delta.good .big {
+    color: #0a7a0a;
+  }
+  .pv-delta span:last-child {
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+  }
+  .pv-lazy-note {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+  .pv-timelines {
+    display: grid;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+  }
+  .pv-tl-title {
+    margin: 0 0 4px;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .pv-lane,
+  .pv-tl-axis {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    min-height: 14px;
+  }
+  .pv-lane .ll {
+    font-size: 0.74rem;
+    color: var(--ink-soft);
+  }
+  .pv-lane-track {
+    position: relative;
+    height: 10px;
+    background: var(--paper);
+    border-radius: 3px;
+  }
+  .pv-lane-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 2px;
+    min-width: 2px;
+  }
+  .lane-page {
+    background: var(--pv-page);
+  }
+  .lane-script {
+    background: var(--pv-fw);
+  }
+  .lane-media {
+    background: var(--pv-media);
+  }
+  .lane-tracking {
+    background: var(--pv-track);
+  }
+  .lane-ava {
+    background: var(--pv-ava);
+  }
+  .pv-tl-axis .pv-lane-track {
+    background: transparent;
+    height: 16px;
+  }
+  .pv-lcp {
+    position: absolute;
+    top: -70px;
+    bottom: 0;
+    border-left: 2px solid var(--pv-ok);
+  }
+  .pv-lcp i {
+    position: absolute;
+    bottom: 0;
+    left: 4px;
+    font-style: normal;
+    font-size: 0.68rem;
+    color: #0a7a0a;
+    white-space: nowrap;
+  }
+  .pv-reveal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+    font-size: 0.85rem;
+  }
+  .pv-reveal-step {
+    font-weight: 600;
+  }
+  .pv-reveal-bar {
+    position: relative;
+    flex: 1 1 260px;
+    min-height: 22px;
+    border-radius: 999px;
+    background: var(--paper);
+    padding: 2px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    isolation: isolate;
+  }
+  .pv-reveal-bar::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--w);
+    background: rgb(42 120 214 / 0.18);
+    border-radius: 999px;
+    z-index: -1;
+  }
+  .pv-reveal-bar.std::before {
+    background: rgb(20 33 43 / 0.12);
+  }
+  .pv-tradeoff {
+    font-size: 0.9rem;
+    margin: 10px 0 0;
+  }
+  .pv-levers {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .pv-lever {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+  .pv-lever h3 {
+    margin: 6px 0 2px;
+    font-size: 0.98rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+  }
+  .pv-lever .big {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+  .pv-lever.next {
+    border-style: dashed;
+  }
+  .pv-lever p {
+    margin: 2px 0 0;
+  }
+  .pv-foot {
+    margin-top: 22px;
+  }
+
+  @media (max-width: 860px) {
+    .pv-main {
+      grid-template-columns: 1fr;
+    }
+    .pv-levers {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pv-real {
+      margin-left: 0;
+    }
+    .pv-switch {
+      margin-left: 0;
+    }
+  }
+  @media (max-width: 560px) {
+    .pv-tiles,
+    .pv-deltas {
+      grid-template-columns: 1fr;
+    }
+    .pv-lane,
+    .pv-tl-axis {
+      grid-template-columns: 96px minmax(0, 1fr);
+    }
   }
 </style>

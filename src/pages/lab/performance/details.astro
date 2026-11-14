@@ -1,408 +1,183 @@
 ---
 import reportJson from '../../../data/perf/latest.json';
 import Lab from '../../../layouts/Lab.astro';
-import { groupLabels, modeLabels, thresholds, type FwMode, type PerfReport, type Rating } from '../../../lib/perf';
-import {
-  activeGroups,
-  describeRequest,
-  fmtCls,
-  fmtKb,
-  fmtMs,
-  groupColors,
-  metricSpecs,
-  modeColors,
-  pageDelta,
-  ratingOf,
-  result,
-  signed,
-  thresholdFor,
-  type PageDelta,
-} from '../../../lib/perf-view';
+import { groupLabels, setupId, thresholds, type PerfReport, type PerfResult } from '../../../lib/perf';
+import { describeRequest, fmtCls, fmtKb, fmtMs, ratingOf, resultOf, videoMax, weightOf, widgetLabel, activeGroups } from '../../../lib/perf-view';
 import { repoUrl } from '../../../site.config';
 
 const report = reportJson as unknown as PerfReport;
-const modes: FwMode[] = ['off', 'lazy', 'on'];
-const shortMode: Record<FwMode, string> = { off: 'Without Firework', lazy: 'Lazy loader', on: 'Firework on' };
-const tierLabel = { core: 'Typical setup', addon: 'With one more feature', stress: 'Stress test' } as const;
-const groups = activeGroups(report);
-const rows = report.scenarios.flatMap((s) => modes.map((mode) => ({ s, mode, r: result(report, s.id, mode)! })).filter((x) => x.r));
-const maxBytes = Math.max(1, ...rows.map((x) => x.r.network.bytes));
-const deltas = report.scenarios.map((s) => pageDelta(report, s.id)).filter((d): d is PageDelta => Boolean(d));
 const measuredOn = new Date(report.measuredAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-const pct = (v: number, max: number) => `${Math.max(0, Math.min(100, (v / max) * 100)).toFixed(2)}%`;
-const label = (id: string) => report.scenarios.find((s) => s.id === id)?.label ?? id;
-
-// Main-thread script time by group, Firework on.
-const scriptRows = report.scenarios.map((s) => ({ s, r: result(report, s.id, 'on')! })).filter((x) => x.r);
-const scriptTotal = (r: (typeof scriptRows)[number]['r']) => groups.reduce((a, g) => a + (r.network.groups[g]?.scriptMs ?? 0), 0);
-const maxScript = Math.max(1, ...scriptRows.map((x) => scriptTotal(x.r)));
-
-// Metric charts: one scale per metric, wide enough to show the "poor" band.
-const metricScale = (id: string, values: number[]) => Math.max(...values, thresholdFor(id).poor * 1.3) * 1.08;
-const ratingIcon: Record<Rating, string> = { good: '●', 'needs-improvement': '▲', poor: '■' };
-const Rating = (id: string, value: number) => {
-  const { rating, label: text } = ratingOf(id, value);
-  return { rating, label: text, icon: ratingIcon[rating] };
-};
-
-// Lazy mode per setup: did a widget sit in the first screen, so the loader fetched the SDK?
-const lazyRows = report.scenarios.map((s) => ({ s, lazy: result(report, s.id, 'lazy') })).filter((x) => x.lazy);
-const belowFold = lazyRows.filter((x) => !x.lazy!.runtime.sdkLoaded).map((x) => x.s.label.toLowerCase());
-const inView = lazyRows.filter((x) => x.lazy!.runtime.sdkLoaded).map((x) => `${x.s.label.toLowerCase()} (${fmtKb(x.lazy!.network.groups['firework-sdk']?.bytes ?? 0)} of SDK)`);
-const trackingOnly = lazyRows.find((x) => !x.lazy!.runtime.sdkLoaded)?.lazy?.network.groups['firework-sdk'];
-const lazySavings = report.scenarios
-  .map((s) => ({ s, on: result(report, s.id, 'on'), lazy: result(report, s.id, 'lazy') }))
-  .filter((x) => x.on && x.lazy && !x.lazy.runtime.sdkLoaded)
-  .map((x) => `${x.s.label}: ${fmtKb(x.on!.network.bytes - x.lazy!.network.bytes)} and ${fmtMs(x.on!.lighthouse.tbt - x.lazy!.lighthouse.tbt)} of blocking time less until a widget scrolls into view`);
+const groups = activeGroups(report);
+const comboName = (page: (typeof report.pages)[number], widgets: string[]) => (widgets.length ? widgets.map((k) => widgetLabel(page.id, k)).join(' + ') : 'Script only, no widgets');
+const range = (r: PerfResult | undefined, key: 'lcp' | 'tbt') => (r?.ranges ? `${fmtMs(r.ranges[key][0])}–${fmtMs(r.ranges[key][1])}` : '');
+const cells = (r: PerfResult | undefined) =>
+  r
+    ? [
+        `${fmtMs(r.lighthouse.lcp)}`,
+        `${fmtMs(r.lighthouse.tbt)}`,
+        `${fmtMs(r.runtime.longestTaskMs)}`,
+        `${fmtCls(r.lighthouse.cls)}`,
+        `${fmtKb(weightOf(r))}`,
+        videoMax(r) > 50 * 1024 ? `+${fmtKb(videoMax(r))}` : '–',
+        `${r.network.requests}`,
+      ]
+    : Array(7).fill('–');
+const metricHeads = ['LCP', 'TBT', 'Longest task', 'CLS', 'Weight', 'Video', 'Requests'];
+const pageRows = report.pages.map((page) => {
+  const combos = report.setups.filter((s) => s.page === page.id && !s.off);
+  return {
+    page,
+    off: resultOf(report, setupId(page.id, null), 'off'),
+    rows: combos.map((s) => ({ s, on: resultOf(report, s.id, 'on'), lazy: resultOf(report, s.id, 'lazy'), reveal: report.reveals[s.id]?.[0] })),
+  };
+});
+// The store's own fixes: the same pages without Firework, before (production) and after (this measurement).
+const baseline = report.baseline;
+const ownStore = report.pages.map((page) => ({
+  page,
+  before: baseline?.results.find((r) => r.setup === setupId(page.id, null)),
+  after: resultOf(report, setupId(page.id, null), 'off'),
+}));
+// The default state of the overview, for the request list and the weight split.
+const sample = resultOf(report, setupId('product', ['pdp']), 'on');
 ---
 
-<Lab title="Page weight and vitals: details" description="Every number behind the page weight and vitals overview: weight by sender, main-thread time, Lighthouse metrics on Google's thresholds, the biggest requests, and a run in your own browser.">
+<Lab title="Page speed: all numbers" description="Every number behind the page speed view: each page and widget combination with standard and lazy loading, the store's own fixes, the biggest requests and a run in your own browser.">
   <p class="eyebrow">Lab tool</p>
-  <h1>Page weight and vitals: the details</h1>
+  <h1>Page speed: all numbers</h1>
   <p class="lede">
-    Every number behind the <a href="/lab/performance/">overview</a>, for engineers: each setup loaded without
-    Firework, with the lazy loader and with the full integration, under Lighthouse's mobile profile.
+    The numbers behind the <a href="/lab/performance/">visual view</a>, for engineers. Every page and widget combination,
+    with standard loading and with the lazy loader, against the same page without Firework.
   </p>
   <p class="note note-info">
-    Measured {measuredOn} with Lighthouse {report.lighthouseVersion} on Chrome {report.chrome}, Firework SDK
-    {report.sdkRelease}. {report.conditions.device}, {report.conditions.network.toLowerCase()}, CPU {report.conditions.cpu}.
-    {report.conditions.cache}. {report.conditions.tracking}. Median of {report.results[0]?.runs ?? 0} runs per setup and mode.
+    Measured {measuredOn} on <code>{report.site}</code> with Lighthouse {report.lighthouseVersion} on Chrome {report.chrome},
+    Firework SDK {report.sdkRelease}. {report.conditions.device}; {report.conditions.network}; CPU {report.conditions.cpu};
+    {' '}{report.conditions.cache.toLowerCase()}. Median of {report.conditions.runs} runs; ranges are lowest–highest.
+    {report.conditions.tracking}.
   </p>
 
-  <h2>The setups</h2>
-  <div class="table-wrap">
-    <table class="table">
-      <thead><tr><th>Setup</th><th>Page</th><th>Widgets</th><th>Kind</th></tr></thead>
-      <tbody>
-        {
-          report.scenarios.map((s) => (
-            <tr>
-              <td>{s.label}</td>
-              <td><code>{s.path}?widgets={s.widgets.join(',')}</code></td>
-              <td>{s.shows.join(', ')}</td>
-              <td>{tierLabel[s.tier]}</td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  </div>
-  <p class="small muted">
-    <code>?widgets=</code> keeps only the listed widgets on a page, so one page can be measured in several setups.
-    It works on any page of this site, for example <a href="/?widgets=carousel">the home page with only the carousel</a>.
-  </p>
-
-  <h2>What Firework adds</h2>
-  <p class="small muted">Firework on, compared with the same page without it. Ratings use Google's thresholds, listed below.</p>
-  <div class="perf-tiles">
-    {
-      deltas.map((d) => (
-        <article class="perf-delta panel">
-          <h3>{label(d.scenario)}</h3>
-          <p class="small muted">{report.scenarios.find((s) => s.id === d.scenario)?.shows.join(', ')}</p>
-          <p class="perf-hero">
-            <span class="perf-hero-value">{signed(fmtKb(Math.abs(d.bytes)), d.bytes >= 0)}</span>
-            <span class="perf-hero-label">page weight</span>
-          </p>
-          <dl class="perf-facts">
-            <div><dt>Requests</dt><dd>{signed(String(Math.abs(d.requests)), d.requests >= 0)}</dd></div>
-            <div>
-              <dt>Blocking time (TBT)</dt>
-              <dd>
-                {signed(fmtMs(Math.abs(d.tbt)), d.tbt >= 0)}
-                <span class={`rating rating-${Rating('tbt', d.on.lighthouse.tbt).rating}`}>{Rating('tbt', d.on.lighthouse.tbt).icon} {Rating('tbt', d.on.lighthouse.tbt).label} at {fmtMs(d.on.lighthouse.tbt)}</span>
-              </dd>
-            </div>
-            <div>
-              <dt>Longest task</dt>
-              <dd>{fmtMs(d.off.runtime.longestTaskMs)} → {fmtMs(d.on.runtime.longestTaskMs)}</dd>
-            </div>
-            <div>
-              <dt>Largest Contentful Paint</dt>
-              <dd>
-                {signed(fmtMs(Math.abs(d.lcp)), d.lcp >= 0)}
-                <span class={`rating rating-${Rating('lcp', d.on.lighthouse.lcp).rating}`}>{Rating('lcp', d.on.lighthouse.lcp).icon} {Rating('lcp', d.on.lighthouse.lcp).label} at {fmtMs(d.on.lighthouse.lcp)}</span>
-              </dd>
-            </div>
-            <div>
-              <dt>Layout shift (CLS)</dt>
-              <dd>
-                {signed(fmtCls(Math.abs(d.cls)), d.cls >= 0)}
-                <span class={`rating rating-${Rating('cls', d.on.lighthouse.cls).rating}`}>{Rating('cls', d.on.lighthouse.cls).icon} {Rating('cls', d.on.lighthouse.cls).label} at {fmtCls(d.on.lighthouse.cls)}</span>
-              </dd>
-            </div>
-            <div><dt>Lighthouse score</dt><dd>{d.scoreOff} → {d.scoreOn}</dd></div>
-          </dl>
-        </article>
-      ))
-    }
-  </div>
-
-  <h2>Page weight, by who sends it</h2>
-  <p class="small muted">
-    Transferred bytes, compressed, for the whole page load, including any video that started playing during the run
-    (the Video column in the table view). Whether autoplay starts streaming within a run varies, so the overview
-    compares setups on the weight before any video plays.
-  </p>
-  <ul class="legend" aria-label="Request groups">
-    {groups.map((g) => <li><span class="swatch" style={`background:${groupColors[g]}`}></span>{groupLabels[g]}</li>)}
-  </ul>
-  <div class="chart" role="img" aria-label="Page weight by request group, per setup and mode">
-    {
-      report.scenarios.map((s) => (
-        <div class="chart-group">
-          <p class="chart-group-title">{s.label}</p>
-          {
-            modes.map((mode) => {
-              const r = result(report, s.id, mode);
-              if (!r) return null;
-              return (
-                <div class="bar-row">
-                  <span class="bar-label">{shortMode[mode]}</span>
-                  <div class="bar-track">
-                    {
-                      groups.map((g) => {
-                        const t = r.network.groups[g];
-                        if (!t || t.bytes <= 0) return null;
-                        return <span class="seg" style={`width:${pct(t.bytes, maxBytes)};background:${groupColors[g]}`} title={`${groupLabels[g]}: ${fmtKb(t.bytes)}, ${t.requests} requests`} />;
-                      })
-                    }
-                  </div>
-                  <span class="bar-value">{fmtKb(r.network.bytes)} · {r.network.requests} req</span>
-                </div>
-              );
-            })
-          }
+  {
+    pageRows.map(({ page, off, rows }) => (
+      <section class="dt-page">
+        <h2>{page.label}</h2>
+        <p class="small muted">
+          Without Firework: LCP {off ? fmtMs(off.lighthouse.lcp) : '–'} ({range(off, 'lcp')}), longest task {off ? fmtMs(off.runtime.longestTaskMs) : '–'}, {off ? fmtKb(weightOf(off)) : '–'}, {off?.network.requests ?? '–'} requests.
+        </p>
+        <div class="table-wrap">
+          <table class="table dt-table">
+            <thead>
+              <tr>
+                <th rowspan="2">Widgets</th>
+                <th colspan={metricHeads.length}>Standard loading</th>
+                <th colspan={metricHeads.length}>Lazy loading</th>
+                <th rowspan="2">Videos show after scrolling (lazy)</th>
+              </tr>
+              <tr>
+                {metricHeads.map((h) => <th>{h}</th>)}
+                {metricHeads.map((h) => <th>{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ s, on, lazy, reveal }) => (
+                <tr>
+                  <td>{comboName(page, s.widgets)}</td>
+                  {cells(on).map((c) => <td>{c}</td>)}
+                  {cells(lazy).map((c) => <td>{c}</td>)}
+                  <td>{reveal ? `${fmtMs(reveal.lazyMs)} (${reveal.widget})` : lazy?.runtime.sdkLoaded ? 'At once' : '–'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      ))
-    }
-  </div>
-  <details class="table-view">
-    <summary>Table view</summary>
-    <div class="table-wrap">
-      <table class="table">
-        <thead><tr><th>Setup</th><th>Mode</th>{groups.map((g) => <th>{groupLabels[g]}</th>)}<th>Total</th><th>Of which video playing</th><th>Video across runs</th><th>Requests</th></tr></thead>
-        <tbody>
-          {
-            rows.map(({ s, mode, r }) => (
-              <tr>
-                <td>{s.label}</td>
-                <td>{modeLabels[mode]}</td>
-                {groups.map((g) => <td>{r.network.groups[g] ? `${fmtKb(r.network.groups[g]!.bytes)} (${r.network.groups[g]!.requests})` : '–'}</td>)}
-                <td>{fmtKb(r.network.bytes)}</td>
-                <td>{fmtKb(r.network.videoBytes ?? 0)}</td>
-                <td>{r.ranges?.videoBytes ? `${fmtKb(r.ranges.videoBytes[0])} – ${fmtKb(r.ranges.videoBytes[1])}` : '–'}</td>
-                <td>{r.network.requests}</td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
-    </div>
-  </details>
-  <p class="small muted">For scale: the 2025 Web Almanac's median mobile home page weighs 2.56 MB (2.86 MB on desktop), of which 632 KB is JavaScript and 911 KB images.</p>
-
-  <h2>Lighthouse metrics against the thresholds</h2>
+      </section>
+    ))
+  }
   <p class="small muted">
-    The shaded bands are Google's thresholds: good, needs improvement, poor. Lab numbers on a slow phone, so slower
-    than most real visits. The lazy loader bars show the page before any widget has scrolled into view. LCP varies
-    between runs: on a slow connection, Firework's requests compete with the page's own hero image, which paints later
-    in some runs. The table view names the LCP element of each run and the range across runs. When a widget pushes
-    the page's main image below the first screen, Lighthouse measures a different element, so LCP can drop with
-    Firework on (the shop's stories row does this on a phone).
+    Weight is before any video plays; Video is the most that streamed in a run once a video started. LCP ranges, LCP
+    elements and layout-shift sources are in <code>src/data/perf/latest.json</code>.
   </p>
-  <ul class="legend" aria-label="Modes">
-    {modes.map((m) => <li><span class="swatch" style={`background:${modeColors[m]}`}></span>{modeLabels[m]}</li>)}
-  </ul>
-  <div class="metric-charts">
-    {
-      metricSpecs.map((spec) => {
-        const t = thresholdFor(spec.id);
-        const scale = metricScale(spec.id, rows.map((x) => spec.value(x.r)));
-        return (
-          <section class="metric-chart" aria-label={spec.label}>
-            <h3>{spec.label}</h3>
-            <p class="small muted">{t.about} Good ≤ {spec.format(t.good)}, poor > {spec.format(t.poor)}.</p>
-            <div class="chart" role="img" aria-label={`${spec.label} per setup and mode`}>
-              {
-                report.scenarios.map((s) => (
-                  <div class="chart-group">
-                    <p class="chart-group-title">{s.label}</p>
-                    {
-                      modes.map((mode) => {
-                        const r = result(report, s.id, mode);
-                        if (!r) return null;
-                        const v = spec.value(r);
-                        const rt = Rating(spec.id, v);
-                        return (
-                          <div class="bar-row">
-                            <span class="bar-label">{shortMode[mode]}</span>
-                            <div class="bar-track bands" style={`--good:${pct(t.good, scale)};--poor:${pct(t.poor, scale)}`}>
-                              <span class="seg" style={`width:${pct(v, scale)};background:${modeColors[mode]}`} title={`${spec.label}: ${spec.format(v)} (${rt.label})`} />
-                            </div>
-                            <span class="bar-value">
-                              {spec.format(v)} <span class={`rating rating-${rt.rating}`}>{rt.icon} {rt.label}</span>
-                            </span>
-                          </div>
-                        );
-                      })
-                    }
-                  </div>
-                ))
-              }
-            </div>
-          </section>
-        );
-      })
-    }
-  </div>
-  <details class="table-view">
-    <summary>Table view</summary>
-    <div class="table-wrap">
-      <table class="table">
-        <thead><tr><th>Setup</th><th>Mode</th><th>Score</th><th>FCP</th><th>LCP</th><th>LCP range</th><th>LCP element</th><th>TBT</th><th>TBT range</th><th>Longest task</th><th>CLS</th><th>What shifted</th><th>Speed Index</th><th>Long tasks</th><th>DOM nodes</th></tr></thead>
-        <tbody>
-          {
-            rows.map(({ s, mode, r }) => (
-              <tr>
-                <td>{s.label}</td>
-                <td>{modeLabels[mode]}</td>
-                <td>{r.lighthouse.score}</td>
-                <td>{fmtMs(r.lighthouse.fcp)}</td>
-                <td>{fmtMs(r.lighthouse.lcp)}</td>
-                <td>{r.ranges ? `${fmtMs(r.ranges.lcp[0])} – ${fmtMs(r.ranges.lcp[1])}` : '–'}</td>
-                <td>{r.runtime.lcpElement ? `${r.runtime.lcpElement.selector}${r.runtime.lcpElement.firework ? ' (Firework)' : ''}` : '–'}</td>
-                <td>{fmtMs(r.lighthouse.tbt)}</td>
-                <td>{r.ranges ? `${fmtMs(r.ranges.tbt[0])} – ${fmtMs(r.ranges.tbt[1])}` : '–'}</td>
-                <td>{fmtMs(r.runtime.longestTaskMs)}</td>
-                <td>{fmtCls(r.lighthouse.cls)}</td>
-                <td>{r.runtime.shifts?.length ? r.runtime.shifts.map((x) => `${x.selector} (${fmtCls(x.score)})`).join('; ') : '–'}</td>
-                <td>{fmtMs(r.lighthouse.si)}</td>
-                <td>{r.runtime.longTasks} ({fmtMs(r.runtime.longTaskMs)})</td>
-                <td>{r.runtime.domNodes}</td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
-    </div>
-  </details>
 
-  <h2>Where the main-thread time goes</h2>
-  <p class="small muted">
-    Script evaluation and parse time by who sent the script, Firework on. This is what blocking time is made of: the
-    phone is busy running JavaScript and can't respond to a tap.
+  <h2>Our own store, before and after its fixes</h2>
+  <p>
+    The pages without Firework. Before: the live site before the fixes. After: the same pages with modern image formats
+    (WebP in two sizes), the stylesheet inline in the page and the product image marked high priority.
   </p>
-  <div class="chart" role="img" aria-label="Main-thread script time by group, Firework on">
-    {
-      scriptRows.map(({ s, r }) => (
-        <div class="bar-row">
-          <span class="bar-label">{s.label}</span>
-          <div class="bar-track">
-            {
-              groups.map((g) => {
-                const ms = r.network.groups[g]?.scriptMs ?? 0;
-                if (ms <= 0) return null;
-                return <span class="seg" style={`width:${pct(ms, maxScript)};background:${groupColors[g]}`} title={`${groupLabels[g]}: ${fmtMs(ms)}`} />;
-              })
-            }
-          </div>
-          <span class="bar-value">{fmtMs(scriptTotal(r))}</span>
+  {
+    baseline ? (
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Page</th><th>LCP before</th><th>LCP after</th><th>Weight before</th><th>Weight after</th></tr></thead>
+          <tbody>
+            {ownStore.map(({ page, before, after }) => (
+              <tr>
+                <td>{page.label}</td>
+                <td>{before ? `${fmtMs(before.lighthouse.lcp)} (${ratingOf('lcp', before.lighthouse.lcp).label.toLowerCase()})` : '–'}</td>
+                <td>{after ? `${fmtMs(after.lighthouse.lcp)} (${ratingOf('lcp', after.lighthouse.lcp).label.toLowerCase()})` : '–'}</td>
+                <td>{before ? fmtKb(weightOf(before)) : '–'}</td>
+                <td>{after ? fmtKb(weightOf(after)) : '–'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <p class="small muted">Not measured yet: <code>npm run perf:measure -- --baseline https://fjordbloom.netlify.app</code>.</p>
+    )
+  }
+  <p class="small muted">
+    Where you measure matters as much: a local copy without compression and HTTP/2 measured this store at 2.4–2.6 s,
+    against 1.3–1.7 s on the live site, before any fix.
+  </p>
+
+  {
+    sample && (
+      <>
+        <h2>What a Storyblock on the product page loads</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Sender</th><th>Requests</th><th>Bytes</th><th>Script time</th></tr></thead>
+            <tbody>
+              {groups.map((g) => {
+                const t = sample.network.groups[g];
+                return t ? <tr><td>{groupLabels[g]}</td><td>{t.requests}</td><td>{fmtKb(t.bytes)}</td><td>{fmtMs(t.scriptMs)}</td></tr> : null;
+              })}
+            </tbody>
+          </table>
         </div>
-      ))
-    }
-  </div>
-  <details class="table-view">
-    <summary>Table view</summary>
-    <div class="table-wrap">
-      <table class="table">
-        <thead><tr><th>Setup</th>{groups.map((g) => <th>{groupLabels[g]}</th>)}<th>Total</th></tr></thead>
-        <tbody>{scriptRows.map(({ s, r }) => <tr><td>{s.label}</td>{groups.map((g) => <td>{fmtMs(r.network.groups[g]?.scriptMs ?? 0)}</td>)}<td>{fmtMs(scriptTotal(r))}</td></tr>)}</tbody>
-      </table>
-    </div>
-  </details>
-
-  <h2>The biggest Firework requests</h2>
-  <div class="table-wrap">
-    <table class="table">
-      <thead><tr><th>Setup</th><th>What</th><th>Type</th><th>Size</th></tr></thead>
-      <tbody>
-        {
-          scriptRows.flatMap(({ s, r }) =>
-            r.network.biggest.slice(0, 4).map((b) => (
-              <tr>
-                <td>{s.label}</td>
-                <td><code>{describeRequest(b.url)}</code></td>
-                <td>{b.type}</td>
-                <td>{fmtKb(b.bytes)}</td>
-              </tr>
-            )),
-          )
-        }
-      </tbody>
-    </table>
-  </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Biggest Firework requests</th><th>Type</th><th>Size</th></tr></thead>
+            <tbody>{sample.network.biggest.slice(0, 6).map((b) => <tr><td><code>{describeRequest(b.url)}</code></td><td>{b.type}</td><td>{fmtKb(b.bytes)}</td></tr>)}</tbody>
+          </table>
+        </div>
+      </>
+    )
+  }
 
   <h2>What changes it</h2>
-  <div class="table-wrap">
-    <table class="table">
-      <thead><tr><th>Option</th><th>What it does</th><th>Measured here</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>Lazy loader (<code>fwn-async.js</code>)</td>
-          <td>A 2 KB script that loads the SDK only when a widget scrolls into view, or when the URL opens a shared video. It fetches the legacy <code>fwn.js</code> build (130 KB) rather than the module build.</td>
-          <td>{lazySavings.length ? lazySavings.join('. ') + '.' : 'Every measured setup had a widget in the first screen, so the loader fetched the SDK at once.'}</td>
-        </tr>
-        <tr>
-          <td>Widgets below the fold</td>
-          <td>With the lazy loader, a widget below the fold costs nothing until the shopper scrolls to it. Lighthouse never scrolls, so its lazy numbers are the page before any widget has loaded.</td>
-          <td>
-            {belowFold.length ? `On a phone, no widget is in the first screen on ${belowFold.join(', ')}, so the lazy loader fetched nothing but itself. ` : ''}
-            {inView.length ? `On ${inView.join(', ')}, the first widget is in view, so the SDK loaded straight away.` : ''}
-          </td>
-        </tr>
-        <tr>
-          <td>Fewer widgets per page</td>
-          <td>Each widget adds its own feed requests, thumbnails and previews. The livestream hero also loads a live-video player.</td>
-          <td>{deltas.map((d) => `${label(d.scenario)}: ${fmtKb(d.bytes)}`).join('; ')}.</td>
-        </tr>
-        <tr>
-          <td>Reserve the widget's height</td>
-          <td>
-            A wrapper with a <code>min-height</code> around each widget, so nothing jumps when it renders. On the element
-            itself it doesn't work: before the SDK upgrades it, and for a moment during the upgrade, the element has no box.
-            On phones the hero unit renders about 250px taller than its <code>height</code>. This site's
-            <code>FwWidget</code> does this; with <code>?fw=off</code> no space is kept.
-          </td>
-          <td>{deltas.length ? `CLS with Firework on: ${deltas.map((d) => fmtCls(d.on.lighthouse.cls)).join(', ')}.` : 'Not measured yet.'}</td>
-        </tr>
-        <tr>
-          <td>Scripts stay async</td>
-          <td>The SDK and analytics load with <code>async</code> and <code>type="module"</code>, so they never block the first paint.</td>
-          <td>{deltas.length ? `LCP changes by ${deltas.map((d) => signed(fmtMs(Math.abs(d.lcp)), d.lcp >= 0)).join(', ')}.` : 'Not measured yet.'}</td>
-        </tr>
-        <tr>
-          <td>Tracking without the SDK</td>
-          <td>The tracking tag (<code>analytics.js</code>) is only needed on pages that don't load the SDK, such as an order confirmation page. The SDK includes it.</td>
-          <td>{trackingOnly ? `${fmtKb(trackingOnly.bytes)} and ${fmtMs(trackingOnly.scriptMs)} of script time on a page where only the tag and the lazy loader ran.` : 'Not measured yet.'}</td>
-        </tr>
-        <tr><td>Image thumbnails instead of video previews</td><td><code>thumbnail_style</code> on carousels. Video previews are the biggest media requests on a page that hasn't been tapped.</td><td>Next to measure.</td></tr>
-        <tr><td>Load after consent</td><td>Hold the SDK until the shopper accepts, so the first paint is never affected and nothing loads for shoppers who decline.</td><td>Next to measure, with the consent banner.</td></tr>
-        <tr><td>Caching</td><td>Firework's scripts are cached for 30 minutes (<code>max-age=1800</code>), so a second page view within that time re-downloads none of them.</td><td>From the CDN's response headers.</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <ul>
+    <li><b>Lazy loader</b> (<code>fwn-async.js</code>, 1.5 KB): loads the SDK when a widget scrolls into view or the URL opens a shared video. It fetches the legacy <code>fwn.js</code> build. A widget in the first screen loads at once; a floating player loads when the shopper reaches the spot where it sits in the page.</li>
+    <li><b>Reserved space:</b> a wrapper with a <code>min-height</code> around each widget. On the element itself it doesn't work: it has no box before the SDK upgrades it, and briefly during the upgrade. On phones the hero unit renders about 250px taller than its <code>height</code>.</li>
+    <li><b>Async scripts:</b> the SDK, AVA and analytics load with <code>async</code> or <code>type="module"</code>, so they never block the first paint. On a slow connection they still share the bandwidth with the page's own images.</li>
+    <li><b>Caching:</b> Firework's scripts are cached for 30 minutes (<code>max-age=1800</code>); these runs are first visits with an empty cache.</li>
+    <li><b>Video:</b> autoplay streams the 720p file while it plays, a few hundred KB in the first seconds. Whether a video starts within a run varies, so weight is compared before any video plays.</li>
+  </ul>
 
   <h2 id="live">Measure in this browser</h2>
   <p>
-    The same three modes, loaded one after another in this tab on your device and network, with the browser's own
-    measurements. Lighthouse's numbers above come from a slow phone; these are yours. The run takes about ten seconds
-    per setup and mode, and nothing leaves the browser.
+    The same comparison in this tab, on your device and network, with the browser's own measurements: each setup without
+    Firework, with standard loading and with lazy loading. About ten seconds per step; nothing leaves the browser.
   </p>
   <form id="perf-form" class="perf-form">
     <fieldset>
       <legend>Setups</legend>
-      {report.scenarios.map((s) => <label class="check"><input type="checkbox" name="scenario" value={s.id} checked={s.tier === 'core'} /> {s.label}</label>)}
+      {
+        report.pages.map((p) => (
+          <label class="check">
+            <input type="checkbox" name="setup" value={setupId(p.id, p.defaults)} data-page={p.id} checked={p.id === 'product'} /> {p.label}: {comboName(p, p.defaults)}
+          </label>
+        ))
+      }
     </fieldset>
     <p class="perf-actions">
       <button type="submit" class="btn btn-small">Run in this browser</button>
@@ -412,12 +187,11 @@ const lazySavings = report.scenarios
   <div id="perf-live" aria-live="polite"></div>
   <p class="small muted">
     Sizes are only readable for requests whose server allows it (<code>Timing-Allow-Origin</code>): the site's own,
-    Firework's SDK and media, but not its API and analytics calls, which are small. Your cache state applies: a second
-    run within 30 minutes finds Firework's scripts cached. Blocking time here counts long tasks after load as well.
-    These visits count as page views on the sandbox channel.
+    Firework's SDK and media, but not its API and analytics calls. Your cache state applies. These visits count as page
+    views on the sandbox channel.
   </p>
 
-  <h2>What the numbers mean</h2>
+  <h2>Thresholds</h2>
   <div class="table-wrap">
     <table class="table">
       <thead><tr><th>Metric</th><th>Good</th><th>Poor</th><th>Kind</th><th>What it is</th></tr></thead>
@@ -427,7 +201,7 @@ const lazySavings = report.scenarios
             <tr>
               <td>{t.label}</td>
               <td>≤ {t.unit === 'ms' ? fmtMs(t.good) : t.good}</td>
-              <td>> {t.unit === 'ms' ? fmtMs(t.poor) : t.poor}</td>
+              <td>&gt; {t.unit === 'ms' ? fmtMs(t.poor) : t.poor}</td>
               <td>{t.kind === 'vital' ? 'Core Web Vital (real visits, 75th percentile)' : 'Lighthouse lab metric'}</td>
               <td>{t.about}</td>
             </tr>
@@ -436,39 +210,33 @@ const lazySavings = report.scenarios
       </tbody>
     </table>
   </div>
-  <p>
-    Core Web Vitals are judged on real visits, at the 75th percentile, per page. Lighthouse is a lab test on a slow
-    simulated phone: good for comparing two versions of a page, pessimistic as a prediction of real visits. INP, the
-    interaction metric, has no lab equivalent; Total Blocking Time is its stand-in, and the longest task is the pause
-    one tap could run into.
-  </p>
 
   <h2>How to reproduce it</h2>
   <p>
-    <code>npm run build</code>, <code>npm run preview</code>, then <code>BASE_URL=http://127.0.0.1:4321 npm run perf:measure -- --runs 3</code>.
-    The script is <a href={`${repoUrl}/blob/main/scripts/perf/measure.ts`}>scripts/perf/measure.ts</a>; the setups are
-    in <a href={`${repoUrl}/blob/main/src/lib/perf.ts`}>src/lib/perf.ts</a>. Firework's tracking pixel is blocked
-    during the runs, so they are not counted as visits. <code>--from-raw</code> re-summarises saved reports.
+    <code>BASE_URL=https://deploy-preview-&lt;PR&gt;--fjordbloom.netlify.app npm run perf:measure</code> (about an hour), then
+    <code>npm run perf:measure -- --baseline https://fjordbloom.netlify.app</code> for the before. The script is
+    <a href={`${repoUrl}/blob/main/scripts/perf/measure.ts`}>scripts/perf/measure.ts</a>; pages and widgets are in
+    <a href={`${repoUrl}/blob/main/src/lib/perf.ts`}>src/lib/perf.ts</a>. <code>--from-raw</code> rebuilds the data
+    from the saved reports.
   </p>
-
-  <h2>Sources</h2>
-  <ul>
-    <li><a href="https://web.dev/articles/vitals">Web Vitals</a>: the Core Web Vitals thresholds and the 75th percentile.</li>
-    <li><a href="https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time">Lighthouse: Total Blocking Time</a>: the 200 ms and 600 ms bands for mobile.</li>
-    <li><a href="https://almanac.httparchive.org/en/2025/page-weight">Web Almanac 2025: Page weight</a>: median page weights.</li>
-    <li><a href="https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting">Firework FAQ</a>: the asynchronous loader.</li>
-  </ul>
 </Lab>
 
 <script>
-  import { perfScenarios, scenarioUrl } from '../../../lib/perf';
+  import { perfPages, perfSetups, setupUrl } from '../../../lib/perf';
   import { fmtCls, fmtKb, fmtMs } from '../../../lib/perf-view';
   import { clearRun, readRun, startRun, type LiveResult } from '../../../scripts/perf-runner';
 
   const form = document.getElementById('perf-form') as HTMLFormElement;
   const live = document.getElementById('perf-live')!;
   const clearBtn = document.getElementById('perf-clear') as HTMLButtonElement;
-  const modeName: Record<string, string> = { off: 'Without Firework', lazy: 'Lazy loader', on: 'Firework on' };
+  const modeName: Record<string, string> = { off: 'Without Firework', lazy: 'Lazy loading', on: 'Standard loading' };
+  const setups = perfSetups();
+  const labelOf = (id: string) => {
+    const s = setups.find((x) => x.id === id);
+    const page = perfPages.find((p) => p.id === s?.page);
+    if (!s || !page) return id;
+    return s.off ? page.label : `${page.label}: ${s.widgets.map((k) => page.widgets.find((w) => w.key === k)?.label ?? k).join(' + ') || 'script only'}`;
+  };
 
   const cell = (tr: HTMLTableRowElement, text: string) => {
     const td = document.createElement('td');
@@ -484,9 +252,7 @@ const lazySavings = report.scenarios
     const done = run.results.length >= run.steps.length;
     const p = document.createElement('p');
     p.className = 'small muted';
-    p.textContent = done
-      ? `Measured ${new Date(run.startedAt).toLocaleString()} in this browser.`
-      : `Run in progress: ${run.results.length} of ${run.steps.length} done. If it stopped, start it again.`;
+    p.textContent = done ? `Measured ${new Date(run.startedAt).toLocaleString()} in this browser.` : `Run in progress: ${run.results.length} of ${run.steps.length} done. If it stopped, start it again.`;
     live.appendChild(p);
     if (!run.results.length) return;
     const wrap = document.createElement('div');
@@ -502,7 +268,7 @@ const lazySavings = report.scenarios
     const tbody = table.createTBody();
     for (const r of run.results as LiveResult[]) {
       const tr = tbody.insertRow();
-      cell(tr, perfScenarios.find((x) => x.id === r.scenario)?.label ?? r.scenario);
+      cell(tr, labelOf(r.setup));
       cell(tr, modeName[r.mode] ?? r.mode);
       cell(tr, String(r.requests));
       cell(tr, r.sized < r.requests ? `${fmtKb(r.bytes)} (${r.sized} of ${r.requests} sized)` : fmtKb(r.bytes));
@@ -520,8 +286,17 @@ const lazySavings = report.scenarios
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const chosen = [...form.querySelectorAll<HTMLInputElement>('input[name="scenario"]:checked')].map((i) => i.value);
-    const steps = perfScenarios.filter((s) => chosen.includes(s.id)).flatMap((s) => (['off', 'lazy', 'on'] as const).map((mode) => ({ scenario: s.id, mode, url: scenarioUrl(s, mode) })));
+    const chosen = [...form.querySelectorAll<HTMLInputElement>('input[name="setup"]:checked')];
+    const steps = chosen.flatMap((box) => {
+      const s = setups.find((x) => x.id === box.value);
+      const off = setups.find((x) => x.off && x.page === box.dataset.page);
+      if (!s || !off) return [];
+      return [
+        { setup: off.id, mode: 'off' as const, url: setupUrl(off, 'off') },
+        { setup: s.id, mode: 'on' as const, url: setupUrl(s, 'on') },
+        { setup: s.id, mode: 'lazy' as const, url: setupUrl(s, 'lazy') },
+      ];
+    });
     if (!steps.length) return;
     startRun(steps, `${location.pathname}#live`);
   });
@@ -533,152 +308,14 @@ const lazySavings = report.scenarios
 </script>
 
 <style>
-  .perf-tiles {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 14px;
-    margin: 14px 0 8px;
+  .dt-page h2 {
+    margin-top: 28px;
   }
-  .perf-delta h3 {
-    margin: 0 0 2px;
-    font-size: 1.05rem;
-  }
-  .perf-hero {
-    margin: 10px 0 6px;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .perf-hero-value {
-    font-family: var(--font-body);
-    font-weight: 600;
-    font-size: 2rem;
-    line-height: 1;
-  }
-  .perf-hero-label {
-    color: var(--ink-soft);
-  }
-  .perf-facts {
-    margin: 0;
-    display: grid;
-    gap: 6px;
-    font-size: 0.9rem;
-  }
-  .perf-facts > div {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    border-top: 1px solid var(--line);
-    padding-top: 6px;
-  }
-  .perf-facts dt {
-    color: var(--ink-soft);
-    flex: 0 0 auto;
-  }
-  .perf-facts dd {
-    margin: 0;
-    text-align: right;
+  .dt-table th,
+  .dt-table td {
+    white-space: nowrap;
     font-variant-numeric: tabular-nums;
-  }
-  .rating {
-    display: block;
-    font-size: 0.78rem;
-    color: var(--ink-soft);
-  }
-  .rating-good {
-    color: #006300;
-  }
-  .rating-needs-improvement {
-    color: #8a5a00;
-  }
-  .rating-poor {
-    color: var(--danger);
-  }
-  .legend {
-    list-style: none;
-    padding: 0;
-    margin: 10px 0 6px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 16px;
     font-size: 0.85rem;
-    color: var(--ink-soft);
-  }
-  .legend li {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    display: inline-block;
-  }
-  .chart {
-    display: grid;
-    gap: 4px;
-    margin: 8px 0 6px;
-  }
-  .chart-group {
-    display: grid;
-    gap: 4px;
-    margin-bottom: 8px;
-  }
-  .chart-group-title {
-    margin: 4px 0 0;
-    font-size: 0.85rem;
-    font-weight: 600;
-  }
-  .bar-row {
-    display: grid;
-    grid-template-columns: 150px minmax(0, 1fr) 150px;
-    align-items: center;
-    gap: 10px;
-    min-height: 22px;
-  }
-  .bar-label,
-  .bar-value {
-    font-size: 0.82rem;
-    color: var(--ink-soft);
-    font-variant-numeric: tabular-nums;
-  }
-  .bar-track {
-    display: flex;
-    height: 18px;
-    background: var(--mist);
-    border-radius: 4px;
-  }
-  .bar-track.bands {
-    background: linear-gradient(to right, rgba(12, 163, 12, 0.14) 0 var(--good), rgba(250, 178, 25, 0.2) var(--good) var(--poor), rgba(208, 59, 59, 0.14) var(--poor) 100%);
-  }
-  .seg {
-    display: block;
-    height: 100%;
-    min-width: 1px;
-  }
-  .seg + .seg {
-    margin-left: 2px;
-  }
-  .seg:last-child {
-    border-radius: 0 4px 4px 0;
-  }
-  .metric-charts {
-    display: grid;
-    gap: 18px;
-  }
-  .metric-chart h3 {
-    margin: 10px 0 2px;
-    font-size: 1.05rem;
-  }
-  .table-view {
-    margin: 4px 0 12px;
-  }
-  .table-view summary {
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: var(--fjord);
   }
   .perf-form fieldset {
     border: 1px solid var(--line);
@@ -702,12 +339,5 @@ const lazySavings = report.scenarios
   .perf-live-table td {
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
-  }
-  @media (max-width: 640px) {
-    .bar-row {
-      grid-template-columns: 1fr;
-      gap: 2px;
-      margin-bottom: 6px;
-    }
   }
 </style>

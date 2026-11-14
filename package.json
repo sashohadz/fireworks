@@ -16,6 +16,7 @@
     "validate": "tsx scripts/validate-content.ts",
     "lint:secrets": "secretlint --maskSecrets \"**/*\"",
     "gen:placeholders": "tsx scripts/gen/placeholders.ts",
+    "gen:webp": "tsx scripts/gen/webp.ts",
     "gen:images": "tsx scripts/gen/images.ts",
     "gen:clips": "tsx scripts/gen/clips.ts",
     "gen:voice": "tsx scripts/gen/voice.ts",

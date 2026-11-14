@@ -433,27 +433,44 @@ test.describe('bookmarklet', () => {
 });
 
 test.describe('performance lab', () => {
-  test('the overview explains each typical setup in plain words', async ({ page }) => {
+  test('the visual view switches page, widgets and loading, and keeps them in the URL', async ({ page, request }) => {
     await page.goto('/lab/performance?fw=off');
-    await expect(page.locator('.summary-list li')).not.toHaveCount(0);
-    const cards = page.locator('.perf-card');
-    await expect(cards).toHaveCount(3);
-    await expect(cards.first()).toContainText('How much heavier?');
-    await expect(cards.first()).toContainText('Does the page show up as fast?');
-    await expect(cards.first()).toContainText('Does it respond to taps?');
-    await expect(cards.first()).toContainText('Does anything jump around?');
-    await expect(cards.first().locator('.chip').first()).toContainText(/Good|Needs improvement|Poor/);
-    await expect(page.getByRole('link', { name: 'full numbers for engineers' })).toHaveAttribute('href', '/lab/performance/details/');
-    await expect(page.locator('h2', { hasText: 'What we recommend' })).toBeVisible();
+    await expect(page.locator('[data-page="product"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-widget="pdp"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('.pv-tile')).toHaveCount(4);
+    await expect(page.locator('.pv-tile').first()).toContainText('Loads as fast?');
+    await expect(page.locator('.pv-tile .pv-badge').first()).toContainText(/\S/);
+    // The default state's page map and first frame exist.
+    for (const src of await page.locator('.pv-map img, .pv-frame img').evaluateAll((els) => els.slice(0, 2).map((e) => e.getAttribute('src')))) {
+      expect((await request.get(src!)).status()).toBe(200);
+    }
+    await page.locator('[data-load="lazy"]').click();
+    await expect(page).toHaveURL(/view=product&with=pdp&load=lazy/);
+    await expect(page.locator('[data-load="lazy"]')).toHaveAttribute('aria-checked', 'true');
+    await page.locator('[data-widget="ava"]').click();
+    await expect(page).toHaveURL(/with=pdp%2Cava|with=pdp,ava/);
+    await page.locator('[data-page="category"]').click();
+    await expect(page.locator('[data-widget="grid"]')).toBeVisible();
+    await expect(page.locator('[data-widget="pdp"]')).toHaveCount(0);
+    await page.locator('[data-numbers]').check({ force: true });
+    await expect(page).toHaveURL(/numbers=1/);
   });
 
-  test('the details page has every setup with a table view for every chart', async ({ page }) => {
+  test('the view ignores unknown values in its URL', async ({ page }) => {
+    await page.goto('/lab/performance/?view=evil&with=%3Cimg%20src%3Dx%20id%3Dpwn%3E,pdp&load=sideways&fw=off');
+    await expect(page.locator('[data-page="product"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-widget="pdp"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-load="on"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('#pwn')).toHaveCount(0);
+  });
+
+  test('the numbers switch shows the exact values, and the details page has a table per page', async ({ page }) => {
+    await page.goto('/lab/performance/?view=product&with=pdp&load=standard&numbers=1&fw=off');
+    await expect(page.locator('.pv-nums')).toHaveCount(4);
+    await expect(page.locator('.pv-nums').first()).toContainText('Without');
     await page.goto('/lab/performance/details?fw=off');
-    await expect(page.locator('.perf-delta')).toHaveCount(7);
-    expect(await page.locator('.chart').count()).toBeGreaterThanOrEqual(3);
-    await expect(page.locator('details.table-view')).toHaveCount(3);
-    await page.locator('details.table-view').first().locator('summary').click();
-    await expect(page.locator('details.table-view').first().locator('tbody tr')).toHaveCount(21);
+    await expect(page.locator('.dt-table')).not.toHaveCount(0);
+    await expect(page.locator('.dt-table').first()).toContainText('Storyblock');
   });
 
   test('?widgets= keeps only the listed widgets, including AVA', async ({ page }) => {
@@ -490,18 +507,20 @@ test.describe('performance lab', () => {
     // Firework's scripts are blocked, so the "on" and "lazy" steps load nothing from Firework and finish quickly.
     await page.route(/asset\.(fwcdn3|fwscripts)\.com|fwpixel\.com/, (route) => route.abort());
     await page.goto('/lab/performance/details?fw=off');
-    for (const box of await page.locator('input[name="scenario"]').all()) {
-      if ((await box.getAttribute('value')) !== 'home-carousel') await box.uncheck();
+    for (const box of await page.locator('input[name="setup"]').all()) {
+      if ((await box.getAttribute('data-page')) !== 'product') await box.uncheck();
+      else await box.check();
     }
     await page.getByRole('button', { name: 'Run in this browser' }).click();
-    await page.waitForURL(/\/\?widgets=carousel&fw=off&perf=/);
+    await page.waitForURL(/\/products\/cloudberry-vitamin-c-serum\/\?widgets=&fw=off&perf=/);
     await page.waitForURL(/lab\/performance\/details\/?#live/, { timeout: 90_000 });
     const rows = page.locator('.perf-live-table tbody tr');
     await expect(rows).toHaveCount(3);
     await expect(rows.nth(0)).toContainText('Without Firework');
-    await expect(rows.nth(2)).toContainText('Firework on');
+    await expect(rows.nth(1)).toContainText('Standard loading');
+    await expect(rows.nth(2)).toContainText('Lazy loading');
     const run = await page.evaluate(() => JSON.parse(sessionStorage.getItem('fjb.perf.v1') ?? 'null'));
-    expect(run.results.map((r: { mode: string }) => r.mode)).toEqual(['off', 'lazy', 'on']);
+    expect(run.results.map((r: { mode: string }) => r.mode)).toEqual(['off', 'on', 'lazy']);
     expect(run.results[0].requests).toBeGreaterThan(5);
     expect(run.results[0].bytes).toBeGreaterThan(10_000);
     expect(run.results[0].fcp).toBeGreaterThan(0);

@@ -11,6 +11,8 @@ export default defineConfig({
   // Keep classic whitespace handling so inline elements and code snippets render as written.
   compressHTML: true,
   devToolbar: { enabled: false },
+  // The stylesheet goes inline in each page: it was the only render-blocking request (3.7 KB compressed).
+  build: { inlineStylesheets: 'always' },
   trailingSlash: 'ignore',
   // axe-core (about 650 kB) is its own chunk, loaded only when an audit runs on /lab/accessibility.
   vite: { build: { chunkSizeWarningLimit: 700 } },

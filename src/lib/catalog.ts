@@ -56,6 +56,21 @@ export function imageExists(publicPath: string): boolean {
   return fs.existsSync(path.join(PUBLIC_DIR, publicPath));
 }
 
+/** Widths of the WebP copies written by npm run gen:webp, for srcset. */
+export const WEBP_WIDTHS = [480, 800] as const;
+
+/** "/images/x/packshot.jpg" → "/images/x/packshot-480.webp". */
+export const webpVariantPath = (publicPath: string, width: number): string => publicPath.replace(/\.jpg$/, `-${width}.webp`);
+
+/**
+ * srcset of the WebP copies that exist for a store image, or undefined. The JPEG stays in src as the fallback for
+ * browsers without srcset, and the feeds keep using it.
+ */
+export function webpSrcset(publicPath: string): string | undefined {
+  const parts = WEBP_WIDTHS.filter((w) => imageExists(webpVariantPath(publicPath, w))).map((w) => `${webpVariantPath(publicPath, w)} ${w}w`);
+  return parts.length ? parts.join(', ') : undefined;
+}
+
 export function productImageDir(p: Product): string {
   return `/images/products/${p.handle}`;
 }

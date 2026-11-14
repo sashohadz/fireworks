@@ -2,7 +2,7 @@
 import FwWidget from '../components/FwWidget.astro';
 import ProductCard from '../components/ProductCard.astro';
 import Base from '../layouts/Base.astro';
-import { brand, getProduct, productImages, products } from '../lib/catalog';
+import { brand, getProduct, productImages, products, webpSrcset } from '../lib/catalog';
 
 const featured = products.filter((p) => p.featured);
 const hero = getProduct('FJB-103')!;
@@ -26,7 +26,15 @@ const ritual = ['FJB-101', 'FJB-103', 'FJB-107'].map((id) => getProduct(id)!);
           <a class="btn btn-ghost" href="/live">Watch live shopping</a>
         </div>
       </div>
-      <img src={heroImage} alt={`${hero.name} on pale birch wood`} width="600" height="750" fetchpriority="high" />
+      <img
+        src={heroImage}
+        srcset={webpSrcset(heroImage)}
+        sizes="(max-width: 900px) 92vw, 560px"
+        alt={`${hero.name} on pale birch wood`}
+        width="600"
+        height="750"
+        fetchpriority="high"
+      />
     </div>
   </section>
 

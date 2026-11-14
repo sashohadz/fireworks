@@ -11,6 +11,7 @@ import {
   productPath,
   products,
   unitImage,
+  webpSrcset,
   type Product,
 } from '../../lib/catalog';
 
@@ -32,6 +33,7 @@ const units = product.units.map((u) => ({
   compareAtPrice: u.compareAtPrice ?? null,
   stock: u.stock,
   image: unitImage(product, u),
+  srcset: webpSrcset(unitImage(product, u)) ?? '',
 }));
 
 const jsonLd = [
@@ -74,13 +76,22 @@ const jsonLd = [
 
     <div class="pdp" data-product-id={product.id} data-units={JSON.stringify(units)}>
       <div class="pdp-gallery">
-        <img id="pdp-main-image" src={unitImage(product, unit)} alt={product.name} width="800" height="800" />
+        <img
+          id="pdp-main-image"
+          src={unitImage(product, unit)}
+          srcset={webpSrcset(unitImage(product, unit))}
+          sizes="(max-width: 900px) 92vw, 560px"
+          alt={product.name}
+          width="800"
+          height="800"
+          fetchpriority="high"
+        />
         {
           images.length > 1 && (
             <div class="pdp-thumbs">
               {images.map((src, i) => (
-                <button type="button" class="pdp-thumb" data-src={src} aria-label={`Show image ${i + 1}`}>
-                  <img src={src} alt="" width="120" height="120" loading="lazy" />
+                <button type="button" class="pdp-thumb" data-src={src} data-srcset={webpSrcset(src) ?? ''} aria-label={`Show image ${i + 1}`}>
+                  <img src={src} srcset={webpSrcset(src)} sizes="120px" alt="" width="120" height="120" loading="lazy" />
                 </button>
               ))}
             </div>
@@ -321,6 +332,7 @@ const jsonLd = [
     compareAtPrice: number | null;
     stock: number;
     image: string;
+    srcset: string;
   }
 
   const root = document.querySelector<HTMLElement>('.pdp')!;
@@ -329,6 +341,13 @@ const jsonLd = [
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
   const addButton = $<HTMLButtonElement>('pdp-add');
   let current = units.find((u) => (document.querySelector<HTMLInputElement>('input[name="variant"]:checked')?.value ?? '') === u.id) ?? units[0]!;
+
+  /** srcset wins over src, so both change together (an empty srcset falls back to the JPEG). */
+  function showImage(src: string, srcset: string) {
+    const img = $<HTMLImageElement>('pdp-main-image');
+    img.srcset = srcset;
+    img.src = src;
+  }
 
   function render(unit: UnitData, updateUrl: boolean) {
     current = unit;
@@ -339,7 +358,7 @@ const jsonLd = [
     compare.textContent = unit.compareAtPrice === null ? '' : formatEur(unit.compareAtPrice);
     $('pdp-variant-name').textContent = unit.name;
     $('pdp-unit-id').textContent = unit.id;
-    $<HTMLImageElement>('pdp-main-image').src = unit.image;
+    showImage(unit.image, unit.srcset);
     const stock = $('pdp-stock');
     if (unit.stock === 0) stock.textContent = 'Sold out. This option cannot be added to the bag.';
     else if (unit.stock <= 5) stock.textContent = `Only ${unit.stock} left.`;
@@ -362,7 +381,7 @@ const jsonLd = [
 
   document.querySelectorAll<HTMLButtonElement>('.pdp-thumb').forEach((btn) =>
     btn.addEventListener('click', () => {
-      $<HTMLImageElement>('pdp-main-image').src = btn.dataset.src!;
+      showImage(btn.dataset.src!, btn.dataset.srcset ?? '');
     }),
   );
 
