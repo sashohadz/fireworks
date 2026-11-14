@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 
 const pages = [
@@ -37,6 +38,8 @@ const pages = [
   '/lab/tracking',
   '/lab/bookmarklet',
   '/lab/bookmarklet/practice',
+  '/lab/performance',
+  '/lab/performance/details',
   '/live/overlays',
   '/pitch',
   '/pitch/eu-beauty-retailer',
@@ -427,6 +430,188 @@ test.describe('bookmarklet', () => {
     await page.fill('#bm-assistant', 'x" onload="alert(1)');
     await expect(page.locator('#bm-error')).toContainText('assistant ID');
     await expect(page.locator('#bm-link')).toHaveAttribute('aria-disabled', 'true');
+  });
+});
+
+test.describe('performance lab', () => {
+  test('the visual view switches page, widgets and loading, and keeps them in the URL', async ({ page, request }) => {
+    await page.goto('/lab/performance?fw=off');
+    await expect(page.locator('[data-page="product"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-widget="pdp"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('.pv-tile')).toHaveCount(4);
+    await expect(page.locator('.pv-tile').first()).toContainText('Loads as fast?');
+    await expect(page.locator('.pv-tile .pv-badge').first()).toContainText(/\S/);
+    // The default state's page map and first frame exist.
+    for (const src of await page.locator('.pv-map img, .pv-frame img').evaluateAll((els) => els.slice(0, 2).map((e) => e.getAttribute('src')))) {
+      expect((await request.get(src!)).status()).toBe(200);
+    }
+    await page.locator('[data-load="lazy"]').click();
+    await expect(page).toHaveURL(/view=product&with=pdp&load=lazy/);
+    await expect(page.locator('[data-load="lazy"]')).toHaveAttribute('aria-checked', 'true');
+    await page.locator('[data-widget="ava"]').click();
+    await expect(page).toHaveURL(/with=pdp%2Cava|with=pdp,ava/);
+    await page.locator('[data-page="category"]').click();
+    await expect(page.locator('[data-widget="grid"]')).toBeVisible();
+    await expect(page.locator('[data-widget="pdp"]')).toHaveCount(0);
+    await page.locator('[data-numbers]').check({ force: true });
+    await expect(page).toHaveURL(/numbers=1/);
+    // Slow 4G (Google's test) is the default; Fast 4G once it has been measured.
+    await expect(page.locator('[data-net="slow4g"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('#pv-method')).toContainText('Slow 4G');
+    const fast = page.locator('[data-net="fast4g"]');
+    if (await fast.isEnabled()) {
+      await fast.click();
+      await expect(page).toHaveURL(/net=fast4g/);
+      await expect(page.locator('#pv-method')).toContainText('Fast 4G');
+    }
+  });
+
+  test('the view ignores unknown values in its URL', async ({ page }) => {
+    await page.goto('/lab/performance/?view=evil&with=%3Cimg%20src%3Dx%20id%3Dpwn%3E,pdp&load=sideways&net=warp&fw=off');
+    await expect(page.locator('[data-page="product"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-widget="pdp"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-load="on"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-net="slow4g"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('#pwn')).toHaveCount(0);
+  });
+
+  test('the numbers switch shows the exact values, and the details page has a table per page', async ({ page }) => {
+    await page.goto('/lab/performance/?view=product&with=pdp&load=standard&numbers=1&fw=off');
+    await expect(page.locator('.pv-nums')).toHaveCount(4);
+    await expect(page.locator('.pv-nums').first()).toContainText('Without');
+    await page.goto('/lab/performance/details?fw=off');
+    await expect(page.locator('.dt-table')).not.toHaveCount(0);
+    await expect(page.locator('.dt-table').first()).toContainText('Storyblock');
+  });
+
+  test('each tile explains its title: on hover, and on tap on a phone', async ({ page, isMobile }) => {
+    await page.goto('/lab/performance/?fw=off');
+    const btn = page.locator('.pv-tile').first().locator('.pv-tip-btn');
+    const tip = page.locator('#pv-tip-speed');
+    await expect(btn).toHaveAttribute('aria-describedby', 'pv-tip-speed');
+    await expect(tip).toBeHidden();
+    if (isMobile) await btn.tap();
+    else await btn.hover();
+    await expect(tip).toBeVisible();
+    await expect(tip).toContainText('Largest Contentful Paint');
+    if (isMobile) {
+      await page.locator('h1').tap();
+      await expect(tip).toBeHidden();
+    }
+  });
+
+  test('the Slow 4G note opens a map of Europe from real Chrome data', async ({ page, isMobile }) => {
+    await page.goto('/lab/performance/?fw=off');
+    const trigger = page.locator('button.pv-real');
+    const pop = page.locator('#pv-netmap');
+    await expect(trigger).toContainText('in 100 phone visits in Europe');
+    await expect(pop).toBeHidden();
+    if (isMobile) await trigger.tap();
+    else await trigger.click();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(pop).toBeVisible();
+    await expect(pop.locator('path[data-iso]')).toHaveCount(30);
+    await expect(pop.locator('.pv-euro-label')).toHaveCount(10);
+    await expect(pop.locator('[data-r="name"]')).toHaveText('Europe');
+    if (isMobile) await pop.locator('path[data-iso="DE"]').tap();
+    else await pop.locator('path[data-iso="DE"]').hover();
+    await expect(pop.locator('[data-r="name"]')).toHaveText('Germany');
+    await page.mouse.move(1, 1);
+    await page.keyboard.press('Escape');
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(pop).toBeHidden();
+    // After a switch re-renders the strip, the new trigger still opens the panel.
+    await page.locator('[data-load="lazy"]').click();
+    if (isMobile) await page.locator('button.pv-real').tap();
+    else await page.locator('button.pv-real').click();
+    await expect(pop).toBeVisible();
+    await expect(page.locator('button.pv-real')).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('both pages explain how a customer can measure Firework on their own site', async ({ page }) => {
+    await page.goto('/lab/performance/?fw=off');
+    await expect(page.locator('#pv-yours-h')).toHaveText('Measure it on your own site');
+    await expect(page.locator('.pv-yours-card')).toHaveCount(2);
+    await page.locator('a[href="/lab/performance/details/#measure-yourself"]').click();
+    await expect(page.locator('#measure-yourself')).toBeVisible();
+    await expect(page.locator('main')).toContainText('Block Requests Containing (URL substrings)');
+    await expect(page.locator('main')).toContainText('fwcdn fwscripts fireworktv fwpixel');
+  });
+
+  test('the connection data covers every country, with shares that add up', () => {
+    const data = JSON.parse(fs.readFileSync('src/data/perf/crux-rtt.json', 'utf8')) as {
+      sample?: boolean;
+      countries: Record<string, { low: number; medium: number; high: number }>;
+    };
+    // Real numbers from the Chrome UX Report, not the sample used while building the page.
+    expect(data.sample).toBeUndefined();
+    expect(Object.keys(data.countries)).toHaveLength(30);
+    for (const c of Object.values(data.countries)) expect(Math.abs(c.low + c.medium + c.high - 1)).toBeLessThan(0.002);
+  });
+
+  test('?fw=head puts Firework in the head and still leaves out unlisted widgets', async ({ page }) => {
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.abort());
+    await page.goto('/products/cloudberry-vitamin-c-serum/?widgets=pdp&fw=head');
+    await expect(page.locator('head script[data-fw-sdk]')).toHaveCount(2);
+    await expect(page.locator('head script[data-fw-sdk][type="module"]')).toHaveAttribute('data-fwparam_shopping_cart_style', 'bag');
+    await expect(page.locator('[data-fw-key="pdp"]')).toHaveCount(1);
+    await expect(page.locator('[data-fw-key="deck"]')).toHaveCount(0);
+    await expect(page.locator('fw-ava')).toHaveCount(0);
+  });
+
+  test('?widgets= keeps only the listed widgets, including AVA', async ({ page }) => {
+    await page.goto('/?widgets=carousel&fw=off');
+    await expect(page.locator('[data-fw-managed]')).toHaveCount(1);
+    await expect(page.locator('[data-fw-managed]').first()).toHaveAttribute('data-fw-slot', 'carousel');
+    await expect(page.locator('#override-banner')).toContainText('Only these widgets: carousel');
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.abort());
+    await page.goto('/products/cloudberry-vitamin-c-serum/?widgets=pdp');
+    await expect(page.locator('fw-ava')).toHaveCount(0);
+    await expect(page.locator('script[data-ava-sdk]')).toHaveCount(0);
+    await page.goto('/products/cloudberry-vitamin-c-serum/?widgets=pdp,ava');
+    await expect(page.locator('fw-ava')).toHaveCount(1);
+    await page.goto('/products/cloudberry-vitamin-c-serum/?widgets=%3Cscript%3E,deck&fw=off');
+    await expect(page.locator('[data-fw-managed]')).toHaveCount(1);
+    await expect(page.locator('#override-banner')).toContainText('Only these widgets: deck');
+  });
+
+  test('widgets keep their space with Firework on, and none with it off or hidden', async ({ page }) => {
+    // Firework's scripts are blocked: the widgets never render, so only the reserved space is measured.
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com/, (route) => route.abort());
+    await page.goto('/shop/?widgets=grid,stories');
+    await expect(page.locator('.fw-reserve')).toHaveCount(2);
+    expect(Math.round((await page.locator('.fw-reserve').first().boundingBox())!.height)).toBe(136);
+    await page.goto('/shop/?widgets=grid');
+    await expect(page.locator('.fw-reserve')).toHaveCount(1);
+    await page.goto('/shop/?widgets=grid,stories&fw=off');
+    await expect(page.locator('html')).toHaveAttribute('data-fw-early', 'off');
+    for (const box of await page.locator('.fw-reserve').all()) expect((await box.boundingBox())!.height).toBe(0);
+  });
+
+  test('measures a setup in this browser, in all three modes', async ({ page }) => {
+    test.setTimeout(120_000);
+    // Firework's scripts are blocked, so the "on" and "lazy" steps load nothing from Firework and finish quickly.
+    await page.route(/asset\.(fwcdn3|fwscripts)\.com|fwpixel\.com/, (route) => route.abort());
+    await page.goto('/lab/performance/details?fw=off');
+    for (const box of await page.locator('input[name="setup"]').all()) {
+      if ((await box.getAttribute('data-page')) !== 'product') await box.uncheck();
+      else await box.check();
+    }
+    await page.getByRole('button', { name: 'Run in this browser' }).click();
+    await page.waitForURL(/\/products\/cloudberry-vitamin-c-serum\/\?widgets=&fw=off&perf=/);
+    await page.waitForURL(/lab\/performance\/details\/?#live/, { timeout: 90_000 });
+    const rows = page.locator('.perf-live-table tbody tr');
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(0)).toContainText('Without Firework');
+    await expect(rows.nth(1)).toContainText('Standard loading');
+    await expect(rows.nth(2)).toContainText('Lazy loading');
+    const run = await page.evaluate(() => JSON.parse(sessionStorage.getItem('fjb.perf.v1') ?? 'null'));
+    expect(run.results.map((r: { mode: string }) => r.mode)).toEqual(['off', 'on', 'lazy']);
+    expect(run.results[0].requests).toBeGreaterThan(5);
+    expect(run.results[0].bytes).toBeGreaterThan(10_000);
+    expect(run.results[0].fcp).toBeGreaterThan(0);
+    await page.getByRole('button', { name: 'Clear results' }).click();
+    await expect(rows).toHaveCount(0);
   });
 });
 

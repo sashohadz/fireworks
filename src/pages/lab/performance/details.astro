@@ -1,0 +1,562 @@
+---
+import reportJson from '../../../data/perf/latest.json';
+import Lab from '../../../layouts/Lab.astro';
+import { groupLabels, netOf, netProfiles, setupId, thresholds, type PerfReport, type PerfResult } from '../../../lib/perf';
+import { activeGroups, describeRequest, fmtCls, fmtKb, fmtMs, measuredNets, ratingOf, resultOf, revealOf, videoMax, weightOf, widgetLabel } from '../../../lib/perf-view';
+import { monthLabel, pctText, rtt, rttRows } from '../../../lib/perf-netmap';
+import { repoUrl } from '../../../site.config';
+
+const report = reportJson as unknown as PerfReport;
+const measuredOn = new Date(report.measuredAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const groups = activeGroups(report);
+const comboName = (page: (typeof report.pages)[number], widgets: string[]) => (widgets.length ? widgets.map((k) => widgetLabel(page.id, k)).join(' + ') : 'Script only, no widgets');
+const range = (r: PerfResult | undefined, key: 'lcp' | 'tbt') => (r?.ranges ? `${fmtMs(r.ranges[key][0])}–${fmtMs(r.ranges[key][1])}` : '');
+const cells = (r: PerfResult | undefined) =>
+  r
+    ? [
+        `${fmtMs(r.lighthouse.lcp)}`,
+        `${fmtMs(r.lighthouse.tbt)}${r.lighthouse.tbtFromTrace ? '*' : ''}`,
+        `${fmtMs(r.runtime.longestTaskMs)}`,
+        `${fmtCls(r.lighthouse.cls)}`,
+        `${fmtKb(weightOf(r))}`,
+        videoMax(r) > 50 * 1024 ? `+${fmtKb(videoMax(r))}` : '–',
+        `${r.network.requests}`,
+      ]
+    : Array(7).fill('–');
+const metricHeads = ['LCP', 'TBT', 'Longest task', 'CLS', 'Weight', 'Video', 'Requests'];
+// One block per connection, each with a table per page.
+const netBlocks = measuredNets(report).map((net) => ({
+  net,
+  pages: report.pages.map((page) => {
+    const combos = report.setups.filter((s) => s.page === page.id && !s.off);
+    return {
+      page,
+      off: resultOf(report, setupId(page.id, null), 'off', net),
+      rows: combos.map((s) => ({ s, on: resultOf(report, s.id, 'on', net), lazy: resultOf(report, s.id, 'lazy', net), reveal: revealOf(report, s.id, net) })),
+    };
+  }),
+}));
+// The store's own fixes: the same pages without Firework, before (production) and after (this measurement).
+const baseline = report.baseline;
+const ownStore = report.pages.map((page) => ({
+  page,
+  before: baseline?.results.find((r) => r.setup === setupId(page.id, null)),
+  after: resultOf(report, setupId(page.id, null), 'off'),
+}));
+// Where Firework's tag goes: the setups also measured with the tag in the <head> (?fw=head), against the store's
+// standard, the tag at the end of the page.
+const firstFirework = (r: PerfResult | undefined) => {
+  const starts = (r?.lanes?.script ?? []).map((iv) => iv[0]);
+  return starts.length ? Math.min(...starts) : null;
+};
+const pair = (a: number | null | undefined, b: number | null | undefined) => `${a == null ? '–' : fmtMs(a)} → ${b == null ? '–' : fmtMs(b)}`;
+// Main content in whole milliseconds: the differences here are tens of ms, which "1.3 s" would hide.
+const exactMs = (v: number) => `${Math.round(v).toLocaleString('en-GB')} ms`;
+const lcpPair = (end: PerfResult | undefined, head: PerfResult) => `${end ? exactMs(end.lighthouse.lcp) : '–'} → ${exactMs(head.lighthouse.lcp)}`;
+const lcpRange = (r: PerfResult | undefined) => (r?.ranges ? `${Math.round(r.ranges.lcp[0])}–${Math.round(r.ranges.lcp[1])}` : '–');
+const placementBlocks = measuredNets(report)
+  .map((net) => ({
+    net,
+    rows: report.setups
+      .filter((s) => resultOf(report, s.id, 'head', net))
+      .map((s) => ({
+        s,
+        page: report.pages.find((p) => p.id === s.page)!,
+        end: resultOf(report, s.id, 'on', net),
+        head: resultOf(report, s.id, 'head', net)!,
+        shows: (report.placement?.[s.id] ?? []).find((p) => netOf(p) === net),
+      })),
+  }))
+  .filter((b) => b.rows.length)
+  .map((b) => {
+    // How much later the main content came with the tag in the head (at most), and how much sooner first-screen videos.
+    const later = Math.max(0, ...b.rows.map((r) => (r.end ? r.head.lighthouse.lcp - r.end.lighthouse.lcp : 0)));
+    const starts = b.rows.map((r) => [firstFirework(r.end), firstFirework(r.head)]).filter((x): x is [number, number] => x[0] !== null && x[1] !== null);
+    const earlier = starts.length ? starts.reduce((a, [e, h]) => a + e - h, 0) / starts.length : null;
+    const shows = b.rows.map((r) => r.shows).find((x) => x && x.endMs !== null && x.headMs !== null);
+    return { ...b, later, earlier, shows };
+  });
+// The default state of the overview, for the request list and the weight split.
+const sample = resultOf(report, setupId('product', ['pdp']), 'on');
+---
+
+<Lab title="Page speed: all numbers" description="Every number behind the page speed view: each page and widget combination with standard and lazy loading, the store's own fixes, the biggest requests and a run in your own browser.">
+  <p class="eyebrow">Lab tool</p>
+  <h1>Page speed: all numbers</h1>
+  <p class="lede">
+    The numbers behind the <a href="/lab/performance/">visual view</a>, for engineers. Every page and widget combination,
+    with standard loading and with the lazy loader, against the same page without Firework.
+  </p>
+  <p class="note note-info">
+    Measured {measuredOn} on <code>{report.site}</code> with Lighthouse {report.lighthouseVersion} on Chrome {report.chrome},
+    Firework SDK {report.sdkRelease}. {report.conditions.device}; {report.conditions.network}; CPU {report.conditions.cpu};
+    {' '}{report.conditions.cache.toLowerCase()}. Median of {report.conditions.runs} runs; ranges are lowest–highest.
+    {report.conditions.tracking}.
+  </p>
+
+  {
+    netBlocks.map(({ net, pages }) => (
+      <>
+        <h2 class="dt-net">{netProfiles[net].label}: {netProfiles[net].note}</h2>
+        {pages.map(({ page, off, rows }) => (
+      <section class="dt-page">
+        <h3>{page.label}</h3>
+        <p class="small muted">
+          Without Firework: LCP {off ? fmtMs(off.lighthouse.lcp) : '–'} ({range(off, 'lcp')}), longest task {off ? fmtMs(off.runtime.longestTaskMs) : '–'}, {off ? fmtKb(weightOf(off)) : '–'}, {off?.network.requests ?? '–'} requests.
+        </p>
+        <div class="table-wrap">
+          <table class="table dt-table">
+            <thead>
+              <tr>
+                <th rowspan="2">Widgets</th>
+                <th colspan={metricHeads.length}>Standard loading</th>
+                <th colspan={metricHeads.length}>Lazy loading</th>
+                <th rowspan="2">Videos show after scrolling (lazy)</th>
+              </tr>
+              <tr>
+                {metricHeads.map((h) => <th>{h}</th>)}
+                {metricHeads.map((h) => <th>{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(({ s, on, lazy, reveal }) => (
+                <tr>
+                  <td>{comboName(page, s.widgets)}</td>
+                  {cells(on).map((c) => <td>{c}</td>)}
+                  {cells(lazy).map((c) => <td>{c}</td>)}
+                  <td>{reveal ? `${fmtMs(reveal.lazyMs)} (${reveal.widget})` : lazy?.runtime.sdkLoaded ? 'At once' : '–'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+        ))}
+      </>
+    ))
+  }
+  <p class="small muted">
+    Weight is before any video plays; Video is the most that streamed in a run once a video started. TBT marked * is
+    summed from the trace: a playing video kept the page loading past Lighthouse's 30-second limit, so Lighthouse gave no
+    figure. Longest task comes from every task in the trace. LCP ranges, LCP elements and layout-shift sources are in
+    <code>src/data/perf/latest.json</code>.
+  </p>
+
+  <h2>Our own store, before and after its fixes</h2>
+  <p>
+    The pages without Firework. Before: the live site before the fixes. After: the same pages with modern image formats
+    (WebP in two sizes), the stylesheet inline in the page and the product image marked high priority.
+  </p>
+  {
+    baseline ? (
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Page</th><th>LCP before</th><th>LCP after</th><th>Weight before</th><th>Weight after</th></tr></thead>
+          <tbody>
+            {ownStore.map(({ page, before, after }) => (
+              <tr>
+                <td>{page.label}</td>
+                <td>{before ? `${fmtMs(before.lighthouse.lcp)} (${ratingOf('lcp', before.lighthouse.lcp).label.toLowerCase()})` : '–'}</td>
+                <td>{after ? `${fmtMs(after.lighthouse.lcp)} (${ratingOf('lcp', after.lighthouse.lcp).label.toLowerCase()})` : '–'}</td>
+                <td>{before ? fmtKb(weightOf(before)) : '–'}</td>
+                <td>{after ? fmtKb(weightOf(after)) : '–'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <p class="small muted">Not measured yet: <code>npm run perf:measure -- --baseline https://fjordbloom.netlify.app</code>.</p>
+    )
+  }
+  <p class="small muted">
+    Where you measure matters as much: a local copy without compression and HTTP/2 measured this store at 2.4–2.6 s,
+    against 1.3–1.7 s on the live site, before any fix.
+  </p>
+
+  {
+    sample && (
+      <>
+        <h2>What a Storyblock on the product page loads</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Sender</th><th>Requests</th><th>Bytes</th><th>Script time</th></tr></thead>
+            <tbody>
+              {groups.map((g) => {
+                const t = sample.network.groups[g];
+                return t ? <tr><td>{groupLabels[g]}</td><td>{t.requests}</td><td>{fmtKb(t.bytes)}</td><td>{fmtMs(t.scriptMs)}</td></tr> : null;
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Biggest Firework requests</th><th>Type</th><th>Size</th></tr></thead>
+            <tbody>{sample.network.biggest.slice(0, 6).map((b) => <tr><td><code>{describeRequest(b.url)}</code></td><td>{b.type}</td><td>{fmtKb(b.bytes)}</td></tr>)}</tbody>
+          </table>
+        </div>
+      </>
+    )
+  }
+
+  <h2>What changes it</h2>
+  <ul>
+    <li><b>Lazy loader</b> (<code>fwn-async.js</code>, 1.5 KB): loads the SDK when a widget scrolls into view or the URL opens a shared video. It fetches the legacy <code>fwn.js</code> build. A widget in the first screen loads at once; a floating player loads when the shopper reaches the spot where it sits in the page.</li>
+    <li><b>Reserved space:</b> a wrapper with a <code>min-height</code> around each widget. On the element itself it doesn't work: it has no box before the SDK upgrades it, and briefly during the upgrade. On phones the hero unit renders about 250px taller than its <code>height</code>.</li>
+    <li><b>Async scripts:</b> the SDK, AVA and analytics load with <code>async</code> or <code>type="module"</code>, so they never block the first paint. On a slow connection they still share the bandwidth with the page's own images.</li>
+    <li>
+      <b>Where the tag goes:</b> Firework's <a href="https://docs.firework.com/firework-for-developers/web/faq-and-troubleshooting">FAQ</a>
+      gives two options. At the end of the page, the page's own content comes first and Firework renders last; in the
+      <code>&lt;head&gt;</code>, Firework's widgets come first. This store adds Firework's scripts from its own script at the
+      end of the page, so they start loading after the HTML: these numbers show the first option. Firework's first request
+      starts after the main image has appeared (on Slow 4G about 2.4 s, against 1.3 s). A tag in the head starts Firework
+      sooner, sharing the connection with the main image: see <a href="#placement">where Firework's tag goes</a>.
+    </li>
+    <li><b>Caching:</b> Firework's scripts are cached for 30 minutes (<code>max-age=1800</code>); these runs are first visits with an empty cache.</li>
+    <li><b>Video:</b> autoplay streams the 720p file while it plays, a few hundred KB in the first seconds. Whether a video starts within a run varies, so weight is compared before any video plays.</li>
+  </ul>
+
+  {
+    placementBlocks.length > 0 && (
+      <>
+        <h2 id="placement">Where Firework's tag goes</h2>
+        <p>
+          The same pages with Firework's tag at the end of the page (this store's standard) and in the <code>&lt;head&gt;</code>
+          (<code>?fw=head</code>: the same tags, injected while the head is parsed), measured the same way. Each cell reads
+          end of page → head.
+        </p>
+        {placementBlocks.map((b) => (
+          <>
+            <h3>{netProfiles[b.net].label}</h3>
+            <p>
+              With the tag in the head, Firework starts loading {b.earlier === null ? 'sooner' : `about ${fmtMs(b.earlier)} sooner`}. The main
+              content comes {b.later <= 20 ? 'at the same time' : `at most ${fmtMs(b.later)} later`}{b.later <= 100 ? ', well under what anyone notices' : ''},
+              and the pauses stay the same.
+              {b.shows && ` ${b.shows.widget} in the first screen show their videos ${fmtMs(b.shows.endMs! - b.shows.headMs!)} sooner.`}
+              Widgets further down the page gain little: Firework is ready long before the shopper scrolls to them.
+            </p>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Page and widgets</th>
+                    <th>Firework starts loading</th>
+                    <th>Main content (LCP)</th>
+                    <th>Longest pause</th>
+                    <th>Blocking time</th>
+                    <th>First-screen videos show</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {b.rows.map((r) => (
+                    <tr>
+                      <td>{r.page.label}: {comboName(r.page, r.s.widgets)}</td>
+                      <td>{pair(firstFirework(r.end), firstFirework(r.head))}</td>
+                      <td>
+                        {lcpPair(r.end, r.head)}
+                        <br />
+                        <span class="small muted">runs {lcpRange(r.end)} → {lcpRange(r.head)}</span>
+                      </td>
+                      <td>{pair(r.end?.runtime.longestTaskMs, r.head.runtime.longestTaskMs)}</td>
+                      <td>{pair(r.end?.lighthouse.tbt, r.head.lighthouse.tbt)}</td>
+                      <td>{r.shows ? `${r.shows.widget}: ${pair(r.shows.endMs, r.shows.headMs)}` : 'None in the first screen'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ))}
+      </>
+    )
+  }
+
+  <h2 id="measure-yourself">Measure it on your own site</h2>
+  <p>
+    The same comparison as ours, on your own pages: with Firework, and with Firework's requests blocked. Blocking needs no
+    code change, so you can measure your live or staging pages as they are.
+  </p>
+
+  <h3>Before launch: a lab test in WebPageTest (about an hour)</h3>
+  <ol>
+    <li>
+      Pick the pages that will carry Firework, usually a product page, plus a page without widgets if the script goes on
+      every page. If Firework isn't live yet, use a staging copy with it added, placed where you plan to put it.
+    </li>
+    <li>
+      In <a href="https://www.webpagetest.org/">WebPageTest</a>'s advanced settings, choose a test location near your
+      shoppers, Chrome on a mobile device, and the connection <b>3G Fast (1.6 Mbps/768 Kbps 150ms RTT)</b>: the same profile
+      as Lighthouse's Slow 4G and our tests. Repeat with <b>4G (9 Mbps, 170ms RTT)</b> for a typical connection.
+    </li>
+    <li>Set <b>Number of Tests to Run</b> to 9 and keep <b>First View Only</b>: an empty cache, like a first visit.</li>
+    <li>Run the page as it is: that's "with Firework".</li>
+    <li>
+      Run it again with the <b>Block</b> tab's <b>Block Requests Containing (URL substrings)</b> set to
+      <code>fwcdn fwscripts fireworktv fwpixel</code>: that's "without Firework". Firework's scripts come from the first two;
+      without them nothing else from Firework loads, and the other two are a safety net.
+    </li>
+    <li>
+      Compare the median runs side by side: Largest Contentful Paint, Total Blocking Time, Cumulative Layout Shift, the
+      bytes loaded, and the two filmstrips.
+    </li>
+  </ol>
+  <ul>
+    <li>Look at all 9 runs, not just the medians: if the two sets of runs overlap, the difference is noise. Here a page without Firework varies by 100 ms or more between runs.</li>
+    <li>To try the lazy loader, swap Firework's script for <code>fwn-async.js</code> on staging and run the "with" test again.</li>
+    <li>Tools the team already uses work the same way: SpeedCurve or DebugBear with Firework's hosts blocked, or Lighthouse (<code>--blocked-url-patterns</code> on the command line, <code>blockedUrlPatterns</code> in <a href="https://github.com/GoogleChrome/lighthouse-ci">Lighthouse CI</a>'s settings).</li>
+  </ul>
+
+  <h3>After launch: real shoppers (about 4 weeks)</h3>
+  <ol>
+    <li>
+      <a href="https://support.google.com/webmasters/answer/9205520">Google Search Console's Core Web Vitals report</a>
+      (mobile) shows Google's verdict on real Chrome visits per group of similar pages, over 28 days. Note the launch date
+      and compare the 28 days before with the 28 days after. Other releases in the same weeks move these numbers too.
+    </li>
+    <li><a href="https://pagespeed.web.dev/">PageSpeed Insights</a> shows the same real-visit data for one page or the whole site, next to a lab test.</li>
+    <li>
+      Most reliable: a holdout. Show Firework to half your shoppers with your A/B testing tool, and record Core Web Vitals
+      for each half with your real-user monitoring tool or Google's free <a href="https://github.com/GoogleChrome/web-vitals">web-vitals</a>
+      library sent to your analytics. Then compare speed and conversion between the halves: the only way to separate
+      Firework's effect from everything else that changes.
+    </li>
+    <li>Watch Interaction to Next Paint (INP) there: a lab test can't measure real taps, only real visits can.</li>
+  </ol>
+
+  <h2 id="live">Measure in this browser</h2>
+  <p>
+    The same comparison in this tab, on your device and network, with the browser's own measurements: each setup without
+    Firework, with standard loading and with lazy loading. About ten seconds per step; nothing leaves the browser.
+  </p>
+  <form id="perf-form" class="perf-form">
+    <fieldset>
+      <legend>Setups</legend>
+      {
+        report.pages.map((p) => (
+          <label class="check">
+            <input type="checkbox" name="setup" value={setupId(p.id, p.defaults)} data-page={p.id} checked={p.id === 'product'} /> {p.label}: {comboName(p, p.defaults)}
+          </label>
+        ))
+      }
+    </fieldset>
+    <p class="perf-actions">
+      <button type="submit" class="btn btn-small">Run in this browser</button>
+      <button type="button" class="btn btn-small btn-ghost" id="perf-clear" hidden>Clear results</button>
+    </p>
+  </form>
+  <div id="perf-live" aria-live="polite"></div>
+  <p class="small muted">
+    Sizes are only readable for requests whose server allows it (<code>Timing-Allow-Origin</code>): the site's own,
+    Firework's SDK and media, but not its API and analytics calls. Your cache state applies. These visits count as page
+    views on the sandbox channel.
+  </p>
+
+  <h2 id="connections">Connections by country</h2>
+  <p>
+    How often a phone visit is as slow as our Slow 4G test, from the <a href="https://developer.chrome.com/docs/crux">Chrome UX Report</a>
+    (CrUX): real visits by Chrome users, {monthLabel(rtt.month)}{rtt.sample ? ' (sample data, not real numbers yet)' : ''}. CrUX groups
+    each visit by its connection's round trip time (<code>navigator.connection.rtt</code>, Chrome's estimate of how long
+    a request takes to answer): under 75 ms, 75–275 ms, and 275 ms or more.
+  </p>
+  <ul>
+    <li>
+      Lighthouse describes its Slow 4G as <a href="https://github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md">roughly
+      the bottom 25% of 4G connections and top 25% of 3G connections</a>. Chrome's own edge between 4G and 3G is that same 275 ms,
+      so "275 ms or more" reads as "like Slow 4G, or slower". Lighthouse's 150 ms is the bare network round trip; Chrome times a
+      whole request, so its numbers run higher.
+    </li>
+    <li>Fast 4G (a 60 ms network round trip) falls in the middle group.</li>
+    <li>It is about delay only: CrUX has no bandwidth figure.</li>
+    <li>
+      CrUX rows are per website. A country's figure is the {rtt.basisLabel}, each website counting once; "Europe" weighs each
+      country by its population.
+    </li>
+  </ul>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Country</th><th>275 ms or more (like Slow 4G)</th><th>75–275 ms (like Fast 4G)</th><th>Under 75 ms</th><th>Websites</th><th>Median p75 RTT</th></tr>
+      </thead>
+      <tbody>
+        {
+          rttRows().map(([, c]) => (
+            <tr>
+              <td>{c.name}</td>
+              <td>{pctText(c.high)}</td>
+              <td>{pctText(c.medium)}</td>
+              <td>{pctText(c.low)}</td>
+              <td>{c.origins.toLocaleString('en-GB')}</td>
+              <td>{c.p75 === null ? '' : `${c.p75} ms`}</td>
+            </tr>
+          ))
+        }
+        <tr>
+          <td><b>Europe</b> (by population)</td>
+          <td><b>{pctText(rtt.europe.high)}</b></td>
+          <td>{pctText(rtt.europe.medium)}</td>
+          <td>{pctText(rtt.europe.low)}</td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">
+    To refresh it: run <a href={`${repoUrl}/blob/main/scripts/perf/crux-rtt.sql`}>scripts/perf/crux-rtt.sql</a> in the BigQuery
+    console, save the result as JSON, then <code>npm run perf:rtt -- &lt;file&gt;</code>. CrUX data is licensed CC BY 4.0;
+    map borders are Natural Earth (public domain).
+  </p>
+
+  <h2>Thresholds</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Metric</th><th>Good</th><th>Poor</th><th>Kind</th><th>What it is</th></tr></thead>
+      <tbody>
+        {
+          thresholds.map((t) => (
+            <tr>
+              <td>{t.label}</td>
+              <td>≤ {t.unit === 'ms' ? fmtMs(t.good) : t.good}</td>
+              <td>&gt; {t.unit === 'ms' ? fmtMs(t.poor) : t.poor}</td>
+              <td>{t.kind === 'vital' ? 'Core Web Vital (real visits, 75th percentile)' : 'Lighthouse lab metric'}</td>
+              <td>{t.about}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <h2>How to reproduce it</h2>
+  <p>
+    <code>BASE_URL=https://deploy-preview-&lt;PR&gt;--fjordbloom.netlify.app npm run perf:measure</code> (about an hour), then
+    <code>npm run perf:measure -- --baseline https://fjordbloom.netlify.app</code> for the before. The script is
+    <a href={`${repoUrl}/blob/main/scripts/perf/measure.ts`}>scripts/perf/measure.ts</a>; pages and widgets are in
+    <a href={`${repoUrl}/blob/main/src/lib/perf.ts`}>src/lib/perf.ts</a>. <code>--from-raw</code> rebuilds the data
+    from the saved reports.
+  </p>
+</Lab>
+
+<script>
+  import { perfPages, perfSetups, setupUrl } from '../../../lib/perf';
+  import { fmtCls, fmtKb, fmtMs } from '../../../lib/perf-view';
+  import { clearRun, readRun, startRun, type LiveResult } from '../../../scripts/perf-runner';
+
+  const form = document.getElementById('perf-form') as HTMLFormElement;
+  const live = document.getElementById('perf-live')!;
+  const clearBtn = document.getElementById('perf-clear') as HTMLButtonElement;
+  const modeName: Record<string, string> = { off: 'Without Firework', lazy: 'Lazy loading', on: 'Standard loading' };
+  const setups = perfSetups();
+  const labelOf = (id: string) => {
+    const s = setups.find((x) => x.id === id);
+    const page = perfPages.find((p) => p.id === s?.page);
+    if (!s || !page) return id;
+    return s.off ? page.label : `${page.label}: ${s.widgets.map((k) => page.widgets.find((w) => w.key === k)?.label ?? k).join(' + ') || 'script only'}`;
+  };
+
+  const cell = (tr: HTMLTableRowElement, text: string) => {
+    const td = document.createElement('td');
+    td.textContent = text;
+    tr.appendChild(td);
+  };
+
+  function render(): void {
+    const run = readRun();
+    live.replaceChildren();
+    clearBtn.hidden = !run;
+    if (!run) return;
+    const done = run.results.length >= run.steps.length;
+    const p = document.createElement('p');
+    p.className = 'small muted';
+    p.textContent = done ? `Measured ${new Date(run.startedAt).toLocaleString()} in this browser.` : `Run in progress: ${run.results.length} of ${run.steps.length} done. If it stopped, start it again.`;
+    live.appendChild(p);
+    if (!run.results.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    const table = document.createElement('table');
+    table.className = 'table perf-live-table';
+    const hr = table.createTHead().insertRow();
+    for (const h of ['Setup', 'Mode', 'Requests', 'Weight', 'FCP', 'LCP', 'CLS', 'Long tasks', 'Blocking', 'DOM nodes', 'SDK loaded']) {
+      const th = document.createElement('th');
+      th.textContent = h;
+      hr.appendChild(th);
+    }
+    const tbody = table.createTBody();
+    for (const r of run.results as LiveResult[]) {
+      const tr = tbody.insertRow();
+      cell(tr, labelOf(r.setup));
+      cell(tr, modeName[r.mode] ?? r.mode);
+      cell(tr, String(r.requests));
+      cell(tr, r.sized < r.requests ? `${fmtKb(r.bytes)} (${r.sized} of ${r.requests} sized)` : fmtKb(r.bytes));
+      cell(tr, fmtMs(r.fcp));
+      cell(tr, r.lcp ? fmtMs(r.lcp) : 'n/a');
+      cell(tr, fmtCls(r.cls));
+      cell(tr, `${r.longTasks} (${fmtMs(r.longTaskMs)})`);
+      cell(tr, fmtMs(r.blockingMs));
+      cell(tr, String(r.domNodes));
+      cell(tr, r.mode === 'off' ? '–' : r.sdkLoaded ? 'yes' : 'no');
+    }
+    wrap.appendChild(table);
+    live.appendChild(wrap);
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const chosen = [...form.querySelectorAll<HTMLInputElement>('input[name="setup"]:checked')];
+    const steps = chosen.flatMap((box) => {
+      const s = setups.find((x) => x.id === box.value);
+      const off = setups.find((x) => x.off && x.page === box.dataset.page);
+      if (!s || !off) return [];
+      return [
+        { setup: off.id, mode: 'off' as const, url: setupUrl(off, 'off') },
+        { setup: s.id, mode: 'on' as const, url: setupUrl(s, 'on') },
+        { setup: s.id, mode: 'lazy' as const, url: setupUrl(s, 'lazy') },
+      ];
+    });
+    if (!steps.length) return;
+    startRun(steps, `${location.pathname}#live`);
+  });
+  clearBtn.addEventListener('click', () => {
+    clearRun();
+    render();
+  });
+  render();
+</script>
+
+<style>
+  .dt-net {
+    margin-top: 34px;
+  }
+  .dt-page h3 {
+    margin-top: 18px;
+  }
+  .dt-table th,
+  .dt-table td {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.85rem;
+  }
+  .perf-form fieldset {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+  .perf-form legend {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    padding: 0 4px;
+  }
+  .perf-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+  .perf-live-table td {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+</style>

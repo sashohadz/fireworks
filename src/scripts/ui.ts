@@ -4,7 +4,7 @@ import { firework, playlistSlots } from '../site.config';
 import { cartCount, onCartChange } from './cart';
 import { clearSettings, loadSaved, saveSettings, type EffectiveSettings, type FwMode, type SavedSettings } from './settings';
 
-const OVERRIDE_PARAMS = ['channel', 'playlist', 'fw', 'debug', 'shopping'];
+const OVERRIDE_PARAMS = ['channel', 'playlist', 'fw', 'debug', 'shopping', 'widgets'];
 
 export function toast(message: string): void {
   document.querySelector('.toast')?.remove();
@@ -94,6 +94,7 @@ function initOverrideBanner(settings: EffectiveSettings): void {
   }
   if (settings.pagePlaylist !== null) parts.push(`Playlist forced to “${settings.pagePlaylist || 'whole channel'}”.`);
   if (settings.fwMode !== 'on') parts.push(`Firework SDK mode: ${settings.fwMode}.`);
+  if (settings.widgets) parts.push(`Only these widgets: ${settings.widgets.length ? settings.widgets.join(', ') : 'none'}.`);
   const switches = readSwitches();
   if (switches.length) parts.push(`Shopping switches on: ${switches.map(switchLabel).join(', ')}.`);
   if (parts.length === 0) return;

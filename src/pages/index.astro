@@ -2,7 +2,7 @@
 import FwWidget from '../components/FwWidget.astro';
 import ProductCard from '../components/ProductCard.astro';
 import Base from '../layouts/Base.astro';
-import { brand, getProduct, productImages, products } from '../lib/catalog';
+import { brand, getProduct, productImages, products, webpSrcset } from '../lib/catalog';
 
 const featured = products.filter((p) => p.featured);
 const hero = getProduct('FJB-103')!;
@@ -26,7 +26,15 @@ const ritual = ['FJB-101', 'FJB-103', 'FJB-107'].map((id) => getProduct(id)!);
           <a class="btn btn-ghost" href="/live">Watch live shopping</a>
         </div>
       </div>
-      <img src={heroImage} alt={`${hero.name} on pale birch wood`} width="600" height="750" fetchpriority="high" />
+      <img
+        src={heroImage}
+        srcset={webpSrcset(heroImage)}
+        sizes="(max-width: 900px) 92vw, 560px"
+        alt={`${hero.name} on pale birch wood`}
+        width="600"
+        height="750"
+        fetchpriority="high"
+      />
     </div>
   </section>
 
@@ -76,7 +84,7 @@ const ritual = ['FJB-101', 'FJB-103', 'FJB-107'].map((id) => getProduct(id)!);
     <div class="container">
       <p class="eyebrow">Carousel</p>
       <h2 id="watch-heading">Watch and shop</h2>
-      <FwWidget tag="fw-embed-feed" slot="carousel" label="Carousel" attrs={{ mode: 'row', open_in: 'default', placement: 'middle' }} />
+      <FwWidget tag="fw-embed-feed" slot="carousel" label="Carousel" reserve="400px" attrs={{ mode: 'row', open_in: 'default', placement: 'middle' }} />
     </div>
   </section>
 

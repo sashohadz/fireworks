@@ -1,0 +1,259 @@
+{
+  "month": "2026-10",
+  "source": "Chrome UX Report (CrUX), materialized.country_summary, phone",
+  "license": "CC BY 4.0",
+  "basis": "top",
+  "basisLabel": "average over the 10,000 most visited websites in each country",
+  "bins": {
+    "low": "< 75 ms",
+    "medium": "75–275 ms",
+    "high": "≥ 275 ms"
+  },
+  "europe": {
+    "low": 0.546,
+    "medium": 0.405,
+    "high": 0.049
+  },
+  "countries": {
+    "AT": {
+      "name": "Austria",
+      "low": 0.4609,
+      "medium": 0.5054,
+      "high": 0.0337,
+      "origins": 9581,
+      "p75": 100
+    },
+    "BE": {
+      "name": "Belgium",
+      "low": 0.6757,
+      "medium": 0.2982,
+      "high": 0.0261,
+      "origins": 9469,
+      "p75": 75
+    },
+    "BG": {
+      "name": "Bulgaria",
+      "low": 0.4728,
+      "medium": 0.4992,
+      "high": 0.028,
+      "origins": 9394,
+      "p75": 100
+    },
+    "CH": {
+      "name": "Switzerland",
+      "low": 0.6377,
+      "medium": 0.3101,
+      "high": 0.0522,
+      "origins": 9513,
+      "p75": 75
+    },
+    "CY": {
+      "name": "Cyprus",
+      "low": 0.1917,
+      "medium": 0.7484,
+      "high": 0.0599,
+      "origins": 8272,
+      "p75": 150
+    },
+    "CZ": {
+      "name": "Czechia",
+      "low": 0.6062,
+      "medium": 0.3723,
+      "high": 0.0215,
+      "origins": 9711,
+      "p75": 75
+    },
+    "DE": {
+      "name": "Germany",
+      "low": 0.5983,
+      "medium": 0.3464,
+      "high": 0.0553,
+      "origins": 9858,
+      "p75": 75
+    },
+    "DK": {
+      "name": "Denmark",
+      "low": 0.635,
+      "medium": 0.3417,
+      "high": 0.0233,
+      "origins": 9174,
+      "p75": 75
+    },
+    "EE": {
+      "name": "Estonia",
+      "low": 0.5465,
+      "medium": 0.4102,
+      "high": 0.0433,
+      "origins": 8709,
+      "p75": 100
+    },
+    "ES": {
+      "name": "Spain",
+      "low": 0.4879,
+      "medium": 0.4673,
+      "high": 0.0448,
+      "origins": 9751,
+      "p75": 100
+    },
+    "FI": {
+      "name": "Finland",
+      "low": 0.5146,
+      "medium": 0.4468,
+      "high": 0.0386,
+      "origins": 9523,
+      "p75": 75
+    },
+    "FR": {
+      "name": "France",
+      "low": 0.6317,
+      "medium": 0.3125,
+      "high": 0.0558,
+      "origins": 9741,
+      "p75": 75
+    },
+    "GB": {
+      "name": "United Kingdom",
+      "low": 0.6766,
+      "medium": 0.2756,
+      "high": 0.0478,
+      "origins": 9677,
+      "p75": 75
+    },
+    "GR": {
+      "name": "Greece",
+      "low": 0.2845,
+      "medium": 0.6555,
+      "high": 0.06,
+      "origins": 9689,
+      "p75": 125
+    },
+    "HR": {
+      "name": "Croatia",
+      "low": 0.3931,
+      "medium": 0.5728,
+      "high": 0.0341,
+      "origins": 9464,
+      "p75": 100
+    },
+    "HU": {
+      "name": "Hungary",
+      "low": 0.4448,
+      "medium": 0.5296,
+      "high": 0.0256,
+      "origins": 9675,
+      "p75": 100
+    },
+    "IE": {
+      "name": "Ireland",
+      "low": 0.6399,
+      "medium": 0.315,
+      "high": 0.0451,
+      "origins": 9364,
+      "p75": 75
+    },
+    "IT": {
+      "name": "Italy",
+      "low": 0.3673,
+      "medium": 0.5693,
+      "high": 0.0634,
+      "origins": 9649,
+      "p75": 125
+    },
+    "LT": {
+      "name": "Lithuania",
+      "low": 0.4005,
+      "medium": 0.5586,
+      "high": 0.0409,
+      "origins": 9039,
+      "p75": 100
+    },
+    "LU": {
+      "name": "Luxembourg",
+      "low": 0.6166,
+      "medium": 0.3077,
+      "high": 0.0757,
+      "origins": 5721,
+      "p75": 75
+    },
+    "LV": {
+      "name": "Latvia",
+      "low": 0.4183,
+      "medium": 0.5399,
+      "high": 0.0418,
+      "origins": 8561,
+      "p75": 100
+    },
+    "MT": {
+      "name": "Malta",
+      "low": 0.2521,
+      "medium": 0.6934,
+      "high": 0.0545,
+      "origins": 6598,
+      "p75": 125
+    },
+    "NL": {
+      "name": "Netherlands",
+      "low": 0.6998,
+      "medium": 0.2411,
+      "high": 0.0591,
+      "origins": 9647,
+      "p75": 50
+    },
+    "NO": {
+      "name": "Norway",
+      "low": 0.6113,
+      "medium": 0.3535,
+      "high": 0.0352,
+      "origins": 9266,
+      "p75": 75
+    },
+    "PL": {
+      "name": "Poland",
+      "low": 0.4838,
+      "medium": 0.464,
+      "high": 0.0522,
+      "origins": 9798,
+      "p75": 100
+    },
+    "PT": {
+      "name": "Portugal",
+      "low": 0.4236,
+      "medium": 0.5397,
+      "high": 0.0367,
+      "origins": 9449,
+      "p75": 100
+    },
+    "RO": {
+      "name": "Romania",
+      "low": 0.3315,
+      "medium": 0.619,
+      "high": 0.0495,
+      "origins": 9712,
+      "p75": 100
+    },
+    "SE": {
+      "name": "Sweden",
+      "low": 0.6711,
+      "medium": 0.3026,
+      "high": 0.0263,
+      "origins": 9489,
+      "p75": 75
+    },
+    "SI": {
+      "name": "Slovenia",
+      "low": 0.4679,
+      "medium": 0.5016,
+      "high": 0.0305,
+      "origins": 8953,
+      "p75": 100
+    },
+    "SK": {
+      "name": "Slovakia",
+      "low": 0.5857,
+      "medium": 0.3918,
+      "high": 0.0225,
+      "origins": 9502,
+      "p75": 75
+    }
+  }
+}
