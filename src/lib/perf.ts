@@ -212,6 +212,8 @@ export interface PerfResult {
     fcp: number;
     cls: number;
     tbt: number;
+    /** Lighthouse gave no blocking time (a playing video kept the page loading past 30 s): summed from the trace instead. */
+    tbtFromTrace?: boolean;
     si: number;
     tti: number;
   };

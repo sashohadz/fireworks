@@ -1,7 +1,7 @@
 ---
 import reportJson from '../../../data/perf/latest.json';
 import Lab from '../../../layouts/Lab.astro';
-import { groupLabels, netProfiles, setupId, thresholds, type PerfReport, type PerfResult } from '../../../lib/perf';
+import { groupLabels, netOf, netProfiles, setupId, thresholds, type PerfReport, type PerfResult } from '../../../lib/perf';
 import { activeGroups, describeRequest, fmtCls, fmtKb, fmtMs, measuredNets, ratingOf, resultOf, revealOf, videoMax, weightOf, widgetLabel } from '../../../lib/perf-view';
 import { monthLabel, pctText, rtt, rttRows } from '../../../lib/perf-netmap';
 import { repoUrl } from '../../../site.config';
@@ -15,7 +15,7 @@ const cells = (r: PerfResult | undefined) =>
   r
     ? [
         `${fmtMs(r.lighthouse.lcp)}`,
-        `${fmtMs(r.lighthouse.tbt)}`,
+        `${fmtMs(r.lighthouse.tbt)}${r.lighthouse.tbtFromTrace ? '*' : ''}`,
         `${fmtMs(r.runtime.longestTaskMs)}`,
         `${fmtCls(r.lighthouse.cls)}`,
         `${fmtKb(weightOf(r))}`,
@@ -43,6 +43,39 @@ const ownStore = report.pages.map((page) => ({
   before: baseline?.results.find((r) => r.setup === setupId(page.id, null)),
   after: resultOf(report, setupId(page.id, null), 'off'),
 }));
+// Where Firework's tag goes: the setups also measured with the tag in the <head> (?fw=head), against the store's
+// standard, the tag at the end of the page.
+const firstFirework = (r: PerfResult | undefined) => {
+  const starts = (r?.lanes?.script ?? []).map((iv) => iv[0]);
+  return starts.length ? Math.min(...starts) : null;
+};
+const pair = (a: number | null | undefined, b: number | null | undefined) => `${a == null ? '–' : fmtMs(a)} → ${b == null ? '–' : fmtMs(b)}`;
+// Main content in whole milliseconds: the differences here are tens of ms, which "1.3 s" would hide.
+const exactMs = (v: number) => `${Math.round(v).toLocaleString('en-GB')} ms`;
+const lcpPair = (end: PerfResult | undefined, head: PerfResult) => `${end ? exactMs(end.lighthouse.lcp) : '–'} → ${exactMs(head.lighthouse.lcp)}`;
+const lcpRange = (r: PerfResult | undefined) => (r?.ranges ? `${Math.round(r.ranges.lcp[0])}–${Math.round(r.ranges.lcp[1])}` : '–');
+const placementBlocks = measuredNets(report)
+  .map((net) => ({
+    net,
+    rows: report.setups
+      .filter((s) => resultOf(report, s.id, 'head', net))
+      .map((s) => ({
+        s,
+        page: report.pages.find((p) => p.id === s.page)!,
+        end: resultOf(report, s.id, 'on', net),
+        head: resultOf(report, s.id, 'head', net)!,
+        shows: (report.placement?.[s.id] ?? []).find((p) => netOf(p) === net),
+      })),
+  }))
+  .filter((b) => b.rows.length)
+  .map((b) => {
+    // How much later the main content came with the tag in the head (at most), and how much sooner first-screen videos.
+    const later = Math.max(0, ...b.rows.map((r) => (r.end ? r.head.lighthouse.lcp - r.end.lighthouse.lcp : 0)));
+    const starts = b.rows.map((r) => [firstFirework(r.end), firstFirework(r.head)]).filter((x): x is [number, number] => x[0] !== null && x[1] !== null);
+    const earlier = starts.length ? starts.reduce((a, [e, h]) => a + e - h, 0) / starts.length : null;
+    const shows = b.rows.map((r) => r.shows).find((x) => x && x.endMs !== null && x.headMs !== null);
+    return { ...b, later, earlier, shows };
+  });
 // The default state of the overview, for the request list and the weight split.
 const sample = resultOf(report, setupId('product', ['pdp']), 'on');
 ---
@@ -103,8 +136,10 @@ const sample = resultOf(report, setupId('product', ['pdp']), 'on');
     ))
   }
   <p class="small muted">
-    Weight is before any video plays; Video is the most that streamed in a run once a video started. LCP ranges, LCP
-    elements and layout-shift sources are in <code>src/data/perf/latest.json</code>.
+    Weight is before any video plays; Video is the most that streamed in a run once a video started. TBT marked * is
+    summed from the trace: a playing video kept the page loading past Lighthouse's 30-second limit, so Lighthouse gave no
+    figure. Longest task comes from every task in the trace. LCP ranges, LCP elements and layout-shift sources are in
+    <code>src/data/perf/latest.json</code>.
   </p>
 
   <h2>Our own store, before and after its fixes</h2>
@@ -175,11 +210,66 @@ const sample = resultOf(report, setupId('product', ['pdp']), 'on');
       <code>&lt;head&gt;</code>, Firework's widgets come first. This store adds Firework's scripts from its own script at the
       end of the page, so they start loading after the HTML: these numbers show the first option. Firework's first request
       starts after the main image has appeared (on Slow 4G about 2.4 s, against 1.3 s). A tag in the head starts Firework
-      sooner, sharing the connection with the main image; that variant isn't measured here.
+      sooner, sharing the connection with the main image: see <a href="#placement">where Firework's tag goes</a>.
     </li>
     <li><b>Caching:</b> Firework's scripts are cached for 30 minutes (<code>max-age=1800</code>); these runs are first visits with an empty cache.</li>
     <li><b>Video:</b> autoplay streams the 720p file while it plays, a few hundred KB in the first seconds. Whether a video starts within a run varies, so weight is compared before any video plays.</li>
   </ul>
+
+  {
+    placementBlocks.length > 0 && (
+      <>
+        <h2 id="placement">Where Firework's tag goes</h2>
+        <p>
+          The same pages with Firework's tag at the end of the page (this store's standard) and in the <code>&lt;head&gt;</code>
+          (<code>?fw=head</code>: the same tags, injected while the head is parsed), measured the same way. Each cell reads
+          end of page → head.
+        </p>
+        {placementBlocks.map((b) => (
+          <>
+            <h3>{netProfiles[b.net].label}</h3>
+            <p>
+              With the tag in the head, Firework starts loading {b.earlier === null ? 'sooner' : `about ${fmtMs(b.earlier)} sooner`}. The main
+              content comes {b.later <= 20 ? 'at the same time' : `at most ${fmtMs(b.later)} later`}{b.later <= 100 ? ', well under what anyone notices' : ''},
+              and the pauses stay the same.
+              {b.shows && ` ${b.shows.widget} in the first screen show their videos ${fmtMs(b.shows.endMs! - b.shows.headMs!)} sooner.`}
+              Widgets further down the page gain little: Firework is ready long before the shopper scrolls to them.
+            </p>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Page and widgets</th>
+                    <th>Firework starts loading</th>
+                    <th>Main content (LCP)</th>
+                    <th>Longest pause</th>
+                    <th>Blocking time</th>
+                    <th>First-screen videos show</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {b.rows.map((r) => (
+                    <tr>
+                      <td>{r.page.label}: {comboName(r.page, r.s.widgets)}</td>
+                      <td>{pair(firstFirework(r.end), firstFirework(r.head))}</td>
+                      <td>
+                        {lcpPair(r.end, r.head)}
+                        <br />
+                        <span class="small muted">runs {lcpRange(r.end)} → {lcpRange(r.head)}</span>
+                      </td>
+                      <td>{pair(r.end?.runtime.longestTaskMs, r.head.runtime.longestTaskMs)}</td>
+                      <td>{pair(r.end?.lighthouse.tbt, r.head.lighthouse.tbt)}</td>
+                      <td>{r.shows ? `${r.shows.widget}: ${pair(r.shows.endMs, r.shows.headMs)}` : 'None in the first screen'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ))}
+      </>
+    )
+  }
 
   <h2 id="measure-yourself">Measure it on your own site</h2>
   <p>

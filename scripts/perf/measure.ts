@@ -102,7 +102,7 @@ interface Lhr {
   lighthouseVersion: string;
   environment: { hostUserAgent: string };
   categories: { performance: { score: number | null } };
-  audits: Record<string, { numericValue?: number; details?: { items?: Record<string, unknown>[] } }>;
+  audits: Record<string, { numericValue?: number; scoreDisplayMode?: string; details?: { items?: Record<string, unknown>[] } }>;
 }
 
 interface Run {
@@ -172,8 +172,18 @@ function summarise(lhr: Lhr): Run {
     .map((it) => ({ selector: String((it.node as { selector?: string } | undefined)?.selector ?? '?'), score: Number(it.score ?? 0) }))
     .filter((x) => x.score > 0)
     .slice(0, 3);
-  // Tasks that started before the navigation (negative start time) belong to the previous page, not this one.
-  const longTasks = items(lhr, 'long-tasks').filter((t) => Number(t.startTime ?? 0) >= 0);
+  // Lighthouse's long-task list and blocking time need the page to settle. When a playing video keeps the network
+  // busy past maxWaitForLoad, both come back empty ("took too long to load"), which would read as no pauses at all.
+  // main-thread-tasks still lists every top-level task, so pauses come from there. Tasks that started before the
+  // navigation (negative start time) belong to the previous page, not this one.
+  const tasks = items(lhr, 'main-thread-tasks')
+    .map((t) => ({ startTime: Number(t.startTime ?? 0), duration: Number(t.duration ?? 0) }))
+    .filter((t) => t.startTime >= 0);
+  const longTasks = tasks.filter((t) => t.duration >= 50);
+  const settled = lhr.audits['total-blocking-time']?.scoreDisplayMode !== 'error';
+  const fcp = num(lhr, 'first-contentful-paint');
+  // Without Lighthouse's figure: the same sum (each long task's time over 50 ms, after the first paint) up to the trace end.
+  const tbt = settled ? num(lhr, 'total-blocking-time') : longTasks.filter((t) => t.startTime >= fcp).reduce((a, t) => a + Math.max(0, t.duration - 50), 0);
   // The element Lighthouse took as the largest contentful paint, and whether Firework rendered it.
   const lcpNode = items(lhr, 'lcp-breakdown-insight').find((it) => it.type === 'node') as { selector?: string; path?: string } | undefined;
   const lcpElement = lcpNode ? { selector: String(lcpNode.selector ?? '?'), firework: /FW-[A-Z-]+/.test(String(lcpNode.path ?? '')) } : undefined;
@@ -184,9 +194,10 @@ function summarise(lhr: Lhr): Run {
     lighthouse: {
       score: Math.round((lhr.categories.performance.score ?? 0) * 100),
       lcp: num(lhr, 'largest-contentful-paint'),
-      fcp: num(lhr, 'first-contentful-paint'),
+      fcp,
       cls: num(lhr, 'cumulative-layout-shift'),
-      tbt: num(lhr, 'total-blocking-time'),
+      tbt,
+      ...(settled ? {} : { tbtFromTrace: true }),
       si: num(lhr, 'speed-index'),
       tti: num(lhr, 'interactive'),
     },
@@ -202,8 +213,8 @@ function summarise(lhr: Lhr): Run {
       // Lighthouse 13 moved DOM size to an insight audit.
       domNodes: num(lhr, 'dom-size-insight') || num(lhr, 'dom-size'),
       longTasks: longTasks.length,
-      longTaskMs: longTasks.reduce((a, t) => a + Number(t.duration ?? 0), 0),
-      longestTaskMs: Math.max(0, ...longTasks.map((t) => Number(t.duration ?? 0))),
+      longTaskMs: longTasks.reduce((a, t) => a + t.duration, 0),
+      longestTaskMs: Math.max(0, ...longTasks.map((t) => t.duration)),
       mainThreadMs: num(lhr, 'mainthread-work-breakdown'),
       // The module build loads chunks under /js/module/chunks/; the lazy loader fetches the legacy /js/fwn.js build.
       sdkLoaded: requests.some((r) => /asset\.fwcdn3\.com\/js\/(module\/chunks\/|chunks\/|fwn\.js$)/.test(String(r.url))),

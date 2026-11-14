@@ -1,6 +1,6 @@
 // HTML for the visual performance view on /lab/performance. Pure functions from the measured data to markup, used
 // on the server for the first paint and in the browser when a switch changes. All text from data goes through esc().
-import { PHONE, REVEAL_AFTER_MS, laneLabels, netProfiles, setupId, type LaneId, type NetProfile, type PerfPageId, type PerfReport, type PerfResult } from './perf';
+import { PHONE, REVEAL_AFTER_MS, laneLabels, netOf, netProfiles, setupId, type LaneId, type NetProfile, type PerfPageId, type PerfReport, type PerfResult } from './perf';
 import {
   ALMANAC_MOBILE_HOME_BYTES,
   fmtCls,
@@ -47,6 +47,7 @@ export const icons = {
   lazy: icon('<path d="M12 4v10M8 10l4 4 4-4"/><path d="M5 20h14"/>'),
   widgets: icon('<rect x="3" y="5" width="7" height="14" rx="1.5"/><rect x="14" y="5" width="7" height="6" rx="1.5"/><path d="M14 15h7M14 19h4"/>'),
   people: icon('<circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="9" r="2.4"/><path d="M15.8 14.2A4.8 4.8 0 0 1 21 19"/>'),
+  tag: icon('<path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/>'),
   map: icon('<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>'),
   consent: icon('<path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/>'),
 };
@@ -315,7 +316,9 @@ export function renderTiles(state: ViewState, report: PerfReport): string {
         { at: 300, label: '300 ms' },
       ],
     }),
-    `Longest pause, ${sel.runs > 1 ? `shortest of ${sel.runs} runs` : 'one run'}: ${nums(t, (r) => fmtMs(r.runtime.longestTaskMs))}. Blocking time ${fmtMs(sel.lighthouse.tbt)} (Lighthouse: ${esc(ratingOf('tbt', sel.lighthouse.tbt).label.toLowerCase())}).`,
+    `Longest pause, ${sel.runs > 1 ? `shortest of ${sel.runs} runs` : 'one run'}: ${nums(t, (r) => fmtMs(r.runtime.longestTaskMs))}. Blocking time ${fmtMs(sel.lighthouse.tbt)} (${
+      sel.lighthouse.tbtFromTrace ? 'from the trace: the video kept the page loading past Lighthouse’s 30 s' : `Lighthouse: ${esc(ratingOf('tbt', sel.lighthouse.tbt).label.toLowerCase())}`
+    }).`,
     state,
   );
 
@@ -499,8 +502,36 @@ export function renderLevers(state: ViewState, report: PerfReport): string {
     ${card(icons.lazy, 'Lazy loading', lazySaved > 1024 ? signed(fmtKb(lazySaved), false) : 'Same', 'until the shopper scrolls to the videos. Firework’s own advice for fast first loads.')}
     ${card(icons.widgets, 'One or two widgets', one !== null && all !== null ? `${fmtKb(one)} vs ${fmtKb(all)}` : '–', `one widget vs all ${page.widgets.length} on the ${page.label.toLowerCase()}`)}
     ${card(icons.still, 'Reserve the space', `Shift ${fmtCls(maxCls)}`, 'a container with a minimum height per widget, so nothing jumps', 'ok')}
+    ${placementCard(state, report, card)}
     ${card(icons.consent, 'Load after consent', 'Next', 'nothing loads for shoppers who decline; measured with the consent banner', 'next')}
   </div>`;
+}
+
+/**
+ * Firework's tag in the <head> instead of at the end of the page: how much sooner a widget in the first screen shows
+ * its videos, and whether the main content moved. From the setups measured both ways (--modes head).
+ */
+function placementCard(state: ViewState, report: PerfReport, card: (ic: string, title: string, big: string, small: string, cls?: string) => string): string {
+  const shown = Object.values(report.placement ?? {})
+    .flat()
+    .find((p) => netOf(p) === state.net && p.endMs !== null && p.headMs !== null);
+  if (!shown) return '';
+  const sooner = shown.endMs! - shown.headMs!;
+  const later = Math.max(
+    0,
+    ...report.setups.map((s) => {
+      const head = resultOf(report, s.id, 'head', state.net);
+      const end = resultOf(report, s.id, 'on', state.net);
+      return head && end ? head.lighthouse.lcp - end.lighthouse.lcp : 0;
+    }),
+  );
+  const main = later <= 100 ? 'main content the same' : `main content ${fmtMs(later)} later`;
+  return card(
+    icons.tag,
+    'Tag in the head',
+    sooner > 100 ? `${fmtMs(sooner)} sooner` : 'Same',
+    `videos in the first screen (${shown.widget.toLowerCase()}); ${main}. Further down the page it hardly matters.`,
+  );
 }
 
 /** Ratings in the numbers view use Google's words; exported for the details page. */

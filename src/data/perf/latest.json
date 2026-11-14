@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-11-14T16:20:27.264Z",
+  "measuredAt": "2026-11-14T18:28:52.003Z",
   "site": "https://deploy-preview-12--fjordbloom.netlify.app",
   "sdkRelease": "v20261111.1",
   "lighthouseVersion": "13.6.0",
@@ -344,6 +344,201 @@
         "longest": [
           89.053,
           97.4
+        ]
+      }
+    },
+    {
+      "setup": "product--none",
+      "mode": "head",
+      "profile": "slow4g",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=&fw=head",
+      "lighthouse": {
+        "score": 100,
+        "lcp": 1316.824,
+        "fcp": 859.839,
+        "cls": 0.003133390368710838,
+        "tbt": 4.335000000000036,
+        "si": 1223,
+        "tti": 2848.492
+      },
+      "network": {
+        "requests": 40,
+        "bytes": 297747,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 23,
+            "bytes": 128265,
+            "scriptMs": 987.4939999999909
+          },
+          "firework-sdk": {
+            "requests": 15,
+            "bytes": 169482,
+            "scriptMs": 59.133999999999894
+          },
+          "firework-api": {
+            "requests": 2,
+            "bytes": 0,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 25.825000000000017
+          }
+        },
+        "types": {
+          "Document": 11352,
+          "Font": 85188,
+          "Script": 188549,
+          "Image": 12243,
+          "Ping": 0,
+          "Other": 415
+        },
+        "biggest": [
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53608,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30925,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22494,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19318,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/N4hOkvhB.js",
+            "bytes": 16279,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CleVBYw6.js",
+            "bytes": 8063,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CZZO8TCE.js",
+            "bytes": 7708,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/DTRUUz60.js",
+            "bytes": 1642,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 250,
+        "longTasks": 2,
+        "longTaskMs": 186.465,
+        "longestTaskMs": 106.222,
+        "mainThreadMs": 1554.1429999999884,
+        "sdkLoaded": true,
+        "shifts": [
+          {
+            "selector": "main#main > div.container > div.pdp > div.pdp-info",
+            "score": 0.002905272390106501
+          },
+          {
+            "selector": "div.pdp-gallery > div.pdp-thumbs > button.pdp-thumb > img",
+            "score": 0.0002281179786043372
+          }
+        ],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "lanes": {
+        "page": [
+          [
+            1,
+            2446
+          ],
+          [
+            3214,
+            3805
+          ]
+        ],
+        "script": [
+          [
+            619,
+            3862
+          ]
+        ],
+        "tracking": [
+          [
+            2858,
+            2864
+          ]
+        ]
+      },
+      "film": [
+        {
+          "t": 398,
+          "src": "/perf/product--none-head/film-0.webp"
+        },
+        {
+          "t": 795,
+          "src": "/perf/product--none-head/film-1.webp"
+        },
+        {
+          "t": 1193,
+          "src": "/perf/product--none-head/film-2.webp"
+        },
+        {
+          "t": 1590,
+          "src": "/perf/product--none-head/film-3.webp"
+        },
+        {
+          "t": 1988,
+          "src": "/perf/product--none-head/film-4.webp"
+        },
+        {
+          "t": 2385,
+          "src": "/perf/product--none-head/film-5.webp"
+        },
+        {
+          "t": 2783,
+          "src": "/perf/product--none-head/film-6.webp"
+        },
+        {
+          "t": 3180,
+          "src": "/perf/product--none-head/film-7.webp"
+        }
+      ],
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          1314.354,
+          1403.116
+        ],
+        "tbt": [
+          0,
+          16.32400000000007
+        ],
+        "bytes": [
+          297747,
+          298056
+        ],
+        "videoBytes": [
+          0,
+          0
+        ],
+        "longest": [
+          106.222,
+          138.241
         ]
       }
     },
@@ -718,6 +913,252 @@
         "longest": [
           90.471,
           94.15
+        ]
+      }
+    },
+    {
+      "setup": "product--pdp",
+      "mode": "head",
+      "profile": "slow4g",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp&fw=head",
+      "lighthouse": {
+        "score": 99,
+        "lcp": 1318.272,
+        "fcp": 816.23,
+        "cls": 0.003133390368710838,
+        "tbt": 139.18000000000075,
+        "si": 1208,
+        "tti": 7082.888
+      },
+      "network": {
+        "requests": 150,
+        "bytes": 1025451,
+        "videoBytes": 407925,
+        "groups": {
+          "site": {
+            "requests": 25,
+            "bytes": 156537,
+            "scriptMs": 37.487
+          },
+          "firework-sdk": {
+            "requests": 112,
+            "bytes": 445186,
+            "scriptMs": 399.693000000001
+          },
+          "firework-api": {
+            "requests": 10,
+            "bytes": 13326,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 3,
+            "bytes": 410402,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 157.74800000000022
+          }
+        },
+        "types": {
+          "Document": 11360,
+          "Font": 85188,
+          "Script": 464446,
+          "Image": 40502,
+          "Ping": 176,
+          "Other": 386,
+          "Fetch": 11254,
+          "Preflight": 0,
+          "XHR": 4214,
+          "Media": 407925
+        },
+        "biggest": [
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 367986,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
+            "bytes": 60694,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53608,
+            "type": "Script"
+          },
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 39939,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30926,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BSBJgD5I.js",
+            "bytes": 28147,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22493,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19318,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 329,
+        "longTasks": 5,
+        "longTaskMs": 433.95399999999995,
+        "longestTaskMs": 144.193,
+        "mainThreadMs": 1303.3699999999803,
+        "sdkLoaded": true,
+        "shifts": [
+          {
+            "selector": "main#main > div.container > div.pdp > div.pdp-info",
+            "score": 0.002905272390106501
+          },
+          {
+            "selector": "div.pdp-gallery > div.pdp-thumbs > button.pdp-thumb > img",
+            "score": 0.0002281179786043372
+          }
+        ],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "lanes": {
+        "page": [
+          [
+            0,
+            2442
+          ],
+          [
+            3221,
+            3809
+          ],
+          [
+            6403,
+            6980
+          ],
+          [
+            9911,
+            10621
+          ]
+        ],
+        "script": [
+          [
+            610,
+            6836
+          ],
+          [
+            7001,
+            9872
+          ]
+        ],
+        "tracking": [
+          [
+            2870,
+            2876
+          ],
+          [
+            4658,
+            5233
+          ],
+          [
+            5304,
+            6392
+          ],
+          [
+            6436,
+            6437
+          ],
+          [
+            6992,
+            6992
+          ],
+          [
+            7072,
+            7982
+          ],
+          [
+            9007,
+            9619
+          ]
+        ],
+        "media": [
+          [
+            7179,
+            8930
+          ]
+        ]
+      },
+      "film": [
+        {
+          "t": 396,
+          "src": "/perf/product--pdp-head/film-0.webp"
+        },
+        {
+          "t": 791,
+          "src": "/perf/product--pdp-head/film-1.webp"
+        },
+        {
+          "t": 1187,
+          "src": "/perf/product--pdp-head/film-2.webp"
+        },
+        {
+          "t": 1583,
+          "src": "/perf/product--pdp-head/film-3.webp"
+        },
+        {
+          "t": 1978,
+          "src": "/perf/product--pdp-head/film-4.webp"
+        },
+        {
+          "t": 2374,
+          "src": "/perf/product--pdp-head/film-5.webp"
+        },
+        {
+          "t": 2769,
+          "src": "/perf/product--pdp-head/film-6.webp"
+        },
+        {
+          "t": 3165,
+          "src": "/perf/product--pdp-head/film-7.webp"
+        }
+      ],
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          1315.395,
+          1326.088
+        ],
+        "tbt": [
+          133.24599999999919,
+          152.40099999999893
+        ],
+        "bytes": [
+          1025451,
+          1026075
+        ],
+        "videoBytes": [
+          407925,
+          407937
+        ],
+        "longest": [
+          144.193,
+          150.898
         ]
       }
     },
@@ -2438,6 +2879,263 @@
     },
     {
       "setup": "product--pdp-ava",
+      "mode": "head",
+      "profile": "slow4g",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp,ava&fw=head",
+      "lighthouse": {
+        "score": 96,
+        "lcp": 1313.332,
+        "fcp": 814.62,
+        "cls": 0.003133390368710838,
+        "tbt": 221.71099999999888,
+        "si": 1250,
+        "tti": 7451.429
+      },
+      "network": {
+        "requests": 160,
+        "bytes": 1197679,
+        "videoBytes": 407928,
+        "groups": {
+          "site": {
+            "requests": 25,
+            "bytes": 156705,
+            "scriptMs": 38.827999999999996
+          },
+          "firework-sdk": {
+            "requests": 112,
+            "bytes": 445203,
+            "scriptMs": 328.63200000000063
+          },
+          "ava": {
+            "requests": 6,
+            "bytes": 170090,
+            "scriptMs": 197.86000000000053
+          },
+          "firework-api": {
+            "requests": 14,
+            "bytes": 15276,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 3,
+            "bytes": 410405,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 194.69500000000102
+          }
+        },
+        "types": {
+          "Document": 11372,
+          "Font": 85218,
+          "Script": 634514,
+          "Image": 40638,
+          "Ping": 175,
+          "Fetch": 13200,
+          "Other": 415,
+          "Preflight": 0,
+          "XHR": 4219,
+          "Media": 407928
+        },
+        "biggest": [
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 367987,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwscripts.com/js/ava.js?business_id=gYx0PO",
+            "bytes": 124014,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
+            "bytes": 60692,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53609,
+            "type": "Script"
+          },
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 39941,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30926,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BSBJgD5I.js",
+            "bytes": 28148,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22493,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 377,
+        "longTasks": 8,
+        "longTaskMs": 664.4279999999999,
+        "longestTaskMs": 135.98,
+        "mainThreadMs": 1506.9109999999685,
+        "sdkLoaded": true,
+        "shifts": [
+          {
+            "selector": "main#main > div.container > div.pdp > div.pdp-info",
+            "score": 0.002905272390106501
+          },
+          {
+            "selector": "div.pdp-gallery > div.pdp-thumbs > button.pdp-thumb > img",
+            "score": 0.0002281179786043372
+          }
+        ],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "lanes": {
+        "page": [
+          [
+            0,
+            2434
+          ],
+          [
+            4468,
+            5042
+          ],
+          [
+            6675,
+            7252
+          ],
+          [
+            10265,
+            10969
+          ]
+        ],
+        "script": [
+          [
+            612,
+            7218
+          ],
+          [
+            7376,
+            10238
+          ]
+        ],
+        "ava": [
+          [
+            2445,
+            4318
+          ],
+          [
+            5659,
+            6932
+          ]
+        ],
+        "tracking": [
+          [
+            2860,
+            2866
+          ],
+          [
+            4412,
+            4412
+          ],
+          [
+            4463,
+            6681
+          ],
+          [
+            7367,
+            7367
+          ],
+          [
+            7444,
+            8355
+          ],
+          [
+            9327,
+            9920
+          ]
+        ],
+        "media": [
+          [
+            7559,
+            9301
+          ]
+        ]
+      },
+      "film": [
+        {
+          "t": 963,
+          "src": "/perf/product--pdp-ava-head/film-0.webp"
+        },
+        {
+          "t": 1927,
+          "src": "/perf/product--pdp-ava-head/film-1.webp"
+        },
+        {
+          "t": 2890,
+          "src": "/perf/product--pdp-ava-head/film-2.webp"
+        },
+        {
+          "t": 3854,
+          "src": "/perf/product--pdp-ava-head/film-3.webp"
+        },
+        {
+          "t": 4817,
+          "src": "/perf/product--pdp-ava-head/film-4.webp"
+        },
+        {
+          "t": 5780,
+          "src": "/perf/product--pdp-ava-head/film-5.webp"
+        },
+        {
+          "t": 6744,
+          "src": "/perf/product--pdp-ava-head/film-6.webp"
+        },
+        {
+          "t": 7707,
+          "src": "/perf/product--pdp-ava-head/film-7.webp"
+        }
+      ],
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          1298.087,
+          1316.835
+        ],
+        "tbt": [
+          216.37499999999955,
+          221.971
+        ],
+        "bytes": [
+          1197679,
+          1197775
+        ],
+        "videoBytes": [
+          407926,
+          407928
+        ],
+        "longest": [
+          135.98,
+          139.575
+        ]
+      }
+    },
+    {
+      "setup": "product--pdp-ava",
       "mode": "lazy",
       "profile": "slow4g",
       "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp,ava&fw=lazy",
@@ -3773,7 +4471,7 @@
       "runtime": {
         "domNodes": 793,
         "longTasks": 10,
-        "longTaskMs": 950.494,
+        "longTaskMs": 950.4939999999999,
         "longestTaskMs": 177.989,
         "mainThreadMs": 2056.469999999942,
         "sdkLoaded": true,
@@ -4422,6 +5120,311 @@
     },
     {
       "setup": "category--stories",
+      "mode": "head",
+      "profile": "slow4g",
+      "url": "/shop/?widgets=stories&fw=head",
+      "lighthouse": {
+        "score": 96,
+        "lcp": 812.494,
+        "fcp": 812.494,
+        "cls": 0,
+        "tbt": 227.046000000003,
+        "si": 1654,
+        "tti": 24502.587
+      },
+      "network": {
+        "requests": 148,
+        "bytes": 1749483,
+        "videoBytes": 1249312,
+        "groups": {
+          "site": {
+            "requests": 25,
+            "bytes": 144492,
+            "scriptMs": 26.983
+          },
+          "firework-sdk": {
+            "requests": 57,
+            "bytes": 276415,
+            "scriptMs": 1387.2329999999984
+          },
+          "firework-api": {
+            "requests": 54,
+            "bytes": 24454,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 12,
+            "bytes": 1304122,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 61.84399999999998
+          }
+        },
+        "types": {
+          "Document": 10559,
+          "Font": 85189,
+          "Script": 289914,
+          "Image": 91048,
+          "Ping": 3870,
+          "Other": 557,
+          "Fetch": 14907,
+          "Preflight": 0,
+          "Media": 1249312,
+          "XHR": 4127
+        },
+        "biggest": [
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 640885,
+            "type": "Media"
+          },
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 558055,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53607,
+            "type": "Script"
+          },
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 50372,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30927,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22492,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19317,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/N4hOkvhB.js",
+            "bytes": 16279,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 624,
+        "longTasks": 10,
+        "longTaskMs": 768.479,
+        "longestTaskMs": 170.343,
+        "mainThreadMs": 4095.6369999994995,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.section-tight > div.container > p.lede",
+          "firework": false
+        }
+      },
+      "lanes": {
+        "page": [
+          [
+            0,
+            2546
+          ],
+          [
+            3272,
+            3842
+          ],
+          [
+            5516,
+            6100
+          ]
+        ],
+        "script": [
+          [
+            599,
+            4429
+          ],
+          [
+            4502,
+            5519
+          ],
+          [
+            5581,
+            7602
+          ]
+        ],
+        "tracking": [
+          [
+            2826,
+            2826
+          ],
+          [
+            2924,
+            2924
+          ],
+          [
+            3878,
+            4454
+          ],
+          [
+            4524,
+            5503
+          ],
+          [
+            5547,
+            5547
+          ],
+          [
+            5748,
+            5748
+          ],
+          [
+            7636,
+            8222
+          ],
+          [
+            9350,
+            10209
+          ],
+          [
+            10424,
+            11027
+          ],
+          [
+            11459,
+            12068
+          ],
+          [
+            12547,
+            13172
+          ],
+          [
+            13288,
+            14212
+          ],
+          [
+            14645,
+            15237
+          ],
+          [
+            15441,
+            16041
+          ],
+          [
+            16503,
+            17097
+          ],
+          [
+            17273,
+            18195
+          ],
+          [
+            18628,
+            19227
+          ],
+          [
+            19426,
+            20030
+          ],
+          [
+            20489,
+            21095
+          ],
+          [
+            21257,
+            22183
+          ],
+          [
+            22613,
+            23208
+          ],
+          [
+            23410,
+            24003
+          ],
+          [
+            24500,
+            25616
+          ]
+        ],
+        "media": [
+          [
+            5733,
+            6640
+          ],
+          [
+            6806,
+            12140
+          ]
+        ]
+      },
+      "film": [
+        {
+          "t": 1602,
+          "src": "/perf/category--stories-head/film-0.webp"
+        },
+        {
+          "t": 3203,
+          "src": "/perf/category--stories-head/film-1.webp"
+        },
+        {
+          "t": 4805,
+          "src": "/perf/category--stories-head/film-2.webp"
+        },
+        {
+          "t": 6406,
+          "src": "/perf/category--stories-head/film-3.webp"
+        },
+        {
+          "t": 8008,
+          "src": "/perf/category--stories-head/film-4.webp"
+        },
+        {
+          "t": 9609,
+          "src": "/perf/category--stories-head/film-5.webp"
+        },
+        {
+          "t": 11211,
+          "src": "/perf/category--stories-head/film-6.webp"
+        },
+        {
+          "t": 12812,
+          "src": "/perf/category--stories-head/film-7.webp"
+        }
+      ],
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          807.797,
+          816.73
+        ],
+        "tbt": [
+          224.68700000000354,
+          242.93199999999797
+        ],
+        "bytes": [
+          1749416,
+          1750095
+        ],
+        "videoBytes": [
+          1249306,
+          1249747
+        ],
+        "longest": [
+          170.343,
+          180.248
+        ]
+      }
+    },
+    {
+      "setup": "category--stories",
       "mode": "lazy",
       "profile": "slow4g",
       "url": "/shop/?widgets=stories&fw=lazy",
@@ -4731,7 +5734,8 @@
         "lcp": 836.834,
         "fcp": 836.834,
         "cls": 0,
-        "tbt": 0,
+        "tbt": 212.17499999999998,
+        "tbtFromTrace": true,
         "si": 1945,
         "tti": 0
       },
@@ -4823,9 +5827,9 @@
       },
       "runtime": {
         "domNodes": 624,
-        "longTasks": 0,
-        "longTaskMs": 0,
-        "longestTaskMs": 0,
+        "longTasks": 9,
+        "longTaskMs": 706.0590000000001,
+        "longestTaskMs": 164.307,
         "mainThreadMs": 3277.10299999979,
         "sdkLoaded": true,
         "shifts": [],
@@ -5001,8 +6005,8 @@
           859.231
         ],
         "tbt": [
-          0,
-          0
+          212.17499999999998,
+          218.09099999999998
         ],
         "bytes": [
           1294654,
@@ -5013,8 +6017,8 @@
           1249302
         ],
         "longest": [
-          0,
-          0
+          164.307,
+          167.888
         ]
       }
     },
@@ -5402,7 +6406,8 @@
         "lcp": 822.961,
         "fcp": 822.961,
         "cls": 0,
-        "tbt": 0,
+        "tbt": 380.15,
+        "tbtFromTrace": true,
         "si": 1854,
         "tti": 0
       },
@@ -5494,9 +6499,9 @@
       },
       "runtime": {
         "domNodes": 950,
-        "longTasks": 0,
-        "longTaskMs": 0,
-        "longestTaskMs": 0,
+        "longTasks": 12,
+        "longTaskMs": 1029.091,
+        "longestTaskMs": 259.144,
         "mainThreadMs": 3883.5579999996044,
         "sdkLoaded": true,
         "shifts": [],
@@ -5680,8 +6685,8 @@
           841.733
         ],
         "tbt": [
-          0,
-          0
+          380.15,
+          396.151
         ],
         "bytes": [
           1729102,
@@ -5692,8 +6697,8 @@
           1249321
         ],
         "longest": [
-          0,
-          0
+          259.144,
+          264.356
         ]
       }
     },
@@ -5707,7 +6712,8 @@
         "lcp": 826.121,
         "fcp": 826.121,
         "cls": 0,
-        "tbt": 0,
+        "tbt": 283.78100000000006,
+        "tbtFromTrace": true,
         "si": 1964,
         "tti": 0
       },
@@ -5799,9 +6805,9 @@
       },
       "runtime": {
         "domNodes": 950,
-        "longTasks": 0,
-        "longTaskMs": 0,
-        "longestTaskMs": 0,
+        "longTasks": 10,
+        "longTaskMs": 832.284,
+        "longestTaskMs": 206.75,
         "mainThreadMs": 3751.6589999995986,
         "sdkLoaded": true,
         "shifts": [],
@@ -5977,8 +6983,8 @@
           843.391
         ],
         "tbt": [
-          0,
-          0
+          279.927,
+          302.995
         ],
         "bytes": [
           1757241,
@@ -5989,8 +6995,8 @@
           1249292
         ],
         "longest": [
-          0,
-          0
+          206.75,
+          223.785
         ]
       }
     },
@@ -7010,7 +8016,8 @@
         "lcp": 1316.159,
         "fcp": 815.747,
         "cls": 0,
-        "tbt": 0,
+        "tbt": 297.6689999999999,
+        "tbtFromTrace": true,
         "si": 2220,
         "tti": 0
       },
@@ -7102,9 +8109,9 @@
       },
       "runtime": {
         "domNodes": 300,
-        "longTasks": 0,
-        "longTaskMs": 0,
-        "longestTaskMs": 0,
+        "longTasks": 9,
+        "longTaskMs": 773.285,
+        "longestTaskMs": 189.213,
         "mainThreadMs": 2382.0449999999587,
         "sdkLoaded": true,
         "shifts": [],
@@ -7272,8 +8279,8 @@
           1321.992
         ],
         "tbt": [
-          0,
-          0
+          247.83100000000002,
+          297.6689999999999
         ],
         "bytes": [
           1152587,
@@ -7284,8 +8291,8 @@
           1035437
         ],
         "longest": [
-          0,
-          0
+          189.213,
+          214.933
         ]
       }
     },
@@ -7465,7 +8472,8 @@
         "lcp": 1292.672,
         "fcp": 827.123,
         "cls": 0,
-        "tbt": 0,
+        "tbt": 356.885,
+        "tbtFromTrace": true,
         "si": 2261,
         "tti": 0
       },
@@ -7557,9 +8565,9 @@
       },
       "runtime": {
         "domNodes": 667,
-        "longTasks": 0,
-        "longTaskMs": 0,
-        "longestTaskMs": 0,
+        "longTasks": 12,
+        "longTaskMs": 983.7119999999999,
+        "longestTaskMs": 165.206,
         "mainThreadMs": 2557.265999999923,
         "sdkLoaded": true,
         "shifts": [],
@@ -7731,8 +8739,8 @@
           1310.562
         ],
         "tbt": [
-          0,
-          0
+          356.885,
+          362.23
         ],
         "bytes": [
           1632632,
@@ -7743,8 +8751,8 @@
           1035412
         ],
         "longest": [
-          0,
-          0
+          165.206,
+          165.537
         ]
       }
     },
@@ -7863,6 +8871,196 @@
         "longest": [
           96.392,
           131.361
+        ]
+      }
+    },
+    {
+      "setup": "product--none",
+      "mode": "head",
+      "profile": "fast4g",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=&fw=head",
+      "lighthouse": {
+        "score": 100,
+        "lcp": 458.003,
+        "fcp": 442.922,
+        "cls": 0,
+        "tbt": 0,
+        "si": 493,
+        "tti": 803.834
+      },
+      "network": {
+        "requests": 40,
+        "bytes": 297476,
+        "videoBytes": 0,
+        "groups": {
+          "site": {
+            "requests": 23,
+            "bytes": 127994,
+            "scriptMs": 996.6359999999938
+          },
+          "firework-sdk": {
+            "requests": 15,
+            "bytes": 169482,
+            "scriptMs": 52.54699999999995
+          },
+          "firework-api": {
+            "requests": 2,
+            "bytes": 0,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 21.20100000000001
+          }
+        },
+        "types": {
+          "Document": 11308,
+          "Font": 85135,
+          "Image": 12291,
+          "Script": 188325,
+          "Ping": 0,
+          "Other": 417
+        },
+        "biggest": [
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53608,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30925,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22493,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19317,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/N4hOkvhB.js",
+            "bytes": 16278,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CleVBYw6.js",
+            "bytes": 8064,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CZZO8TCE.js",
+            "bytes": 7707,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/DTRUUz60.js",
+            "bytes": 1642,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 250,
+        "longTasks": 1,
+        "longTaskMs": 93.773,
+        "longestTaskMs": 93.773,
+        "mainThreadMs": 1514.080999999991,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "lanes": {
+        "page": [
+          [
+            1,
+            780
+          ],
+          [
+            1018,
+            1187
+          ]
+        ],
+        "script": [
+          [
+            230,
+            1127
+          ]
+        ],
+        "tracking": [
+          [
+            919,
+            919
+          ],
+          [
+            1016,
+            1016
+          ]
+        ]
+      },
+      "film": [
+        {
+          "t": 375,
+          "src": "/perf/fast4g/product--none-head/film-0.webp"
+        },
+        {
+          "t": 750,
+          "src": "/perf/fast4g/product--none-head/film-1.webp"
+        },
+        {
+          "t": 1125,
+          "src": "/perf/fast4g/product--none-head/film-2.webp"
+        },
+        {
+          "t": 1500,
+          "src": "/perf/fast4g/product--none-head/film-3.webp"
+        },
+        {
+          "t": 1875,
+          "src": "/perf/fast4g/product--none-head/film-4.webp"
+        },
+        {
+          "t": 2250,
+          "src": "/perf/fast4g/product--none-head/film-5.webp"
+        },
+        {
+          "t": 2625,
+          "src": "/perf/fast4g/product--none-head/film-6.webp"
+        },
+        {
+          "t": 3000,
+          "src": "/perf/fast4g/product--none-head/film-7.webp"
+        }
+      ],
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          423.507,
+          1348.004
+        ],
+        "tbt": [
+          0,
+          0
+        ],
+        "bytes": [
+          297476,
+          297923
+        ],
+        "videoBytes": [
+          0,
+          0
+        ],
+        "longest": [
+          93.773,
+          102.456
         ]
       }
     },
@@ -8223,6 +9421,239 @@
         "longest": [
           92.061,
           96.578
+        ]
+      }
+    },
+    {
+      "setup": "product--pdp",
+      "mode": "head",
+      "profile": "fast4g",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp&fw=head",
+      "lighthouse": {
+        "score": 99,
+        "lcp": 449.842,
+        "fcp": 436.494,
+        "cls": 0,
+        "tbt": 122.20800000000008,
+        "si": 488,
+        "tti": 2304.831
+      },
+      "network": {
+        "requests": 152,
+        "bytes": 1025775,
+        "videoBytes": 407935,
+        "groups": {
+          "site": {
+            "requests": 25,
+            "bytes": 156492,
+            "scriptMs": 36.76900000000001
+          },
+          "firework-sdk": {
+            "requests": 112,
+            "bytes": 445185,
+            "scriptMs": 397.3630000000012
+          },
+          "firework-api": {
+            "requests": 12,
+            "bytes": 13685,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 3,
+            "bytes": 410413,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 149.7140000000003
+          }
+        },
+        "types": {
+          "Document": 11307,
+          "Font": 85139,
+          "Image": 40750,
+          "Script": 464083,
+          "Ping": 177,
+          "Other": 372,
+          "Fetch": 11805,
+          "Preflight": 0,
+          "XHR": 4207,
+          "Media": 407935
+        },
+        "biggest": [
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 367996,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
+            "bytes": 60694,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53607,
+            "type": "Script"
+          },
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 39939,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30926,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BSBJgD5I.js",
+            "bytes": 28149,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22494,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19318,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 329,
+        "longTasks": 4,
+        "longTaskMs": 371.019,
+        "longestTaskMs": 139.184,
+        "mainThreadMs": 1228.9959999999774,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "lanes": {
+        "page": [
+          [
+            0,
+            787
+          ],
+          [
+            1028,
+            1195
+          ],
+          [
+            2049,
+            2309
+          ],
+          [
+            3116,
+            3617
+          ]
+        ],
+        "script": [
+          [
+            231,
+            401
+          ],
+          [
+            443,
+            1538
+          ],
+          [
+            1691,
+            2041
+          ],
+          [
+            2230,
+            3094
+          ]
+        ],
+        "tracking": [
+          [
+            926,
+            926
+          ],
+          [
+            1004,
+            1004
+          ],
+          [
+            1387,
+            1672
+          ],
+          [
+            1741,
+            3577
+          ]
+        ],
+        "media": [
+          [
+            2399,
+            2924
+          ]
+        ]
+      },
+      "film": [
+        {
+          "t": 375,
+          "src": "/perf/fast4g/product--pdp-head/film-0.webp"
+        },
+        {
+          "t": 750,
+          "src": "/perf/fast4g/product--pdp-head/film-1.webp"
+        },
+        {
+          "t": 1125,
+          "src": "/perf/fast4g/product--pdp-head/film-2.webp"
+        },
+        {
+          "t": 1500,
+          "src": "/perf/fast4g/product--pdp-head/film-3.webp"
+        },
+        {
+          "t": 1875,
+          "src": "/perf/fast4g/product--pdp-head/film-4.webp"
+        },
+        {
+          "t": 2250,
+          "src": "/perf/fast4g/product--pdp-head/film-5.webp"
+        },
+        {
+          "t": 2625,
+          "src": "/perf/fast4g/product--pdp-head/film-6.webp"
+        },
+        {
+          "t": 3000,
+          "src": "/perf/fast4g/product--pdp-head/film-7.webp"
+        }
+      ],
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          438.339,
+          453.553
+        ],
+        "tbt": [
+          121.69800000000009,
+          130.61400000000026
+        ],
+        "bytes": [
+          1025242,
+          1025775
+        ],
+        "videoBytes": [
+          407924,
+          407935
+        ],
+        "longest": [
+          139.184,
+          141.363
         ]
       }
     },
@@ -9720,7 +11151,7 @@
       "runtime": {
         "domNodes": 745,
         "longTasks": 7,
-        "longTaskMs": 681.7520000000001,
+        "longTaskMs": 681.752,
         "longestTaskMs": 179.72,
         "mainThreadMs": 1596.3929999999589,
         "sdkLoaded": true,
@@ -9859,6 +11290,262 @@
         "longest": [
           179.72,
           187.894
+        ]
+      }
+    },
+    {
+      "setup": "product--pdp-ava",
+      "mode": "head",
+      "profile": "fast4g",
+      "url": "/products/cloudberry-vitamin-c-serum/?widgets=pdp,ava&fw=head",
+      "lighthouse": {
+        "score": 96,
+        "lcp": 438.881,
+        "fcp": 433.15,
+        "cls": 0,
+        "tbt": 227.55499975585894,
+        "si": 500,
+        "tti": 2508.4619997558593
+      },
+      "network": {
+        "requests": 161,
+        "bytes": 1197446,
+        "videoBytes": 407924,
+        "groups": {
+          "site": {
+            "requests": 25,
+            "bytes": 156535,
+            "scriptMs": 41.48400000000001
+          },
+          "firework-sdk": {
+            "requests": 112,
+            "bytes": 445192,
+            "scriptMs": 398.79000000000144
+          },
+          "ava": {
+            "requests": 6,
+            "bytes": 170084,
+            "scriptMs": 192.46100000000055
+          },
+          "firework-api": {
+            "requests": 14,
+            "bytes": 15234,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 4,
+            "bytes": 410401,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 184.50500000000054
+          }
+        },
+        "types": {
+          "Document": 11309,
+          "Font": 85174,
+          "Image": 40647,
+          "Script": 634299,
+          "Ping": 176,
+          "Fetch": 13164,
+          "Other": 541,
+          "Preflight": 0,
+          "XHR": 4212,
+          "Media": 407924
+        },
+        "biggest": [
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 367986,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwscripts.com/js/ava.js?business_id=gYx0PO",
+            "bytes": 124014,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/CBgL8uw3.js",
+            "bytes": 60694,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53609,
+            "type": "Script"
+          },
+          {
+            "url": "https://cdn1.fireworktv.com/medias/2026/10/30/1793359799-exmprjvl/watermarked/720/fjb-01-cloudberry-serum.16x9.mp4",
+            "bytes": 39938,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30927,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BSBJgD5I.js",
+            "bytes": 28148,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22494,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 377,
+        "longTasks": 8,
+        "longTaskMs": 675.617,
+        "longestTaskMs": 134.817,
+        "mainThreadMs": 1522.7679999999639,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "div.container > div.pdp > div.pdp-gallery > img#pdp-main-image",
+          "firework": false
+        }
+      },
+      "lanes": {
+        "page": [
+          [
+            1,
+            793
+          ],
+          [
+            1364,
+            1532
+          ],
+          [
+            1903,
+            2073
+          ],
+          [
+            2985,
+            3178
+          ]
+        ],
+        "script": [
+          [
+            228,
+            398
+          ],
+          [
+            439,
+            1947
+          ],
+          [
+            2107,
+            2956
+          ]
+        ],
+        "ava": [
+          [
+            804,
+            1207
+          ],
+          [
+            1846,
+            2060
+          ]
+        ],
+        "tracking": [
+          [
+            920,
+            920
+          ],
+          [
+            1009,
+            1009
+          ],
+          [
+            1304,
+            1305
+          ],
+          [
+            1355,
+            2037
+          ],
+          [
+            2098,
+            2098
+          ],
+          [
+            2171,
+            2439
+          ],
+          [
+            2789,
+            3688
+          ]
+        ],
+        "media": [
+          [
+            2308,
+            2765
+          ]
+        ]
+      },
+      "film": [
+        {
+          "t": 404,
+          "src": "/perf/fast4g/product--pdp-ava-head/film-0.webp"
+        },
+        {
+          "t": 808,
+          "src": "/perf/fast4g/product--pdp-ava-head/film-1.webp"
+        },
+        {
+          "t": 1212,
+          "src": "/perf/fast4g/product--pdp-ava-head/film-2.webp"
+        },
+        {
+          "t": 1617,
+          "src": "/perf/fast4g/product--pdp-ava-head/film-3.webp"
+        },
+        {
+          "t": 2021,
+          "src": "/perf/fast4g/product--pdp-ava-head/film-4.webp"
+        },
+        {
+          "t": 2425,
+          "src": "/perf/fast4g/product--pdp-ava-head/film-5.webp"
+        },
+        {
+          "t": 2829,
+          "src": "/perf/fast4g/product--pdp-ava-head/film-6.webp"
+        },
+        {
+          "t": 3233,
+          "src": "/perf/fast4g/product--pdp-ava-head/film-7.webp"
+        }
+      ],
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          429.681,
+          454.924
+        ],
+        "tbt": [
+          224.0180000000007,
+          227.55499975585894
+        ],
+        "bytes": [
+          1197440,
+          1197491
+        ],
+        "videoBytes": [
+          407924,
+          407925
+        ],
+        "longest": [
+          134.817,
+          136.811
         ]
       }
     },
@@ -10184,7 +11871,7 @@
       "runtime": {
         "domNodes": 377,
         "longTasks": 7,
-        "longTaskMs": 622.121,
+        "longTaskMs": 622.1210000000001,
         "longestTaskMs": 140.257,
         "mainThreadMs": 1516.782999999963,
         "sdkLoaded": true,
@@ -10671,7 +12358,7 @@
       "runtime": {
         "domNodes": 714,
         "longTasks": 8,
-        "longTaskMs": 723.8029999999999,
+        "longTaskMs": 723.803,
         "longestTaskMs": 188.507,
         "mainThreadMs": 1357.578999999974,
         "sdkLoaded": true,
@@ -11783,6 +13470,323 @@
     },
     {
       "setup": "category--stories",
+      "mode": "head",
+      "profile": "fast4g",
+      "url": "/shop/?widgets=stories&fw=head",
+      "lighthouse": {
+        "score": 96,
+        "lcp": 439.746,
+        "fcp": 439.746,
+        "cls": 0,
+        "tbt": 211.87299999999925,
+        "si": 796,
+        "tti": 18789.215
+      },
+      "network": {
+        "requests": 146,
+        "bytes": 1704463,
+        "videoBytes": 1213243,
+        "groups": {
+          "site": {
+            "requests": 23,
+            "bytes": 135517,
+            "scriptMs": 32.338
+          },
+          "firework-sdk": {
+            "requests": 57,
+            "bytes": 276422,
+            "scriptMs": 1351.7669999999982
+          },
+          "firework-api": {
+            "requests": 54,
+            "bytes": 24503,
+            "scriptMs": 0
+          },
+          "firework-media": {
+            "requests": 12,
+            "bytes": 1268021,
+            "scriptMs": 0
+          },
+          "other": {
+            "requests": 0,
+            "bytes": 0,
+            "scriptMs": 58.54
+          }
+        },
+        "types": {
+          "Document": 10664,
+          "Font": 85133,
+          "Image": 82047,
+          "Script": 290064,
+          "Ping": 3868,
+          "Other": 366,
+          "Fetch": 14949,
+          "Preflight": 0,
+          "Media": 1213243,
+          "XHR": 4129
+        },
+        "biggest": [
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 640849,
+            "type": "Media"
+          },
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 522021,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/wRZ73RHo.js",
+            "bytes": 53608,
+            "type": "Script"
+          },
+          {
+            "url": "https://cdn3.fireworktv.com/medias/2026/10/27/1793101171-qizcjmxh/watermarked/720/fjb-10-morning-routine.en.mp4",
+            "bytes": 50373,
+            "type": "Media"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/analytics.js",
+            "bytes": 30926,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/q3qOf-Ri.js",
+            "bytes": 22493,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/BczhTohL.js",
+            "bytes": 19317,
+            "type": "Script"
+          },
+          {
+            "url": "https://asset.fwcdn3.com/js/module/chunks/fwn/N4hOkvhB.js",
+            "bytes": 16281,
+            "type": "Script"
+          }
+        ]
+      },
+      "runtime": {
+        "domNodes": 624,
+        "longTasks": 10,
+        "longTaskMs": 762.275,
+        "longestTaskMs": 159.749,
+        "mainThreadMs": 3925.2659999994726,
+        "sdkLoaded": true,
+        "shifts": [],
+        "lcpElement": {
+          "selector": "main#main > section.section-tight > div.container > p.lede",
+          "firework": false
+        }
+      },
+      "lanes": {
+        "page": [
+          [
+            0,
+            798
+          ],
+          [
+            1043,
+            1210
+          ],
+          [
+            1670,
+            1838
+          ]
+        ],
+        "script": [
+          [
+            230,
+            1343
+          ],
+          [
+            1411,
+            1658
+          ],
+          [
+            1731,
+            2293
+          ],
+          [
+            2932,
+            3139
+          ]
+        ],
+        "tracking": [
+          [
+            933,
+            933
+          ],
+          [
+            1017,
+            1017
+          ],
+          [
+            1196,
+            1363
+          ],
+          [
+            1430,
+            1884
+          ],
+          [
+            3174,
+            3372
+          ],
+          [
+            3643,
+            4082
+          ],
+          [
+            4710,
+            4942
+          ],
+          [
+            5743,
+            5954
+          ],
+          [
+            6834,
+            7057
+          ],
+          [
+            7575,
+            7837
+          ],
+          [
+            7895,
+            8147
+          ],
+          [
+            8931,
+            9158
+          ],
+          [
+            9728,
+            9953
+          ],
+          [
+            10790,
+            11003
+          ],
+          [
+            11559,
+            11763
+          ],
+          [
+            11880,
+            12169
+          ],
+          [
+            12915,
+            13128
+          ],
+          [
+            13712,
+            13914
+          ],
+          [
+            14774,
+            14996
+          ],
+          [
+            15543,
+            15748
+          ],
+          [
+            15866,
+            16175
+          ],
+          [
+            16899,
+            17249
+          ],
+          [
+            17697,
+            17912
+          ],
+          [
+            18787,
+            19010
+          ],
+          [
+            19304,
+            19515
+          ]
+        ],
+        "media": [
+          [
+            1875,
+            2104
+          ],
+          [
+            2963,
+            4266
+          ]
+        ]
+      },
+      "film": [
+        {
+          "t": 1142,
+          "src": "/perf/fast4g/category--stories-head/film-0.webp"
+        },
+        {
+          "t": 2285,
+          "src": "/perf/fast4g/category--stories-head/film-1.webp"
+        },
+        {
+          "t": 3427,
+          "src": "/perf/fast4g/category--stories-head/film-2.webp"
+        },
+        {
+          "t": 4570,
+          "src": "/perf/fast4g/category--stories-head/film-3.webp"
+        },
+        {
+          "t": 5712,
+          "src": "/perf/fast4g/category--stories-head/film-4.webp"
+        },
+        {
+          "t": 6854,
+          "src": "/perf/fast4g/category--stories-head/film-5.webp"
+        },
+        {
+          "t": 7997,
+          "src": "/perf/fast4g/category--stories-head/film-6.webp"
+        },
+        {
+          "t": 9139,
+          "src": "/perf/fast4g/category--stories-head/film-7.webp"
+        }
+      ],
+      "runs": 3,
+      "ranges": {
+        "lcp": [
+          422.85,
+          815.557
+        ],
+        "tbt": [
+          210.98900000000253,
+          237.3770000000011
+        ],
+        "bytes": [
+          1227045,
+          1711891
+        ],
+        "videoBytes": [
+          740742,
+          1220750
+        ],
+        "longest": [
+          159.749,
+          186.963
+        ]
+      }
+    },
+    {
+      "setup": "category--stories",
       "mode": "lazy",
       "profile": "fast4g",
       "url": "/shop/?widgets=stories&fw=lazy",
@@ -11884,7 +13888,7 @@
       "runtime": {
         "domNodes": 624,
         "longTasks": 12,
-        "longTaskMs": 926.72,
+        "longTaskMs": 926.7199999999999,
         "longestTaskMs": 190.685,
         "mainThreadMs": 3509.535999999749,
         "sdkLoaded": true,
@@ -12916,7 +14920,7 @@
       "runtime": {
         "domNodes": 950,
         "longTasks": 13,
-        "longTaskMs": 1128.836,
+        "longTaskMs": 1128.8359999999998,
         "longestTaskMs": 194.048,
         "mainThreadMs": 4096.1429999995335,
         "sdkLoaded": true,
@@ -13249,7 +15253,7 @@
       "runtime": {
         "domNodes": 950,
         "longTasks": 11,
-        "longTaskMs": 885.947,
+        "longTaskMs": 885.9470000000001,
         "longestTaskMs": 142.694,
         "mainThreadMs": 3957.0139999995463,
         "sdkLoaded": true,
@@ -14612,7 +16616,7 @@
       "runtime": {
         "domNodes": 300,
         "longTasks": 8,
-        "longTaskMs": 684.2950000000001,
+        "longTaskMs": 684.295,
         "longestTaskMs": 186.143,
         "mainThreadMs": 2322.767999999946,
         "sdkLoaded": true,
@@ -15079,7 +17083,7 @@
       "runtime": {
         "domNodes": 667,
         "longTasks": 12,
-        "longTaskMs": 976.4979999999999,
+        "longTaskMs": 976.498,
         "longestTaskMs": 157.883,
         "mainThreadMs": 2940.6069999998654,
         "sdkLoaded": true,
@@ -15714,6 +17718,24 @@
         "widget": "Carousel",
         "lazyMs": 1415,
         "standardMs": 217
+      }
+    ]
+  },
+  "placement": {
+    "product--pdp": [],
+    "product--pdp-ava": [],
+    "category--stories": [
+      {
+        "profile": "slow4g",
+        "widget": "Circle stories",
+        "endMs": 8461,
+        "headMs": 6715
+      },
+      {
+        "profile": "fast4g",
+        "widget": "Circle stories",
+        "endMs": 2769,
+        "headMs": 2305
       }
     ]
   },
