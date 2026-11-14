@@ -2,7 +2,7 @@
 // visuals from the measured data embedded in the page, and keeps the state in the URL so a pitch link opens preset.
 // URL values are allowlisted: anything that isn't a known page, widget or mode is ignored.
 import type { PerfReport } from '../lib/perf';
-import { renderControls, renderFilm, renderLazy, renderLevers, renderPhone, renderTiles } from '../lib/perf-render';
+import { renderControls, renderFilm, renderLazy, renderLevers, renderMethod, renderPhone, renderTiles } from '../lib/perf-render';
 import { defaultState, parseState, stateQuery, type ViewState } from '../lib/perf-state';
 
 export function mountPerformanceView(): void {
@@ -16,6 +16,7 @@ export function mountPerformanceView(): void {
 
   const render = () => {
     const parts: [string, (s: ViewState, r: PerfReport) => string][] = [
+      ['pv-method', renderMethod],
       ['pv-controls', renderControls],
       ['pv-phone', renderPhone],
       ['pv-tiles', renderTiles],
@@ -44,9 +45,16 @@ export function mountPerformanceView(): void {
       state = { ...state, widgets: order.filter((k) => next.includes(k)) };
     }
     if (btn.dataset.load === 'on' || btn.dataset.load === 'lazy') state = { ...state, load: btn.dataset.load };
+    if ((btn.dataset.net === 'slow4g' || btn.dataset.net === 'fast4g') && !btn.disabled) state = { ...state, net: btn.dataset.net };
     render();
     // Keep keyboard focus on the same switch after the re-render.
-    const key = btn.dataset.page ? `[data-page="${btn.dataset.page}"]` : btn.dataset.widget ? `[data-widget="${btn.dataset.widget}"]` : `[data-load="${btn.dataset.load}"]`;
+    const key = btn.dataset.page
+      ? `[data-page="${btn.dataset.page}"]`
+      : btn.dataset.widget
+        ? `[data-widget="${btn.dataset.widget}"]`
+        : btn.dataset.net
+          ? `[data-net="${btn.dataset.net}"]`
+          : `[data-load="${btn.dataset.load}"]`;
     controls.querySelector<HTMLElement>(key)?.focus();
   });
   // The page strip next to the phone scrolls the phone to a widget.

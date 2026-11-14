@@ -2,17 +2,18 @@
 import reportJson from '../../data/perf/latest.json';
 import Lab from '../../layouts/Lab.astro';
 import type { PerfReport } from '../../lib/perf';
-import { icons, renderControls, renderFilm, renderLazy, renderLevers, renderPhone, renderTiles } from '../../lib/perf-render';
+import { renderControls, renderFilm, renderLazy, renderLevers, renderMethod, renderPhone, renderTiles } from '../../lib/perf-render';
 import { defaultState } from '../../lib/perf-state';
 import { safeJson } from '../../lib/safe-json';
 
 const report = reportJson as unknown as PerfReport;
 const state = defaultState(report);
-const runs = report.conditions?.runs ?? 3;
 const measuredOn = new Date(report.measuredAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+// A Netlify deploy preview serves the same build from the same CDN as the live store, so name it as the live store.
 const host = (() => {
   try {
-    return new URL(report.site).host;
+    const h = new URL(report.site).host;
+    return /fjordbloom\.netlify\.app$/.test(h) ? 'the live store on Netlify' : h;
   } catch {
     return report.site;
   }
@@ -22,13 +23,6 @@ const clientData = {
   ...report,
   results: report.results.map(({ network, ...r }) => ({ ...r, network: { ...network, biggest: [], types: {} } })),
 };
-const method = [
-  { icon: icons.phone, big: 'Mid-range phone', small: 'Moto G Power' },
-  { icon: icons.signal, big: 'Slow 4G', small: '1.5 Mbps' },
-  { icon: icons.empty, big: 'First visit', small: 'nothing cached' },
-  { icon: icons.repeat, big: `${runs} run${runs === 1 ? '' : 's'}`, small: runs > 1 ? 'middle one counts' : 'single run' },
-  { icon: icons.gauge, big: 'Google Lighthouse', small: 'Google’s own test' },
-];
 ---
 
 <Lab title="Page speed with Firework" description="What adding Firework does to a page's speed, shown visually: switch pages, widgets and lazy loading, and see Google's verdicts, the loading filmstrip and the page weight.">
@@ -38,25 +32,7 @@ const method = [
       <h1>Page speed with Firework</h1>
     </header>
 
-    <section class="pv-method" aria-label="How we test">
-      <ol class="pv-method-steps">
-        {
-          method.map((m) => (
-            <li>
-              <Fragment set:html={m.icon} />
-              <span>
-                <b>{m.big}</b>
-                <small>{m.small}</small>
-              </span>
-            </li>
-          ))
-        }
-      </ol>
-      <div class="pv-real" title="Google rates a page on real visits, at the 75th percentile">
-        <span class="pv-real-phones" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
-        <span><b>Google rates real visits:</b> 3 of 4 must be fast. Most shoppers are faster than this test.</span>
-      </div>
-    </section>
+    <section id="pv-method" class="pv-method" aria-label="How we test" set:html={renderMethod(state, report)} />
 
     <div id="pv-controls" class="pv-controls" set:html={renderControls(state, report)} />
 
@@ -871,6 +847,37 @@ const method = [
   }
   .pv-reveal-bar.std::before {
     background: rgb(20 33 43 / 0.12);
+  }
+  .pv-reveal {
+    display: grid;
+    gap: 8px;
+  }
+  .pv-reveal-step {
+    margin: 0;
+  }
+  .pv-reveal-row {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    opacity: 0.65;
+  }
+  .pv-reveal-row.sel {
+    opacity: 1;
+  }
+  .pv-reveal-row.sel .pv-reveal-net {
+    font-weight: 700;
+  }
+  .pv-reveal-net {
+    font-size: 0.82rem;
+  }
+  .pv-reveal-bars {
+    display: grid;
+    gap: 4px;
+  }
+  .pv-seg button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
   .pv-tradeoff {
     font-size: 0.9rem;

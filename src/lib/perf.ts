@@ -3,6 +3,22 @@
 
 export type FwMode = 'off' | 'lazy' | 'on';
 
+/**
+ * The two connections the pages are measured on. Same phone (Lighthouse's mobile profile, 4x CPU slowdown); only
+ * the network differs. Slow 4G is Lighthouse's default: "the ~85th percentile mobile connection … roughly the bottom
+ * 25% of 4G connections" (github.com/GoogleChrome/lighthouse/blob/main/docs/throttling.md). Fast 4G is Chrome
+ * DevTools' preset of that name: 9 Mbps down, 1.5 Mbps up, 60 ms round trip (devtools-frontend NetworkManager.ts).
+ * Throughput is 90% of the nominal speed and latency is the round trip times 3.75 / 2.75, as in those tools.
+ */
+export type NetProfile = 'slow4g' | 'fast4g';
+
+export const netProfiles: Record<NetProfile, { label: string; note: string; speed: string; latencyMs: number; downKbps: number; upKbps: number; rttMs: number }> = {
+  slow4g: { label: 'Slow 4G', note: 'Google’s test: slower than 85% of mobile visits', speed: '1.6 Mbps', latencyMs: 562.5, downKbps: 1474.56, upKbps: 675, rttMs: 150 },
+  fast4g: { label: 'Fast 4G', note: 'Chrome’s preset for a typical connection', speed: '9 Mbps', latencyMs: 165, downKbps: 8100, upKbps: 1350, rttMs: 60 },
+};
+
+export const netOf = (x: { profile?: NetProfile }): NetProfile => x.profile ?? 'slow4g';
+
 /** Who a request belongs to, by host. */
 export type PerfGroup = 'site' | 'firework-sdk' | 'firework-media' | 'firework-api' | 'ava' | 'livestream' | 'other';
 
@@ -185,6 +201,8 @@ export const laneLabels: Record<LaneId, string> = {
 export interface PerfResult {
   setup: string;
   mode: FwMode;
+  /** The connection it was measured on. Missing means slow 4G (results from before the second profile). */
+  profile?: NetProfile;
   url: string;
   lighthouse: {
     score: number;
@@ -251,6 +269,8 @@ export const REVEAL_AFTER_MS = 4000;
 
 /** With the lazy loader, how long after the shopper scrolls to a widget its first thumbnail shows. */
 export interface Reveal {
+  /** Missing means slow 4G. */
+  profile?: NetProfile;
   widget: string;
   /** Median ms from scrolling the widget into view until its first thumbnail or player showed. */
   lazyMs: number;

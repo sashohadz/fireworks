@@ -454,13 +454,23 @@ test.describe('performance lab', () => {
     await expect(page.locator('[data-widget="pdp"]')).toHaveCount(0);
     await page.locator('[data-numbers]').check({ force: true });
     await expect(page).toHaveURL(/numbers=1/);
+    // Slow 4G (Google's test) is the default; Fast 4G once it has been measured.
+    await expect(page.locator('[data-net="slow4g"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('#pv-method')).toContainText('Slow 4G');
+    const fast = page.locator('[data-net="fast4g"]');
+    if (await fast.isEnabled()) {
+      await fast.click();
+      await expect(page).toHaveURL(/net=fast4g/);
+      await expect(page.locator('#pv-method')).toContainText('Fast 4G');
+    }
   });
 
   test('the view ignores unknown values in its URL', async ({ page }) => {
-    await page.goto('/lab/performance/?view=evil&with=%3Cimg%20src%3Dx%20id%3Dpwn%3E,pdp&load=sideways&fw=off');
+    await page.goto('/lab/performance/?view=evil&with=%3Cimg%20src%3Dx%20id%3Dpwn%3E,pdp&load=sideways&net=warp&fw=off');
     await expect(page.locator('[data-page="product"]')).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('[data-widget="pdp"]')).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('[data-load="on"]')).toHaveAttribute('aria-checked', 'true');
+    await expect(page.locator('[data-net="slow4g"]')).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('#pwn')).toHaveCount(0);
   });
 

@@ -1,15 +1,17 @@
 // HTML for the visual performance view on /lab/performance. Pure functions from the measured data to markup, used
 // on the server for the first paint and in the browser when a switch changes. All text from data goes through esc().
-import { PHONE, REVEAL_AFTER_MS, laneLabels, setupId, type LaneId, type PerfPageId, type PerfReport, type PerfResult } from './perf';
+import { PHONE, REVEAL_AFTER_MS, laneLabels, netProfiles, setupId, type LaneId, type NetProfile, type PerfPageId, type PerfReport, type PerfResult } from './perf';
 import {
   ALMANAC_MOBILE_HOME_BYTES,
   fmtCls,
   fmtKb,
   fmtMs,
+  measuredNets,
   pageOf,
   ratingLevel,
   ratingOf,
   resultOf,
+  revealOf,
   signed,
   speedVerdict,
   stillVerdict,
@@ -115,6 +117,25 @@ function band(opts: {
   return `<svg class="pv-band" viewBox="0 0 ${W} 84" role="img" aria-label="${esc(opts.title)}">${zones}${ticks}${rows}</svg>`;
 }
 
+// ---------- 0. how we test ----------
+
+export function renderMethod(state: ViewState, report: PerfReport): string {
+  const runs = report.conditions?.runs ?? 3;
+  const net = netProfiles[state.net];
+  const steps = [
+    { icon: icons.phone, big: 'Mid-range phone', small: 'Moto G Power, 4× slower CPU' },
+    { icon: icons.signal, big: net.label, small: `${net.speed}, ${net.rttMs} ms round trip` },
+    { icon: icons.empty, big: 'First visit', small: 'nothing cached' },
+    { icon: icons.repeat, big: `${runs} run${runs === 1 ? '' : 's'}`, small: runs > 1 ? 'middle one counts' : 'single run' },
+    { icon: icons.gauge, big: 'Google Lighthouse', small: 'Google’s own test' },
+  ];
+  return `<ol class="pv-method-steps">${steps.map((m) => `<li>${m.icon}<span><b>${esc(m.big)}</b><small>${esc(m.small)}</small></span></li>`).join('')}</ol>
+    <div class="pv-real" title="Google rates a page on real visits, at the 75th percentile">
+      <span class="pv-real-phones" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+      <span><b>${esc(net.label)}:</b> ${esc(state.net === 'slow4g' ? 'slower than 85% of mobile visits. Google rates real visits: 3 of 4 must be fast.' : 'a typical mobile connection. Google rates real visits: 3 of 4 must be fast.')}</span>
+    </div>`;
+}
+
 // ---------- 1. switches ----------
 
 export function renderControls(state: ViewState, report: PerfReport): string {
@@ -131,10 +152,18 @@ export function renderControls(state: ViewState, report: PerfReport): string {
   const load = (['on', 'lazy'] as const)
     .map((m) => `<button type="button" role="radio" aria-checked="${state.load === m}" data-load="${m}">${m === 'on' ? 'Standard' : 'Lazy'}</button>`)
     .join('');
+  const measured = measuredNets(report);
+  const nets = (['slow4g', 'fast4g'] as NetProfile[])
+    .map((n) => {
+      const off = !measured.includes(n);
+      return `<button type="button" role="radio" aria-checked="${state.net === n}" data-net="${n}"${off ? ' disabled title="Not measured yet"' : ''}>${esc(netProfiles[n].label)}</button>`;
+    })
+    .join('');
   return `
     <div class="pv-control"><span class="pv-control-label">Page</span><div class="pv-seg" role="radiogroup" aria-label="Page">${pages}</div></div>
     <div class="pv-control"><span class="pv-control-label">Firework on it</span><div class="pv-chips" role="group" aria-label="Widgets">${chips}</div>${state.widgets.length ? '' : '<span class="pv-hint">Script only, no widgets</span>'}</div>
     <div class="pv-control"><span class="pv-control-label">Loading</span><div class="pv-seg" role="radiogroup" aria-label="Loading">${load}</div></div>
+    <div class="pv-control"><span class="pv-control-label">Connection</span><div class="pv-seg" role="radiogroup" aria-label="Connection">${nets}</div></div>
     <label class="pv-switch"><input type="checkbox" data-numbers ${state.numbers ? 'checked' : ''}/><span aria-hidden="true"></span>Show numbers</label>`;
 }
 
@@ -201,8 +230,8 @@ function tileShell(iconSvg: string, question: string, verdictHtml: string, visua
 const nums = (t: Trio, f: (r: PerfResult) => string) => MARKERS.map((m) => `${esc(m.short)} <b>${f(t[m.mode])}</b>`).join(' · ');
 
 export function renderTiles(state: ViewState, report: PerfReport): string {
-  const t = trio(report, state.page, state.widgets);
-  if (!t) return `<p class="pv-empty">This combination hasn't been measured yet.</p>`;
+  const t = trio(report, state.page, state.widgets, state.net);
+  if (!t) return `<p class="pv-empty">This combination hasn't been measured on ${esc(netProfiles[state.net].label)} yet.</p>`;
   const sel = t[state.load];
 
   // Loads as fast?
@@ -318,7 +347,7 @@ function iconsHtml(name: keyof typeof icons): string {
 // ---------- 4. what the shopper sees ----------
 
 export function renderFilm(state: ViewState, report: PerfReport): string {
-  const t = trio(report, state.page, state.widgets);
+  const t = trio(report, state.page, state.widgets, state.net);
   if (!t) return '';
   const lcps = MARKERS.map((m) => t[m.mode].lighthouse.lcp);
   const end = Math.min(9000, Math.max(2500, Math.ceil((Math.max(...lcps) * 1.25) / 500) * 500));
@@ -362,13 +391,16 @@ function timeline(r: PerfResult, end: number, label: string, extra = ''): string
 }
 
 export function renderLazy(state: ViewState, report: PerfReport): string {
-  const t = trio(report, state.page, state.widgets);
+  const t = trio(report, state.page, state.widgets, state.net);
   if (!t) return '';
   const before = (r: PerfResult) => weightParts(r).page + weightParts(r).firework;
   const saved = before(t.on) - before(t.lazy);
   const tbtSaved = t.on.lighthouse.tbt - t.lazy.lighthouse.tbt;
   const lcpGain = t.on.lighthouse.lcp - t.lazy.lighthouse.lcp;
-  const reveal = (report.reveals[setupId(state.page, state.widgets)] ?? [])[0];
+  const id = setupId(state.page, state.widgets);
+  const reveal = revealOf(report, id, state.net);
+  const other: NetProfile = state.net === 'slow4g' ? 'fast4g' : 'slow4g';
+  const otherReveal = revealOf(report, id, other);
   const lazyLoadsAtOnce = t.lazy.runtime.sdkLoaded;
   const delta = (big: string, small: string, good: boolean) => `<div class="pv-delta${good ? ' good' : ''}"><span class="big">${esc(big)}</span><span>${esc(small)}</span></div>`;
   const deltas = lazyLoadsAtOnce
@@ -379,11 +411,20 @@ export function renderLazy(state: ViewState, report: PerfReport): string {
         ${delta(lcpGain > 100 ? `${fmtMs(lcpGain)} sooner` : 'Same', 'main content', lcpGain > 100)}
       </div>`;
   const end = Math.min(20000, Math.max(...[t.on, t.lazy].flatMap((r) => Object.values(r.lanes ?? {}).flat().map((iv) => iv[1])), t.on.lighthouse.lcp, 3000) * 1.05);
+  // One row per connection: how long until the first video shows once the shopper scrolls to it. Same scale for both.
+  const rows = [reveal, otherReveal].filter((r): r is NonNullable<typeof r> => Boolean(r));
+  const maxMs = Math.max(1, ...rows.flatMap((r) => [r.lazyMs, r.standardMs]));
+  const bar = (ms: number, cls: string, label: string) =>
+    `<span class="pv-reveal-bar ${cls}" style="--w:${Math.min(100, (ms / maxMs) * 100).toFixed(1)}%"><b>${fmtMs(ms)}</b> ${esc(label)}</span>`;
   const revealHtml =
     reveal && !lazyLoadsAtOnce
-      ? `<div class="pv-reveal"><span class="pv-reveal-step">↓ ${REVEAL_AFTER_MS / 1000} s after the page loaded, the shopper scrolls to the ${esc(reveal.widget)}</span>
-          <span class="pv-reveal-bar" style="--w:${Math.min(100, (reveal.lazyMs / Math.max(reveal.lazyMs, reveal.standardMs, 1)) * 100).toFixed(1)}%"><b>${fmtMs(reveal.lazyMs)}</b> until the first video shows with lazy loading</span>
-          ${reveal.standardMs > 300 ? `<span class="pv-reveal-bar std" style="--w:${Math.min(100, (reveal.standardMs / Math.max(reveal.lazyMs, reveal.standardMs, 1)) * 100).toFixed(1)}%"><b>${fmtMs(reveal.standardMs)}</b> with standard loading</span>` : ''}</div>`
+      ? `<div class="pv-reveal"><p class="pv-reveal-step">↓ ${REVEAL_AFTER_MS / 1000} s after the page loaded, the shopper scrolls to the ${esc(reveal.widget)}. Until the first video shows:</p>
+          ${rows
+            .map(
+              (r) => `<div class="pv-reveal-row${(r.profile ?? 'slow4g') === state.net ? ' sel' : ''}"><span class="pv-reveal-net">${esc(netProfiles[r.profile ?? 'slow4g'].label)}</span>
+                <div class="pv-reveal-bars">${bar(r.lazyMs, '', 'lazy')}${bar(r.standardMs, 'std', 'standard')}</div></div>`,
+            )
+            .join('')}</div>`
       : '';
   return `${deltas}
     <div class="pv-timelines">
@@ -394,7 +435,9 @@ export function renderLazy(state: ViewState, report: PerfReport): string {
     <ul class="pv-wlegend">${LANE_ORDER.map((l) => `<li><i class="lane-${l}"></i>${esc(laneLabels[l])}</li>`).join('')}</ul>
     ${
       reveal && !lazyLoadsAtOnce
-        ? `<p class="pv-tradeoff"><b>The trade-off:</b> on this slow connection, the ${esc(reveal.widget)} takes ${fmtMs(reveal.lazyMs)} to show once the shopper gets there${reveal.standardMs > 300 ? `, against ${fmtMs(reveal.standardMs)} with standard loading` : ', where with standard loading it is already there'}.</p>`
+        ? `<p class="pv-tradeoff"><b>The trade-off:</b> on ${esc(netProfiles[state.net].label)}, the ${esc(reveal.widget)} takes ${fmtMs(reveal.lazyMs)} to show once the shopper gets there${reveal.standardMs > 300 ? `, against ${fmtMs(reveal.standardMs)} with standard loading` : ', where with standard loading it is already there'}${
+            otherReveal ? `. On ${esc(netProfiles[other].label)}: ${fmtMs(otherReveal.lazyMs)} against ${fmtMs(otherReveal.standardMs)}` : ''
+          }.</p>`
         : ''
     }`;
 }
@@ -403,14 +446,14 @@ export function renderLazy(state: ViewState, report: PerfReport): string {
 
 export function renderLevers(state: ViewState, report: PerfReport): string {
   const page = pageOf(state.page);
-  const offR = resultOf(report, setupId(state.page, null), 'off');
+  const offR = resultOf(report, setupId(state.page, null), 'off', state.net);
   const added = (keys: string[]) => {
-    const r = resultOf(report, setupId(state.page, keys), 'on');
+    const r = resultOf(report, setupId(state.page, keys), 'on', state.net);
     return r && offR ? weightParts(r).page + weightParts(r).firework - (weightParts(offR).page + weightParts(offR).firework) : null;
   };
   const one = page.widgets[0] ? added([page.widgets[0].key]) : null;
   const all = added(page.widgets.map((w) => w.key));
-  const t = trio(report, state.page, state.widgets);
+  const t = trio(report, state.page, state.widgets, state.net);
   const lazySaved = t ? weightParts(t.on).page + weightParts(t.on).firework - (weightParts(t.lazy).page + weightParts(t.lazy).firework) : 0;
   const maxCls = Math.max(0, ...report.results.filter((r) => r.mode !== 'off').map((r) => r.lighthouse.cls));
   const card = (ic: string, title: string, big: string, small: string, cls = '') =>

@@ -1,8 +1,8 @@
 ---
 import reportJson from '../../../data/perf/latest.json';
 import Lab from '../../../layouts/Lab.astro';
-import { groupLabels, setupId, thresholds, type PerfReport, type PerfResult } from '../../../lib/perf';
-import { describeRequest, fmtCls, fmtKb, fmtMs, ratingOf, resultOf, videoMax, weightOf, widgetLabel, activeGroups } from '../../../lib/perf-view';
+import { groupLabels, netProfiles, setupId, thresholds, type PerfReport, type PerfResult } from '../../../lib/perf';
+import { activeGroups, describeRequest, fmtCls, fmtKb, fmtMs, measuredNets, ratingOf, resultOf, revealOf, videoMax, weightOf, widgetLabel } from '../../../lib/perf-view';
 import { repoUrl } from '../../../site.config';
 
 const report = reportJson as unknown as PerfReport;
@@ -23,14 +23,18 @@ const cells = (r: PerfResult | undefined) =>
       ]
     : Array(7).fill('–');
 const metricHeads = ['LCP', 'TBT', 'Longest task', 'CLS', 'Weight', 'Video', 'Requests'];
-const pageRows = report.pages.map((page) => {
-  const combos = report.setups.filter((s) => s.page === page.id && !s.off);
-  return {
-    page,
-    off: resultOf(report, setupId(page.id, null), 'off'),
-    rows: combos.map((s) => ({ s, on: resultOf(report, s.id, 'on'), lazy: resultOf(report, s.id, 'lazy'), reveal: report.reveals[s.id]?.[0] })),
-  };
-});
+// One block per connection, each with a table per page.
+const netBlocks = measuredNets(report).map((net) => ({
+  net,
+  pages: report.pages.map((page) => {
+    const combos = report.setups.filter((s) => s.page === page.id && !s.off);
+    return {
+      page,
+      off: resultOf(report, setupId(page.id, null), 'off', net),
+      rows: combos.map((s) => ({ s, on: resultOf(report, s.id, 'on', net), lazy: resultOf(report, s.id, 'lazy', net), reveal: revealOf(report, s.id, net) })),
+    };
+  }),
+}));
 // The store's own fixes: the same pages without Firework, before (production) and after (this measurement).
 const baseline = report.baseline;
 const ownStore = report.pages.map((page) => ({
@@ -57,9 +61,12 @@ const sample = resultOf(report, setupId('product', ['pdp']), 'on');
   </p>
 
   {
-    pageRows.map(({ page, off, rows }) => (
+    netBlocks.map(({ net, pages }) => (
+      <>
+        <h2 class="dt-net">{netProfiles[net].label}: {netProfiles[net].note}</h2>
+        {pages.map(({ page, off, rows }) => (
       <section class="dt-page">
-        <h2>{page.label}</h2>
+        <h3>{page.label}</h3>
         <p class="small muted">
           Without Firework: LCP {off ? fmtMs(off.lighthouse.lcp) : '–'} ({range(off, 'lcp')}), longest task {off ? fmtMs(off.runtime.longestTaskMs) : '–'}, {off ? fmtKb(weightOf(off)) : '–'}, {off?.network.requests ?? '–'} requests.
         </p>
@@ -90,6 +97,8 @@ const sample = resultOf(report, setupId('product', ['pdp']), 'on');
           </table>
         </div>
       </section>
+        ))}
+      </>
     ))
   }
   <p class="small muted">
@@ -308,8 +317,11 @@ const sample = resultOf(report, setupId('product', ['pdp']), 'on');
 </script>
 
 <style>
-  .dt-page h2 {
-    margin-top: 28px;
+  .dt-net {
+    margin-top: 34px;
+  }
+  .dt-page h3 {
+    margin-top: 18px;
   }
   .dt-table th,
   .dt-table td {

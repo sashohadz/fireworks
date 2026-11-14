@@ -14,8 +14,12 @@
 //   --only product  one page (product, category or home); other pages keep their previous results
 //   --setups product--pdp,product--off   only these setups (for quick checks); the others keep their results
 //   --from-raw      rebuild the JSON and filmstrips from the saved reports in out/perf/, without measuring
+//   --resume        reuse every saved report of this connection and measure only the missing runs (after an
+//                   interrupted run, e.g. a laptop that had to sleep)
 //   --skip-maps / --skip-reveal   keep the previous page maps / lazy trade-off numbers
 //   --maps-only     only the page maps (and the lazy trade-off unless --skip-reveal); Lighthouse results are kept
+//   --profile fast4g   measure on Chrome's Fast 4G instead of Lighthouse's slow 4G; the other connection's results stay.
+//                   Same phone and CPU. Page maps are not retaken (same screen); raw reports and filmstrips go apart.
 //   --baseline https://fjordbloom.netlify.app   measure only the pages without Firework on that site, the same way,
 //                   and store them as the "before" for the store's own fixes; everything else is kept
 // Firework's tracking pixel is blocked, so the runs don't count as visits in the sandbox channel's Insights.
@@ -28,6 +32,8 @@ import sharp from 'sharp';
 import {
   PHONE,
   REVEAL_AFTER_MS,
+  netOf,
+  netProfiles,
   groupOfHost,
   perfPages,
   perfSetups,
@@ -36,6 +42,7 @@ import {
   type FwMode,
   type GroupTotals,
   type LaneId,
+  type NetProfile,
   type PageMap,
   type PerfGroup,
   type PerfReport,
@@ -51,16 +58,38 @@ const only = arg('--only') ?? null;
 const onlySetups = arg('--setups')?.split(',').filter(Boolean) ?? null;
 const baselineSite = arg('--baseline')?.replace(/\/$/, '') ?? null;
 const fromRaw = process.argv.includes('--from-raw');
+const resume = process.argv.includes('--resume');
 const mapsOnly = process.argv.includes('--maps-only');
-const skipMaps = fromRaw || process.argv.includes('--skip-maps');
+const net: NetProfile = arg('--profile') === 'fast4g' ? 'fast4g' : 'slow4g';
+const NET = netProfiles[net];
+/** Slow 4G keeps the original file names; Fast 4G gets a prefix and its own filmstrip folder. */
+const rawPrefix = net === 'slow4g' ? '' : `${net}--`;
+const filmRoot = net === 'slow4g' ? '' : `${net}/`;
+// The page maps don't depend on the connection: same screen, same layout.
+const skipMaps = fromRaw || net !== 'slow4g' || process.argv.includes('--skip-maps');
 const skipReveal = fromRaw || process.argv.includes('--skip-reveal');
 const OUT = path.resolve('src/data/perf/latest.json');
 const RAW = path.resolve('out/perf');
 const PUBLIC_PERF = path.resolve('public/perf');
 const FILM_WIDTH = 140;
 const MAP_WIDTH = 180;
-/** Lighthouse's slow 4G for devtools throttling, also used for the lazy trade-off runs. */
-const SLOW_4G = { latencyMs: 562.5, downKbps: 1474.56, upKbps: 675 };
+/**
+ * Netlify injects its deploy-preview toolbar (the Netlify Drawer) into every page of a deploy preview: a same-origin
+ * loader, then scripts, fonts and 1.3 MB of promo videos from app.netlify.com, plus Segment and Bugsnag. Production
+ * has none of it, so it is blocked everywhere, together with Firework's tracking pixel.
+ */
+const BLOCKED = ['*/trk/*', '*/.netlify/scripts/cdp*', '*app.netlify.com/*', '*cdn.segment.com/*', '*bugsnag.com/*'];
+const BLOCKED_RE = /\/trk\/|\/\.netlify\/scripts\/cdp|app\.netlify\.com|cdn\.segment\.com|bugsnag\.com/;
+
+/** Lighthouse's throttling settings for the chosen connection: same phone and CPU, only the network differs. */
+const THROTTLING = {
+  rttMs: NET.rttMs,
+  throughputKbps: NET.downKbps / 0.9,
+  requestLatencyMs: NET.latencyMs,
+  downloadThroughputKbps: NET.downKbps,
+  uploadThroughputKbps: NET.upKbps,
+  cpuSlowdownMultiplier: 4,
+};
 
 /** The parts of a Lighthouse result this script reads. */
 interface Lhr {
@@ -138,7 +167,8 @@ function summarise(lhr: Lhr): Run {
     .map((it) => ({ selector: String((it.node as { selector?: string } | undefined)?.selector ?? '?'), score: Number(it.score ?? 0) }))
     .filter((x) => x.score > 0)
     .slice(0, 3);
-  const longTasks = items(lhr, 'long-tasks');
+  // Tasks that started before the navigation (negative start time) belong to the previous page, not this one.
+  const longTasks = items(lhr, 'long-tasks').filter((t) => Number(t.startTime ?? 0) >= 0);
   // The element Lighthouse took as the largest contentful paint, and whether Firework rendered it.
   const lcpNode = items(lhr, 'lcp-breakdown-insight').find((it) => it.type === 'node') as { selector?: string; path?: string } | undefined;
   const lcpElement = lcpNode ? { selector: String(lcpNode.selector ?? '?'), firework: /FW-[A-Z-]+/.test(String(lcpNode.path ?? '')) } : undefined;
@@ -197,7 +227,7 @@ const ranges = (all: Run[]): PerfResult['ranges'] => ({
 
 /** The filmstrip of the middle run as small WebP files: public/perf/<setup>-<mode>/film-<n>.webp. */
 async function writeFilm(setup: string, mode: FwMode, frames: Run['frames']): Promise<PerfResult['film']> {
-  const dir = path.join(PUBLIC_PERF, `${setup}-${mode}`);
+  const dir = path.join(PUBLIC_PERF, `${filmRoot}${setup}-${mode}`);
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
   const out: NonNullable<PerfResult['film']> = [];
@@ -206,7 +236,7 @@ async function writeFilm(setup: string, mode: FwMode, frames: Run['frames']): Pr
     if (!b64) continue;
     const file = path.join(dir, `film-${i}.webp`);
     await sharp(Buffer.from(b64, 'base64')).resize({ width: FILM_WIDTH }).webp({ quality: 60 }).toFile(file);
-    out.push({ t: f.t, src: `/perf/${setup}-${mode}/film-${i}.webp` });
+    out.push({ t: f.t, src: `/perf/${filmRoot}${setup}-${mode}/film-${i}.webp` });
   }
   return out;
 }
@@ -295,15 +325,15 @@ async function reveals(setup: PerfSetup, map: PageMap | undefined): Promise<Reve
   try {
     const time = async (mode: FwMode) => {
       const ctx = await browser.newContext({ viewport: PHONE, isMobile: true, hasTouch: true, deviceScaleFactor: 1.75 });
-      await ctx.route(/\/trk\//, (r) => r.abort());
+      await ctx.route(BLOCKED_RE, (r) => r.abort());
       const page = await ctx.newPage();
       const cdp = await ctx.newCDPSession(page);
       await cdp.send('Network.enable');
       await cdp.send('Network.emulateNetworkConditions', {
         offline: false,
-        latency: SLOW_4G.latencyMs,
-        downloadThroughput: (SLOW_4G.downKbps * 1024) / 8,
-        uploadThroughput: (SLOW_4G.upKbps * 1024) / 8,
+        latency: NET.latencyMs,
+        downloadThroughput: (NET.downKbps * 1024) / 8,
+        uploadThroughput: (NET.upKbps * 1024) / 8,
       });
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
       try {
@@ -320,7 +350,7 @@ async function reveals(setup: PerfSetup, map: PageMap | undefined): Promise<Reve
     const standard = await time('on');
     if (!lazy.length) return [];
     lazy.sort((a, b) => a - b);
-    return [{ widget: below.label, lazyMs: lazy[Math.floor((lazy.length - 1) / 2)]!, standardMs: standard ?? 0 }];
+    return [{ profile: net, widget: below.label, lazyMs: lazy[Math.floor((lazy.length - 1) / 2)]!, standardMs: standard ?? 0 }];
   } finally {
     await browser.close();
   }
@@ -337,10 +367,11 @@ async function measureUrl(port: number, url: string, file: string): Promise<Lhr>
     onlyCategories: ['performance'],
     // Real throttling, so the filmstrip and the timeline show the same slowed-down load as the metrics.
     throttlingMethod: 'devtools',
+    throttling: THROTTLING,
     // A playing video keeps the network busy; the metrics are settled long before this.
     maxWaitForLoad: 30000,
-    // Tracking events only. Everything else loads as it would for a visitor.
-    blockedUrlPatterns: ['*/trk/*'],
+    // Firework's tracking events and Netlify's deploy-preview toolbar. Everything else loads as it would for a visitor.
+    blockedUrlPatterns: BLOCKED,
   });
   if (!result) throw new Error('Lighthouse returned nothing');
   fs.writeFileSync(file, String(result.report));
@@ -398,13 +429,13 @@ async function main(): Promise<void> {
       for (const mode of setupModes(setup)) {
         const url = `${base}${setupUrl(setup, mode)}`;
         const all: Run[] = [];
-        const saved = fs.existsSync(RAW) ? fs.readdirSync(RAW).filter((f) => f.startsWith(`${setup.id}-${mode}-`) && f.endsWith('.json')).length : 0;
+        const saved = fs.existsSync(RAW) ? fs.readdirSync(RAW).filter((f) => f.startsWith(`${rawPrefix}${setup.id}-${mode}-`) && f.endsWith('.json')).length : 0;
         const count = fromRaw ? saved : runs;
         for (let i = 0; i < count; i++) {
-          process.stdout.write(`${setup.id} ${mode} run ${i + 1}/${count}${fromRaw ? ' (saved)' : ''} … `);
-          const file = path.join(RAW, `${setup.id}-${mode}-${i + 1}.json`);
+          const file = path.join(RAW, `${rawPrefix}${setup.id}-${mode}-${i + 1}.json`);
+          process.stdout.write(`${NET.label} ${setup.id} ${mode} run ${i + 1}/${count}${fromRaw || (resume && fs.existsSync(file)) ? ' (saved)' : ''} … `);
           let lhr: Lhr;
-          if (fromRaw) {
+          if (fromRaw || (resume && fs.existsSync(file))) {
             lhr = JSON.parse(fs.readFileSync(file, 'utf8')) as Lhr;
           } else {
             lhr = await measureUrl(chrome!.port, url, file);
@@ -422,7 +453,7 @@ async function main(): Promise<void> {
         // Pauses are CPU-bound, and other programs on the test machine lengthen them at random. The shortest across
         // the runs is the least disturbed; it is used the same way for every variant.
         rest.runtime = { ...rest.runtime, longestTaskMs: Math.min(...all.map((r) => r.runtime.longestTaskMs)) };
-        results.push({ setup: setup.id, mode, url: setupUrl(setup, mode), ...rest, film: await writeFilm(setup.id, mode, frames), runs: all.length, ranges: ranges(all) });
+        results.push({ setup: setup.id, mode, profile: net, url: setupUrl(setup, mode), ...rest, film: await writeFilm(setup.id, mode, frames), runs: all.length, ranges: ranges(all) });
       }
     }
   } finally {
@@ -435,7 +466,7 @@ async function main(): Promise<void> {
   if (!skipMaps) {
     const browser = await chromium.launch();
     const ctx = await browser.newContext({ viewport: PHONE, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
-    await ctx.route(/\/trk\//, (r) => r.abort());
+    await ctx.route(BLOCKED_RE, (r) => r.abort());
     const page = await ctx.newPage();
     for (const setup of setups) {
       process.stdout.write(`page map ${setup.id} … `);
@@ -447,20 +478,22 @@ async function main(): Promise<void> {
   if (!skipReveal) {
     for (const setup of setups.filter((s) => !s.off && s.widgets.length)) {
       process.stdout.write(`lazy trade-off ${setup.id} … `);
-      revealMap[setup.id] = await reveals(setup, pageMaps[setup.id]);
+      // One entry per connection: replace this connection's, keep the other's.
+      revealMap[setup.id] = [...(revealMap[setup.id] ?? []).filter((r) => netOf(r) !== net), ...(await reveals(setup, pageMaps[setup.id]))];
       console.log(revealMap[setup.id]!.map((r) => `${r.widget}: lazy ${r.lazyMs} ms, standard ${r.standardMs} ms`).join('; ') || 'nothing below the first screen');
     }
   }
 
-  // With --only, --setups or --maps-only, keep the other results.
-  const kept =
-    mapsOnly && previous?.results
-      ? previous.results
-      : (only || onlySetups) && previous?.results
-        ? previous.results.filter((r) => r.setup && !setups.some((s) => s.id === r.setup))
-        : [];
+  // Keep the other connection's results, and with --only, --setups or --maps-only also this connection's others.
+  const prev = (previous?.results ?? []).filter((r) => r.setup);
+  const kept = [
+    ...prev.filter((r) => netOf(r) !== net),
+    ...(mapsOnly ? prev.filter((r) => netOf(r) === net) : only || onlySetups ? prev.filter((r) => netOf(r) === net && !setups.some((s) => s.id === r.setup)) : []),
+  ];
   const order = perfSetups().map((s) => s.id);
-  const allResults = [...kept, ...results].sort((a, b) => order.indexOf(a.setup) - order.indexOf(b.setup) || a.mode.localeCompare(b.mode));
+  const allResults = [...kept, ...results].sort(
+    (a, b) => netOf(a).localeCompare(netOf(b)) * -1 || order.indexOf(a.setup) - order.indexOf(b.setup) || a.mode.localeCompare(b.mode),
+  );
   const report: PerfReport = {
     // Re-summarised reports keep the date they were measured.
     measuredAt: (fromRaw || mapsOnly) && previous?.measuredAt ? previous.measuredAt : new Date().toISOString(),
@@ -470,7 +503,7 @@ async function main(): Promise<void> {
     chrome: /Chrome\/([\d.]+)/.exec(chromeUa)?.[1] ?? (chromeUa || previous?.chrome || ''),
     conditions: {
       device: 'Mid-range phone (Moto G Power, Lighthouse mobile profile)',
-      network: 'Slow 4G, applied for real: 1.47 Mbps down, 562 ms latency',
+      network: 'Slow 4G (1.6 Mbps, 150 ms round trip) and Chrome’s Fast 4G (9 Mbps, 60 ms), applied for real',
       cpu: '4x slower than this computer',
       cache: 'First visit: empty cache',
       tracking: "Firework's tracking pixel blocked, so the runs are not counted as visits",

@@ -2,17 +2,20 @@
 // Pure functions, safe to import from client code.
 import {
   groupOrder,
+  netOf,
   perfPages,
   rate,
   ratingLabels,
   setupId,
   thresholds,
   type FwMode,
+  type NetProfile,
   type PerfGroup,
   type PerfPageId,
   type PerfReport,
   type PerfResult,
   type Rating,
+  type Reveal,
 } from './perf';
 
 /** Chart colours: a validated categorical palette for the request groups. */
@@ -31,9 +34,17 @@ export const fmtMs = (ms: number): string => (ms >= 1000 ? `${(ms / 1000).toFixe
 export const fmtCls = (v: number): string => v.toFixed(3);
 export const signed = (text: string, positive: boolean): string => (positive ? `+${text}` : `−${text}`);
 
-export function resultOf(report: PerfReport, setup: string, mode: FwMode): PerfResult | undefined {
-  return report.results.find((r) => r.setup === setup && r.mode === mode);
+export function resultOf(report: PerfReport, setup: string, mode: FwMode, net: NetProfile = 'slow4g'): PerfResult | undefined {
+  return report.results.find((r) => r.setup === setup && r.mode === mode && netOf(r) === net);
 }
+
+/** Connections with any results, in a fixed order. */
+export const measuredNets = (report: PerfReport): NetProfile[] =>
+  (['slow4g', 'fast4g'] as NetProfile[]).filter((n) => report.results.some((r) => netOf(r) === n));
+
+/** The lazy trade-off for a setup on one connection. */
+export const revealOf = (report: PerfReport, setup: string, net: NetProfile): Reveal | undefined =>
+  (report.reveals[setup] ?? []).find((r) => netOf(r) === net);
 
 /** Groups that carry bytes anywhere in the report, in fixed order, so colours never shift between charts. */
 export function activeGroups(report: PerfReport): PerfGroup[] {
@@ -108,6 +119,8 @@ export interface ViewState {
   widgets: string[];
   /** The loading mode the verdicts are about. */
   load: 'on' | 'lazy';
+  /** The connection the visuals show. */
+  net: NetProfile;
   numbers: boolean;
 }
 
@@ -117,11 +130,11 @@ export interface Trio {
   lazy: PerfResult;
 }
 
-export function trio(report: PerfReport, page: PerfPageId, widgets: string[]): Trio | undefined {
-  const off = resultOf(report, setupId(page, null), 'off');
+export function trio(report: PerfReport, page: PerfPageId, widgets: string[], net: NetProfile = 'slow4g'): Trio | undefined {
+  const off = resultOf(report, setupId(page, null), 'off', net);
   const id = setupId(page, widgets);
-  const on = resultOf(report, id, 'on');
-  const lazy = resultOf(report, id, 'lazy');
+  const on = resultOf(report, id, 'on', net);
+  const lazy = resultOf(report, id, 'lazy', net);
   return off && on && lazy ? { off, on, lazy } : undefined;
 }
 
