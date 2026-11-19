@@ -28,7 +28,28 @@ export function decideAdd(unitId: string, api: ApiProduct | undefined, hydrated:
       price: shown?.price?.amount ?? unit.price,
       regularPrice: unit.compareAtPrice ?? unit.price,
       stock: unit.stock,
+      image: unit.image,
     },
+  };
+}
+
+export interface CartSummary {
+  count: number;
+  subtotal: number;
+  /** The most recently added lines first, at most `max`. */
+  shown: CartLine[];
+  /** How many more lines there are beyond `shown`. */
+  more: number;
+}
+
+/** What the "Added to cart" popup shows about the whole cart. */
+export function cartSummary(lines: CartLine[], max = 3): CartSummary {
+  const recent = [...lines].reverse();
+  return {
+    count: lines.reduce((n, l) => n + l.quantity, 0),
+    subtotal: Math.round(lines.reduce((s, l) => s + l.price * l.quantity, 0) * 100) / 100,
+    shown: recent.slice(0, max),
+    more: Math.max(0, recent.length - max),
   };
 }
 

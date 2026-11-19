@@ -12,6 +12,7 @@ import { getMode, modeLabel } from '../shopping/modes';
 import { openTab } from '../ui';
 import { addToCart, cartCount, getCart, onCart, quantityInCart } from './cart';
 import { addedMessage, decideAdd } from './rules';
+import { showCartSheet } from './sheet';
 
 export function installCart() {
   const sdk = FireworkSDK.getInstance();
@@ -31,10 +32,11 @@ export function installCart() {
       }
       addToCart(decision.line);
       const l = decision.line;
-      const tips = addedMessage(l, cartCount());
-      addLog({ ...base, ms: Date.now() - t0, lines: [{ ok: true, text: `${l.name} (${l.unitName}) €${l.price.toFixed(2)} · cart: ${cartCount()} item${cartCount() === 1 ? '' : 's'}` }] });
-      // tips on success too: the player shows it as a toast, the visible confirmation that the item went in the cart.
-      return { res: 'success', tips };
+      // The "Added to cart" popup over the video, with the cart and Check out. If Firework can't open it, the
+      // confirmation falls back to a toast: the bridge shows any tips text, for success as well as failure.
+      const popup = await showCartSheet(l.unitId).catch(() => false);
+      addLog({ ...base, ms: Date.now() - t0, lines: [{ ok: true, text: `${l.name} (${l.unitName}) €${l.price.toFixed(2)} · cart: ${cartCount()} item${cartCount() === 1 ? '' : 's'} · ${popup ? 'popup shown' : 'toast (popup failed)'}` }] });
+      return popup ? { res: 'success' } : { res: 'success', tips: addedMessage(l, cartCount()) };
     } catch (e) {
       const reason = 'The shop can’t be reached right now. Please try again.';
       addLog({ ...base, ms: Date.now() - t0, lines: [{ ok: false, text: e instanceof Error ? e.message : String(e) }] });

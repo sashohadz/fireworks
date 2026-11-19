@@ -14,16 +14,21 @@ export interface CartLine {
   regularPrice: number;
   /** How many the store has, so the cart can't go over it. */
   stock: number;
+  /** The unit's image from the store API, for the "Added to cart" popup. */
+  image: string;
   quantity: number;
 }
 
 const cents = (n: number) => Math.round(n * 100) / 100;
 
 let lines: CartLine[] = [];
+/** The unit added last, for the "Added to cart" popup. */
+let lastAdded: string | undefined;
 const listeners = new Set<(l: CartLine[]) => void>();
 const emit = () => listeners.forEach((l) => l(lines));
 
 export const getCart = () => lines;
+export const getLastAdded = () => lastAdded;
 
 export function onCart(l: (lines: CartLine[]) => void) {
   listeners.add(l);
@@ -42,6 +47,7 @@ export function addToCart(line: Omit<CartLine, 'quantity'>, quantity = 1) {
   lines = existing
     ? lines.map((l) => (l.unitId === line.unitId ? { ...l, ...line, quantity: l.quantity + quantity } : l))
     : [...lines, { ...line, quantity }];
+  lastAdded = line.unitId;
   emit();
 }
 
@@ -55,5 +61,6 @@ export function setQuantity(unitId: string, quantity: number) {
 
 export function clearCart() {
   lines = [];
+  lastAdded = undefined;
   emit();
 }

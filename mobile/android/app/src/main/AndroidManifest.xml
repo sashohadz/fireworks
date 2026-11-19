@@ -23,6 +23,12 @@
         </intent-filter>
       </activity>
 
+      <!-- Firework's container screen for navigator.pushRNContainer (react-native-firework-sdk), made transparent
+           so the "Added to cart" popup shows over the player. -->
+      <activity
+        android:name="com.fireworksdk.bridge.reactnative.pages.FWContainerActivity"
+        android:theme="@style/FwSheetTheme" />
+
       <!-- Firework App ID, from android/firework.local.properties (see app/build.gradle) -->
       <meta-data
         android:name="Firework:Appid"
