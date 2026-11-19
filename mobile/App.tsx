@@ -10,19 +10,23 @@ import { LogSheet, ModeSheet } from './src/components/Sheets';
 import { colors } from './src/config';
 import { FeedScreen } from './src/screens/FeedScreen';
 import { StoryblockScreen } from './src/screens/StoryblockScreen';
+import { cartCount, getCart, onCart } from './src/cart/cart';
+import { CartScreen } from './src/screens/CartScreen';
 import { getInit, onInit } from './src/sdk';
 import { getLog, onLog } from './src/shopping/log';
 import { getMode, modeLabel, setMode, type Mode } from './src/shopping/modes';
+import { getTab, onTab, openTab, type Tab } from './src/ui';
 
-type Tab = 'feed' | 'storyblock';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'feed', label: 'Video feed' },
   { id: 'storyblock', label: 'Storyblock' },
+  { id: 'cart', label: 'Cart' },
 ];
 
 function Shell() {
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<Tab>('feed');
+  const [tab, setTab] = useState<Tab>(getTab());
+  const [inCart, setInCart] = useState(cartCount(getCart()));
   const [mode, setModeState] = useState<Mode>(getMode());
   const [reloadKey, setReloadKey] = useState(0);
   const [sheet, setSheet] = useState<'mode' | 'log' | null>(null);
@@ -30,6 +34,8 @@ function Shell() {
   const [init, setInit] = useState(getInit());
   useEffect(() => onLog((e) => setLogCount(e.length)), []);
   useEffect(() => onInit(setInit), []);
+  useEffect(() => onTab(setTab), []);
+  useEffect(() => onCart((lines) => setInCart(cartCount(lines))), []);
 
   const pick = (m: Mode) => {
     setMode(m);
@@ -57,13 +63,18 @@ function Shell() {
       </View>
       {init.status === 'failed' && <Banner tone="error">Firework didn’t start: {init.reason}. Check fw.appId and fw.packageName in android/firework.local.properties.</Banner>}
 
-      <View style={{ flex: 1 }}>{tab === 'feed' ? <FeedScreen reloadKey={reloadKey} /> : <StoryblockScreen reloadKey={reloadKey} />}</View>
+      <View style={{ flex: 1 }}>
+        {tab === 'feed' ? <FeedScreen reloadKey={reloadKey} /> : tab === 'storyblock' ? <StoryblockScreen reloadKey={reloadKey} /> : <CartScreen />}
+      </View>
 
       <View style={[s.tabs, { paddingBottom: insets.bottom }]} accessibilityRole="tablist">
         {TABS.map((t) => (
-          <Pressable key={t.id} onPress={() => setTab(t.id)} style={s.tab} accessibilityRole="tab" accessibilityState={{ selected: tab === t.id }}>
+          <Pressable key={t.id} onPress={() => openTab(t.id)} style={s.tab} accessibilityRole="tab" accessibilityState={{ selected: tab === t.id }}>
             <View style={[s.tabMark, tab === t.id && s.tabMarkOn]} />
-            <Text style={[s.tabText, tab === t.id && s.tabTextOn]}>{t.label}</Text>
+            <Text style={[s.tabText, tab === t.id && s.tabTextOn]}>
+              {t.label}
+              {t.id === 'cart' && inCart ? ` (${inCart})` : ''}
+            </Text>
           </Pressable>
         ))}
       </View>

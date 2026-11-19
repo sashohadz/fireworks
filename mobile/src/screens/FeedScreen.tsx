@@ -19,6 +19,7 @@ export function FeedScreen({ reloadKey }: { reloadKey: number }) {
             key={reloadKey}
             style={{ flex: 1 }}
             source="playlist"
+            enablePictureInPicture
             channel={firework.channel}
             playlist={firework.playlists.feed}
             mode="grid"

@@ -23,6 +23,7 @@ export function StoryblockScreen({ reloadKey }: { reloadKey: number }) {
               key={reloadKey}
               style={{ flex: 1 }}
               source="playlist"
+              enablePictureInPicture
               channel={firework.channel}
               playlist={firework.playlists.storyblock}
               onStoryBlockLoadFinished={(e) => setError(e ?? undefined)}
