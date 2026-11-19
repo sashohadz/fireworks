@@ -45,6 +45,8 @@ It uses React Native 0.78 (the version Firework's own sample app runs on) and `r
 | `src/cart/rules.ts` | Whether "Add to cart" may add a unit, and the purchase event for an order |
 | `src/cart/install.ts` | `onShoppingCTA`, `setCartItemCount` and `onCustomClickCartIcon` |
 | `src/cart/checkout.ts` | The demo checkout: `trackPurchase`, then an empty cart |
+| `src/cart/sheet.ts` | Opens and closes the "Added to cart" popup, and Check out from it |
+| `src/screens/CartSheet.tsx` | The popup over the player, registered in `index.js` as `FjordbloomCartSheet` |
 | `src/screens/CartScreen.tsx` | Page 3: the cart and the checkout button |
 
 ## How hydration works
@@ -64,7 +66,10 @@ The **Log** button shows every request and the app's answer.
 
 1. **Add to cart** in the player calls `shopping.onShoppingCTA` with the product ID and unit ID.
    - The app looks the product up as hydration does, so it uses the same price and stock the player showed.
-   - It adds the unit to its own cart and answers `{ res: 'success', tips: 'Added to cart: … · 2 items in cart' }`. Firework's Android bridge shows any `tips` text as a toast, for success as well as failure. Without it, the only sign that the add worked is the red dot on the cart icon.
+   - It adds the unit to its own cart and answers `{ res: 'success' }`.
+   - It then opens the **"Added to cart" popup** over the video (`src/screens/CartSheet.tsx`): what was added, the cart's items and subtotal, and **Keep watching** / **Check out**.
+   - The popup is the SDK's `navigator.pushRNContainer`, which opens Firework's container screen above the player. Our manifest gives that screen a transparent theme. It runs on the same JavaScript as the app, so it reads the cart directly.
+   - If the popup can't open, the answer carries `tips: 'Added to cart: … · N items in cart'` instead. Firework's Android bridge shows any `tips` text as a toast, for success as well as failure.
    - If the unit is sold out or the cart already holds all the stock, it answers `{ res: 'fail', tips: reason }`.
    - A unit that hydration marked as sold out never gets this far: the player disables its button.
 2. **The cart count** goes to `shopping.setCartItemCount(n)`, which shows a red dot on the player's cart icon.
@@ -82,7 +87,7 @@ The cart lives in memory; a real app would keep it on its server or on the phone
 3. **Data: −20% sale.** The page reloads. Open a video again: the cards show the sale price with the regular one struck through. That price exists only in the app, so it proves the app answered.
 4. **Data: Sold out.** The app answers that every unit is unavailable. The product page shows a "Sold out" button that can't be tapped, and the log shows "sold out" for each product.
 5. **Data: Failing.** The callback throws. The player doesn't crash: it shows Firework's own stored product data, as it would without hydration. The log shows the error (✗).
-6. **Cart.** Back on Live API, open a video and tap **Add to cart** twice. Each tap shows "Added to cart: … · N items in cart", and the player's cart icon gets a red dot. Tap the cart icon: the player floats and the app's Cart shows the two items. **Check out (demo)**, then open **Log** to see the purchase sent to Firework.
+6. **Cart.** Back on Live API, open a video and tap **Add to cart**: the popup slides up over the video with the cart. Tap **Keep watching**, pick another shade and add it: the popup lists both, and the player's cart icon has a red dot. Tap **Check out** in the popup: the player floats and the Cart tab opens. **Check out (demo)** in the Cart, then open **Log** to see the purchase sent to Firework.
 
 ## Things the docs don't say
 
@@ -99,5 +104,14 @@ The cart lives in memory; a real app would keep it on its server or on the phone
   - Sending unit images added the store's image URLs next to Firework's copies.
   - Even with only price, stock and link, a hydrated product shows a few extra images (8 → 12), and its title loses the selected unit's suffix ("– Clear"). That's the SDK's merge, worth raising with Firework.
 - **Cart callbacks run while the player is in front too:** `onShoppingCTA` and `onCustomClickCartIcon` follow the same no-timers rule as hydration.
+- **App screens over the player: `pushRNContainer`.** On Android it opens `FWContainerActivity` with the component registered under `appKey`.
+  - Always pass `appProps`: the bridge casts it to a map without a null check, so leaving it out crashes the app.
+  - Give that activity a transparent theme in your manifest (`FwSheetTheme`) to make a popup rather than a full page.
+- **Leaving the popup for the app's own screens: wait until the popup is gone.** While it's closing, Firework won't float or close the player (`popNativeContainer` only acts when the player is the screen in front), so the app's screen opens hidden behind the player.
+  - The popup's React tree is torn down when Android destroys its screen, by which time the player is in front again. The app floats the player from that cleanup (`afterSheetClosed` in `src/cart/sheet.ts`).
+- **Only the full-screen player floats.** Check out from a video opened from the feed (or a Storyblock expanded to full screen) floats the player. An inline Storyblock plays inside the app's own screen, so there's nothing to float: its video stops when the Cart tab opens, like any embedded video on a page you leave.
+- **Native-only, not in the React Native bridge (2.22.5):**
+  - an "Added to cart" message centred in the player (`setCtaButtonStatus(status, message, dismissShopping)`, native SDK 6.35.2 and later);
+  - a cart page inside the player (`CartBehaviour.Embedded` + `EmbeddedCartFactory`).
 - **The floating player parks on the right of the screen**, so app screens opened from the player need their buttons elsewhere. The cart's quantity buttons are on the left for that reason.
 - **Debug logs:** `FireworkSDK.getInstance().debugLogsEnabled = true` (on in development builds) logs every hydration request and answer under `ReactNativeJS` in `adb logcat`. Filter with `adb logcat ReactNativeJS:V '*:S'`.

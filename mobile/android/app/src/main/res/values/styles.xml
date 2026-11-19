@@ -6,4 +6,17 @@
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>
 
+    <!--
+      For Firework's container screen (navigator.pushRNContainer): transparent, so the "Added to cart" popup
+      (src/screens/CartSheet.tsx) shows over the player, which stays visible behind it. The popup draws its own
+      dimmed backdrop.
+    -->
+    <style name="FwSheetTheme" parent="AppTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
 </resources>
