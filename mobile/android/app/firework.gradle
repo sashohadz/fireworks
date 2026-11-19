@@ -1,0 +1,23 @@
+// Firework's native Android SDK and its Glide image loader (from Firework's React Native "Getting Started" and sample app).
+// The version comes from the react-native-firework-sdk bridge, which sets rootProject.ext.fwNativeVersion.
+android {
+  packagingOptions {
+    exclude 'META-INF/*.kotlin_module'
+  }
+}
+
+dependencies {
+  implementation "com.firework:sdk:+"
+  implementation "com.firework.external.imageloading:glide:+"
+}
+
+configurations.all {
+  resolutionStrategy.eachDependency { details ->
+    if (details.requested.group == 'com.firework' && details.requested.name == 'sdk') {
+      details.useVersion rootProject.ext.get("fwNativeVersion")
+    }
+    if (details.requested.group == 'com.firework.external.imageloading' && details.requested.name == 'glide') {
+      details.useVersion rootProject.ext.get("fwNativeVersion")
+    }
+  }
+}

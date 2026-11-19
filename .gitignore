@@ -10,6 +10,8 @@ out/
 .env
 .env.*
 !.env.example
+# Mobile workshop app: the Firework App ID (copy firework.local.properties.example)
+mobile/android/firework.local.properties
 
 # Internal Firework notes, customer repros and anything not public-safe
 private/
