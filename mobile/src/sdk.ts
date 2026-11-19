@@ -4,6 +4,7 @@
  * wrong instead of showing empty feeds.
  */
 import FireworkSDK from 'react-native-firework-sdk';
+import { installCart } from './cart/install';
 import { installHydration } from './shopping/install';
 
 export type InitState = { status: 'starting' } | { status: 'ready' } | { status: 'failed'; reason: string };
@@ -30,4 +31,5 @@ export function startFirework() {
   };
   sdk.markInitCalled();
   installHydration();
+  installCart();
 }

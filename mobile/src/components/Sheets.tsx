@@ -50,29 +50,29 @@ function Entry({ e }: { e: LogEntry }) {
   return (
     <View style={s.entry}>
       <Text style={s.entryHead}>
-        {time(e.at)} · {e.via && e.via !== e.mode ? `${e.mode} · ${e.via}` : e.mode} · {e.ms} ms
+        {time(e.at)} · {e.title}
+        {e.ms !== undefined ? ` · ${e.ms} ms` : ''}
       </Text>
       {e.video ? <Text style={s.entryMeta} numberOfLines={1}>Video: {e.video}</Text> : null}
-      <Text style={s.entryMeta}>Firework asked for: {e.asked.join(', ') || '(nothing)'}</Text>
-      {e.found.map((f) => (
-        <Text key={f.id} style={s.entryLine}>
-          ✓ {f.id} {f.summary}
+      {e.request ? <Text style={s.entryMeta}>{e.request}</Text> : null}
+      {e.lines.map((l, i) => (
+        <Text key={i} style={[s.entryLine, !l.ok && { color: colors.danger }]}>
+          {l.ok ? '✓' : '✗'} {l.text}
         </Text>
       ))}
-      {e.unknown.length ? <Text style={s.entryMeta}>Not in the store’s catalog (Firework’s data kept): {e.unknown.join(', ')}</Text> : null}
-      {e.error ? <Text style={[s.entryLine, { color: colors.danger }]}>✗ {e.error}</Text> : null}
+      {e.note ? <Text style={s.entryMeta}>{e.note}</Text> : null}
     </View>
   );
 }
 
-/** The hydration log: every time Firework asked the app for product data, and what the app answered. */
+/** The log: every time Firework asked the app something (product data, Add to cart) and what the app answered. */
 export function LogSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const [entries, setEntries] = useState(getLog());
   useEffect(() => onLog(setEntries), []);
   return (
     <Sheet
       visible={visible}
-      title="Hydration log"
+      title="Log"
       onClose={onClose}
       action={
         entries.length ? (
@@ -87,7 +87,7 @@ export function LogSheet({ visible, onClose }: { visible: boolean; onClose: () =
         data={entries}
         keyExtractor={(e, i) => `${e.at.getTime()}-${i}`}
         renderItem={({ item }) => <Entry e={item} />}
-        ListEmptyComponent={<Text style={s.help}>Nothing yet. Open a video with products: Firework then asks the app for their details.</Text>}
+        ListEmptyComponent={<Text style={s.help}>Nothing yet. Open a video with products: Firework then asks the app for their details. Add to cart and purchases show here too.</Text>}
       />
     </Sheet>
   );

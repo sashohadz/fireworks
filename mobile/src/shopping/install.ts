@@ -19,17 +19,24 @@ export function installHydration() {
   FireworkSDK.getInstance().shopping.onUpdateProductDetails = async (event) => {
     const mode = getMode();
     const t0 = Date.now();
-    const base = { at: new Date(), mode: modeLabel(mode), asked: event.productIds, video: event.video?.caption ?? event.video?.videoId };
+    const base = {
+      at: new Date(),
+      kind: 'hydration' as const,
+      video: event.video?.caption ?? event.video?.videoId,
+      request: `Firework asked for: ${event.productIds.join(', ') || '(nothing)'}`,
+    };
     try {
       const { products, lookup, via } = await resolveProducts(event.productIds, mode);
-      const found = products.map((p) => ({ id: p.productId, summary: `${p.name ?? p.productId}: ${money(p)}` }));
-      addLog({ ...base, via, found, unknown: lookup.unknown, ms: Date.now() - t0 });
-      // Also in adb logcat (tag ReactNativeJS), to follow along from a computer.
-      console.log(`[hydration] ${via} · asked ${event.productIds.join(', ')} · ${found.map((f) => `${f.id} ${f.summary}`).join(' | ') || 'none found'} · ${Date.now() - t0} ms`);
+      addLog({
+        ...base,
+        title: via === modeLabel(mode) ? via : `${modeLabel(mode)} · ${via}`,
+        ms: Date.now() - t0,
+        lines: products.map((p) => ({ ok: true, text: `${p.productId} ${p.name ?? ''}: ${money(p)}` })),
+        note: lookup.unknown.length ? `Not in the store’s catalog (Firework’s data kept): ${lookup.unknown.join(', ')}` : undefined,
+      });
       return products;
     } catch (e) {
-      addLog({ ...base, found: [], unknown: [], ms: Date.now() - t0, error: e instanceof Error ? e.message : String(e) });
-      console.log(`[hydration] ${modeLabel(mode)} · asked ${event.productIds.join(', ')} · threw: ${e instanceof Error ? e.message : String(e)}`);
+      addLog({ ...base, title: modeLabel(mode), ms: Date.now() - t0, lines: [{ ok: false, text: e instanceof Error ? e.message : String(e) }] });
       // Rethrown on purpose: this is what a broken integration does, and Failing mode shows what the player does then.
       throw e;
     }
