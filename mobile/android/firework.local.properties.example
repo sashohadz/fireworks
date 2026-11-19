@@ -1,0 +1,6 @@
+# Copy to firework.local.properties (gitignored) and fill in. Never commit the real file: this repo is public.
+#
+# The Firework App ID (Android "Client ID") is issued for one package name. Ask your Firework contact for it.
+fw.appId=
+# The package name the App ID was issued for. Leave empty to use com.fjordbloom.workshop.
+fw.packageName=

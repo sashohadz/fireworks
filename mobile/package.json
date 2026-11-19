@@ -1,0 +1,43 @@
+{
+  "name": "fjordbloom-workshop",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": ". ./scripts/android-env.sh && react-native run-android",
+    "start": ". ./scripts/android-env.sh && react-native start",
+    "devices": ". ./scripts/android-env.sh && adb devices -l",
+    "snapshot": "node scripts/snapshot.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "jest"
+  },
+  "dependencies": {
+    "react": "19.0.0",
+    "react-native": "0.78.3",
+    "react-native-firework-sdk": "2.22.5",
+    "react-native-safe-area-context": "5.11.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "15.0.1",
+    "@react-native-community/cli-platform-android": "15.0.1",
+    "@react-native-community/cli-platform-ios": "15.0.1",
+    "@react-native/babel-preset": "0.78.3",
+    "@react-native/eslint-config": "0.78.3",
+    "@react-native/metro-config": "0.78.3",
+    "@react-native/typescript-config": "0.78.3",
+    "@types/jest": "^29.5.13",
+    "@types/react": "^19.0.0",
+    "@types/react-test-renderer": "^19.0.0",
+    "eslint": "^8.19.0",
+    "jest": "^29.6.3",
+    "prettier": "2.8.8",
+    "react-test-renderer": "19.0.0",
+    "typescript": "5.0.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

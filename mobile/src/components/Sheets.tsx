@@ -1,0 +1,114 @@
+import React, { useEffect, useState } from 'react';
+import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors } from '../config';
+import { clearLog, getLog, onLog, type LogEntry } from '../shopping/log';
+import { MODES, type Mode } from '../shopping/modes';
+
+function Sheet({ visible, title, onClose, children, action }: { visible: boolean; title: string; onClose: () => void; children: React.ReactNode; action?: React.ReactNode }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable style={s.backdrop} onPress={onClose} accessibilityLabel="Close" />
+      <View style={[s.sheet, { paddingBottom: insets.bottom + 12 }]}>
+        <View style={s.sheetHead}>
+          <Text style={s.sheetTitle}>{title}</Text>
+          <View style={s.row}>
+            {action}
+            <Pressable onPress={onClose} hitSlop={12} accessibilityRole="button">
+              <Text style={s.link}>Done</Text>
+            </Pressable>
+          </View>
+        </View>
+        {children}
+      </View>
+    </Modal>
+  );
+}
+
+/** Settings: where hydration gets its data. Picking a mode reloads the page, so the next products use it. */
+export function ModeSheet({ visible, mode, onPick, onClose }: { visible: boolean; mode: Mode; onPick: (m: Mode) => void; onClose: () => void }) {
+  return (
+    <Sheet visible={visible} title="Product data" onClose={onClose}>
+      <Text style={s.help}>Where the app gets prices and stock when Firework asks (product hydration). Then open a video again.</Text>
+      {MODES.map((m) => (
+        <Pressable key={m.id} onPress={() => onPick(m.id)} style={[s.option, m.id === mode && s.optionOn]} accessibilityRole="radio" accessibilityState={{ checked: m.id === mode }}>
+          <View style={[s.radio, m.id === mode && s.radioOn]} />
+          <View style={{ flex: 1 }}>
+            <Text style={s.optionLabel}>{m.label}</Text>
+            <Text style={s.optionDetail}>{m.detail}</Text>
+          </View>
+        </Pressable>
+      ))}
+    </Sheet>
+  );
+}
+
+const time = (d: Date) => d.toTimeString().slice(0, 8);
+
+function Entry({ e }: { e: LogEntry }) {
+  return (
+    <View style={s.entry}>
+      <Text style={s.entryHead}>
+        {time(e.at)} · {e.via && e.via !== e.mode ? `${e.mode} · ${e.via}` : e.mode} · {e.ms} ms
+      </Text>
+      {e.video ? <Text style={s.entryMeta} numberOfLines={1}>Video: {e.video}</Text> : null}
+      <Text style={s.entryMeta}>Firework asked for: {e.asked.join(', ') || '(nothing)'}</Text>
+      {e.found.map((f) => (
+        <Text key={f.id} style={s.entryLine}>
+          ✓ {f.id} {f.summary}
+        </Text>
+      ))}
+      {e.unknown.length ? <Text style={s.entryMeta}>Not in the store’s catalog (Firework’s data kept): {e.unknown.join(', ')}</Text> : null}
+      {e.error ? <Text style={[s.entryLine, { color: colors.danger }]}>✗ {e.error}</Text> : null}
+    </View>
+  );
+}
+
+/** The hydration log: every time Firework asked the app for product data, and what the app answered. */
+export function LogSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const [entries, setEntries] = useState(getLog());
+  useEffect(() => onLog(setEntries), []);
+  return (
+    <Sheet
+      visible={visible}
+      title="Hydration log"
+      onClose={onClose}
+      action={
+        entries.length ? (
+          <Pressable onPress={clearLog} hitSlop={12} accessibilityRole="button" style={{ marginRight: 20 }}>
+            <Text style={s.link}>Clear</Text>
+          </Pressable>
+        ) : null
+      }
+    >
+      <FlatList
+        style={{ maxHeight: 460 }}
+        data={entries}
+        keyExtractor={(e, i) => `${e.at.getTime()}-${i}`}
+        renderItem={({ item }) => <Entry e={item} />}
+        ListEmptyComponent={<Text style={s.help}>Nothing yet. Open a video with products: Firework then asks the app for their details.</Text>}
+      />
+    </Sheet>
+  );
+}
+
+const s = StyleSheet.create({
+  backdrop: { flex: 1, backgroundColor: 'rgba(20,33,43,0.35)' },
+  sheet: { backgroundColor: colors.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 16, paddingTop: 14 },
+  sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  sheetTitle: { fontSize: 18, fontWeight: '700', color: colors.ink },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  link: { color: colors.fjord, fontSize: 16, fontWeight: '600' },
+  help: { color: colors.inkSoft, fontSize: 14, lineHeight: 20, marginBottom: 10 },
+  option: { flexDirection: 'row', gap: 12, padding: 12, borderRadius: 10, marginBottom: 6, backgroundColor: colors.paper },
+  optionOn: { backgroundColor: colors.mist },
+  radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.inkSoft, marginTop: 2 },
+  radioOn: { borderColor: colors.fjord, backgroundColor: colors.fjord },
+  optionLabel: { fontSize: 15, fontWeight: '600', color: colors.ink },
+  optionDetail: { fontSize: 13, color: colors.inkSoft, marginTop: 2, lineHeight: 18 },
+  entry: { paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.mist },
+  entryHead: { fontSize: 14, fontWeight: '700', color: colors.ink },
+  entryMeta: { fontSize: 12, color: colors.inkSoft, marginTop: 2 },
+  entryLine: { fontSize: 13, color: colors.ink, marginTop: 3 },
+});
