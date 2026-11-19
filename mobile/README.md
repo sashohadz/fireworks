@@ -60,7 +60,7 @@ The **Log** button shows every request and the app's answer.
 1. **Video feed.** Tap a video, then a product card. The price matches the store's site. Close the player and open **Log** to see what Firework asked for and what the app answered.
 2. **Storyblock.** Swipe between videos, then tap a product. Switching tabs removes the Storyblock and stops its videos.
 3. **Data: −20% sale.** The page reloads. Open a video again: the cards show the sale price with the regular one struck through. That price exists only in the app, so it proves the app answered.
-4. **Data: Sold out.** The app answers that every unit is unavailable, and the log shows "sold out" for each product.
+4. **Data: Sold out.** The app answers that every unit is unavailable. The product page shows a "Sold out" button that can't be tapped, and the log shows "sold out" for each product.
 5. **Data: Failing.** The callback throws. The player doesn't crash: it shows Firework's own stored product data, as it would without hydration. The log shows the error (✗).
 
 ## Things the docs don't say
