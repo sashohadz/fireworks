@@ -1,9 +1,10 @@
 /**
  * The store's mock commerce API, as served by the website (src/pages/api in the repo root, shape from toApiProduct()
- * in src/lib/catalog.ts). Two sources with the same answer: the live API, and a hardcoded snapshot of it that ships
- * with the app (npm run snapshot refreshes it).
+ * in src/lib/catalog.ts), per country: /api/{market}/products/{id}.json. Two sources with the same answer: the live
+ * API, and a hardcoded snapshot of it for every market that ships with the app (npm run snapshot refreshes it).
  */
 import { store } from '../config';
+import { getMarket, type MarketId } from '../market';
 import snapshot from './catalog.snapshot.json';
 
 export interface ApiUnit {
@@ -66,11 +67,14 @@ export const xhrGetJson: GetJson = (url) =>
     xhr.send();
   });
 
-/** One request per product, like a real product API: GET /api/products/{id}.json. A 404 means the store doesn't sell it. */
-export async function fromLiveApi(ids: string[], getJson: GetJson = xhrGetJson): Promise<Lookup> {
+/**
+ * One request per product, like a real product API: GET /api/{market}/products/{id}.json. A 404 means the store
+ * doesn't sell it in that market.
+ */
+export async function fromLiveApi(ids: string[], market: MarketId = getMarket().id, getJson: GetJson = xhrGetJson): Promise<Lookup> {
   const answers = await Promise.all(
     ids.map(async (id) => {
-      const res = await getJson(`${store.api}/products/${encodeURIComponent(id)}.json`);
+      const res = await getJson(`${store.api}/${market}/products/${encodeURIComponent(id)}.json`);
       if (res.status === 404) { return { id, product: undefined }; }
       if (res.status !== 200) { throw new Error(`Product API answered ${res.status} for ${id}`); }
       return { id, product: res.body as ApiProduct };
@@ -82,10 +86,13 @@ export async function fromLiveApi(ids: string[], getJson: GetJson = xhrGetJson):
   };
 }
 
-const bundled = (snapshot as { products: ApiProduct[] }).products;
+const bundled = (snapshot as unknown as { markets: Record<MarketId, { products: ApiProduct[] }> }).markets;
 
-/** The hardcoded response: the same catalog, bundled with the app, so it works offline. */
-export function fromSnapshot(ids: string[], products: ApiProduct[] = bundled): Lookup {
+/** A market's bundled catalog (the hardcoded response). */
+export const snapshotProducts = (market: MarketId = getMarket().id): ApiProduct[] => bundled[market]?.products ?? [];
+
+/** The hardcoded response: the same catalog per market, bundled with the app, so it works offline. */
+export function fromSnapshot(ids: string[], market: MarketId = getMarket().id, products: ApiProduct[] = snapshotProducts(market)): Lookup {
   const found = ids.map((id) => products.find((p) => p.id === id)).filter((p): p is ApiProduct => Boolean(p));
   return { found, unknown: ids.filter((id) => !found.some((p) => p.id === id)) };
 }

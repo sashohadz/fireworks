@@ -68,6 +68,14 @@ It uses React Native 0.78 (the version Firework's own sample app runs on) and `r
 
 The **Log** button shows every request and the app's answer.
 
+## Countries
+
+The Data sheet has a **Country** switch: DE (EUR), CH (CHF) and PL (PLN), the same markets as the website (`src/lib/markets.ts` in the repo root, `src/market.ts` here).
+- Hydration asks `/api/{country}/products/{id}.json` and returns that country's price list and currency. Firework's catalog stays in EUR.
+- A product the country doesn't sell (the SPF in CH) is returned as `{ productId, hidden: true }`, so it disappears from the videos. The web SDK can't hide a product; there it shows as unavailable.
+- The cart, the popup and `trackPurchase` use the country's currency. Switching country empties the cart and reloads the feeds.
+- The per-country API base is in `src/config.ts`. `npm run snapshot` saves every country's catalog for Hardcoded mode.
+
 ## How the cart works
 
 1. **Add to cart** in the player calls `shopping.onShoppingCTA` with the product ID and unit ID.

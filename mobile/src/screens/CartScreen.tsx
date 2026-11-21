@@ -4,8 +4,9 @@ import { cartCount, cartSubtotal, getCart, onCart, setQuantity, type CartLine } 
 import { placeOrder, type Order } from '../cart/checkout';
 import { Intro } from '../components/Notice';
 import { colors } from '../config';
+import { formatMoney } from '../market';
 
-const euro = (n: number) => `€${n.toFixed(2)}`;
+const euro = (n: number) => formatMoney(n);
 
 /**
  * One cart line. The quantity buttons sit on the left: Firework's floating player (after the cart icon) parks on the

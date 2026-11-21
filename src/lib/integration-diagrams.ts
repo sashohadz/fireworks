@@ -320,6 +320,16 @@ export function installToggle(): void {
 }
 
 /**
+ * The same behaviour as installToggle, as plain JavaScript for pages built outside the site (inline it in a
+ * <script>). Function.toString() of installToggle isn't safe there: build tools add helpers to it.
+ */
+export const toggleScript = `(function(){var KEY='dg.view';var root=document.documentElement;
+function apply(v){root.dataset.dgView=v==='detailed'?'detailed':'high';document.querySelectorAll('.dg-toggle input[type="radio"]').forEach(function(i){i.checked=i.value===root.dataset.dgView;});}
+var saved='high';try{saved=window.localStorage.getItem(KEY)||'high';}catch(e){}
+apply(saved);
+document.addEventListener('change',function(e){var t=e.target;if(!t||!t.closest||!t.closest('.dg-toggle'))return;apply(t.value);try{window.localStorage.setItem(KEY,t.value);}catch(e){}});})();`;
+
+/**
  * Styles for the diagrams and the toggle. Pages set --dg-ink, --dg-soft, --dg-line, --dg-surface, --dg-bg,
  * --dg-accent, --dg-accent-bg and --dg-danger to their own colours.
  */
