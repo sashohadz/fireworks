@@ -62,8 +62,9 @@ import Base from '../layouts/Base.astro';
 
 <script>
   import { getCart, onCartChange, setQuantity } from '../scripts/cart';
+  import { marketAmount } from '../scripts/market';
   import { FREE_SHIPPING_FROM, priceCart } from '../scripts/order';
-  import { fetchProducts, formatEur } from '../scripts/products-client';
+  import { fetchProducts, formatMoney } from '../scripts/products-client';
 
   const root = document.getElementById('cart-root')!;
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -91,16 +92,16 @@ import Base from '../layouts/Base.astro';
               <button type="button" data-unit="${esc(l.unitId)}" data-remove aria-label="Remove">×</button>
             </div>
           </div>
-          <div class="price">${formatEur(l.price * l.quantity)}</div>
+          <div class="price">${formatMoney(l.price * l.quantity)}</div>
         </div>`;
       })
       .join('');
     root.innerHTML = `${rows}
       <div class="cart-totals">
-        <div><span>Subtotal</span><span>${formatEur(totals.subtotal)}</span></div>
-        <div><span>Shipping</span><span>${totals.shipping === 0 ? 'Free' : formatEur(totals.shipping)}</span></div>
-        <div class="grand"><span>Total</span><span>${formatEur(totals.total)}</span></div>
-        <p class="small muted">Free shipping from ${formatEur(FREE_SHIPPING_FROM)}. Demo store: no payment is taken.</p>
+        <div><span>Subtotal</span><span>${formatMoney(totals.subtotal)}</span></div>
+        <div><span>Shipping</span><span>${totals.shipping === 0 ? 'Free' : formatMoney(totals.shipping)}</span></div>
+        <div class="grand"><span>Total</span><span>${formatMoney(totals.total)}</span></div>
+        <p class="small muted">Free shipping from ${formatMoney(marketAmount(FREE_SHIPPING_FROM))}. Demo store: no payment is taken.</p>
         <a class="btn" href="/checkout" style="width:100%">Checkout</a>
       </div>`;
   }

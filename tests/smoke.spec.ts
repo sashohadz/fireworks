@@ -97,6 +97,23 @@ test.describe('data endpoints', () => {
     const serum = await (await request.get('/api/products/FJB-103.json')).json();
     expect(serum.units.map((u: { id: string }) => u.id)).toEqual(['FJB-103-15ML', 'FJB-103-30ML']);
   });
+
+  test('each market answers in its own currency and price list, and only for products it sells', async ({ request }) => {
+    const list = await (await request.get('/api/markets.json')).json();
+    expect(list.markets.map((m: { id: string; currency: string }) => `${m.id}:${m.currency}`)).toEqual(['de:EUR', 'ch:CHF', 'pl:PLN']);
+    const eur = await (await request.get('/api/products/FJB-101.json')).json();
+    const de = await (await request.get('/api/de/products/FJB-101.json')).json();
+    expect(de.units[0].price).toBe(eur.units[0].price);
+    const ch = await (await request.get('/api/ch/products/FJB-101.json')).json();
+    expect(ch).toMatchObject({ currency: 'CHF', market: 'ch' });
+    expect(ch.units[0].price).toBe(26.9);
+    const pl = await (await request.get('/api/pl/products/FJB-101.json')).json();
+    expect(pl.units[0].price).toBe(103.99);
+    // The gift set isn't sold in Switzerland: not in the list, and its product URL is a 404.
+    const chAll = await (await request.get('/api/ch/products.json')).json();
+    expect(chAll.products.some((p: { id: string }) => p.id === 'FJB-112')).toBe(false);
+    expect((await request.get('/api/ch/products/FJB-112.json')).status()).toBe(404);
+  });
 });
 
 test('cart to order confirmation', async ({ page }) => {
@@ -233,6 +250,55 @@ test.describe('shopping integration', () => {
     await page.goto('/lab/shopping/?shopping=');
     expect(await page.evaluate(() => sessionStorage.getItem('fjb.shopping.v1'))).toBeNull();
     await expect(page.locator('#override-banner')).toBeHidden();
+  });
+
+  test('the country picks the price list and currency the player gets, and unsold products become unavailable', async ({ page }) => {
+    await withFakeShopping(page);
+    await page.goto('/lab/shopping/?shopping=&market=ch');
+    await page.waitForFunction(() => Boolean((window as unknown as { __fake: FakeShopping }).__fake.hooks.onCartUpdated));
+    expect(await page.evaluate(() => (window as unknown as { __fake: FakeShopping }).__fake.config?.currency)).toBe('CHF');
+    await expect(page.locator('#shop-status')).toContainText('Switzerland (CHF)');
+    await expect(page.locator('#shop-market input[value="ch"]')).toBeChecked();
+
+    const hydrated = (await callHook(page, 'onProductsLoaded', { products: [{ product_ext_id: 'FJB-103' }, { product_ext_id: 'FJB-112' }] })) as (BuiltProduct & { currency: string })[];
+    expect(hydrated).toHaveLength(2);
+    expect(hydrated[0]).toMatchObject({ extId: 'FJB-103', currency: 'CHF' });
+    expect(hydrated[0]!.variants[0]).toMatchObject({ extId: 'FJB-103-15ML', price: 31.9, originalPrice: 31.9, isAvailable: true });
+    // The gift set isn't sold in Switzerland: hydrated as unavailable, in CHF, rather than left at Firework's EUR price.
+    expect(hydrated[1]).toMatchObject({ extId: 'FJB-112', currency: 'CHF' });
+    expect(hydrated[1]!.variants.every((v) => v.isAvailable === false)).toBe(true);
+    await expect(callHook(page, 'onCartUpdated', cartUpdate('FJB-112-SET', 1))).rejects.toThrow(/isn't sold in Switzerland/);
+
+    // The shop's pages follow: CHF prices on the cards, and the gift set can't be added in Switzerland.
+    await page.goto('/shop/?fw=off');
+    await expect(page.locator('.product-card[data-product-id="FJB-101"] .price')).toContainText('CHF');
+    await expect(page.locator('.product-card[data-product-id="FJB-112"] .badge-not-sold')).toHaveText('Not sold in Switzerland');
+
+    // Back to Germany: EUR again.
+    await page.goto('/lab/shopping/?shopping=&market=de');
+    await page.waitForFunction(() => Boolean((window as unknown as { __fake: FakeShopping }).__fake.hooks.onCartUpdated));
+    expect(await page.evaluate(() => (window as unknown as { __fake: FakeShopping }).__fake.config?.currency)).toBe('EUR');
+  });
+
+  test('the diagrams switch between high level and detailed, with the keyboard too, and remember the choice', async ({ page }) => {
+    await page.goto('/lab/shopping/?fw=off');
+    const high = page.locator('#dg-hydration .dg-high');
+    const detailed = page.locator('#dg-hydration .dg-detailed');
+    await expect(high).toBeVisible();
+    await expect(detailed).toBeHidden();
+    await expect(page.locator('.dg-figure')).toHaveCount(3);
+
+    await page.locator('.dg-toggle input[value="high"]').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('.dg-toggle input[value="detailed"]')).toBeChecked();
+    await expect(detailed).toBeVisible();
+    await expect(detailed).toContainText('onProductsLoaded');
+    await expect(high).toBeHidden();
+
+    await page.reload();
+    await expect(page.locator('#dg-cart .dg-detailed')).toBeVisible();
+    await page.locator('.dg-toggle input[value="high"]').check();
+    await expect(page.locator('#dg-cart .dg-high')).toBeVisible();
   });
 
   test('stays off on other channels', async ({ page }) => {

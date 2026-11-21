@@ -39,7 +39,7 @@ import Base from '../../layouts/Base.astro';
 
 <script>
   import { markTracked, readLastOrder } from '../../scripts/order';
-  import { formatEur } from '../../scripts/products-client';
+  import { formatMoney } from '../../scripts/products-client';
   import { effectiveSettings } from '../../scripts/settings';
   import { purchasePayload, trackPurchase } from '../../scripts/tracking';
 
@@ -56,7 +56,7 @@ import Base from '../../layouts/Base.astro';
       return;
     }
     const { order } = last;
-    root.innerHTML = `<p>Order <strong>${esc(order.id)}</strong> · total <strong>${formatEur(order.total)}</strong></p>
+    root.innerHTML = `<p>Order <strong>${esc(order.id)}</strong> · total <strong>${formatMoney(order.total, order.currency)}</strong></p>
       <ul>${order.lines.map((l) => `<li>${l.quantity} × ${esc(l.name)} (${esc(l.unitName)}) · <code>${esc(l.unitId)}</code></li>`).join('')}</ul>`;
     payloadEl.textContent = JSON.stringify(purchasePayload(order), null, 2);
 

@@ -1,8 +1,10 @@
 // Builds demo orders from the cart. Prices come from the mock commerce API, never from the client cart.
 import { cartId, type CartLine } from './cart';
+import { currentMarket, marketAmount } from './market';
 import { fetchProducts } from './products-client';
 import type { DemoOrder, DemoOrderLine } from './tracking';
 
+/** In EUR; other markets use their price list (marketAmount). */
 export const FREE_SHIPPING_FROM = 50;
 export const SHIPPING_FEE = 4.9;
 const ORDER_KEY = 'fjb.lastOrder.v1';
@@ -17,7 +19,7 @@ export async function priceCart(lines: CartLine[]): Promise<{ lines: DemoOrderLi
     priced.push({ productId: product.id, unitId: unit.id, name: product.name, unitName: unit.name, quantity: line.quantity, price: unit.price });
   }
   const subtotal = Math.round(priced.reduce((sum, l) => sum + l.price * l.quantity, 0) * 100) / 100;
-  const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FEE;
+  const shipping = subtotal === 0 || subtotal >= marketAmount(FREE_SHIPPING_FROM) ? 0 : marketAmount(SHIPPING_FEE);
   return { lines: priced, subtotal, shipping, total: Math.round((subtotal + shipping) * 100) / 100 };
 }
 
@@ -27,7 +29,7 @@ export async function createOrder(lines: CartLine[]): Promise<DemoOrder> {
     // The bag's ID, which its addToCart and removeFromCart events already used as order_id.
     id: cartId(),
     createdAt: new Date().toISOString(),
-    currency: 'EUR',
+    currency: currentMarket().currency,
     ...priced,
   };
   try {

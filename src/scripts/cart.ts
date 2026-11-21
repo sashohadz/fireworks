@@ -10,10 +10,10 @@ const ID_KEY = 'fjb.cart.id.v1';
 export const CART_EVENT = 'fjb:cart-changed';
 
 /**
- * Who changed the bag: the site's own buttons, Add to Bag inside the Firework player, or a placed order
- * emptying it.
+ * Who changed the bag: the site's own buttons, Add to Bag inside the Firework player, a placed order emptying it, or
+ * a switch to another country's shop (src/scripts/market.ts) emptying it.
  */
-export type CartSource = 'site' | 'player' | 'order';
+export type CartSource = 'site' | 'player' | 'order' | 'market';
 
 /** One change to the bag in this tab, with the bag before and after it. */
 export interface CartChange {
@@ -110,7 +110,8 @@ export function setLine(productId: string, unitId: string, quantity: number, sou
 /** Empties the bag. After checkout pass 'order': the purchase event covers those items, so it is not a removal. */
 export function clearCart(source: CartSource = 'site'): void {
   write([], source);
-  if (source === 'order') forgetCartId();
+  // A new bag, and so a new order ID, after an order or in another country's shop.
+  if (source === 'order' || source === 'market') forgetCartId();
 }
 
 /** Any change to the bag, including changes made in another tab (reported as 'site'). */

@@ -1,0 +1,33 @@
+---
+// The three shop ↔ Firework flows with a High level / Detailed toggle (src/lib/integration-diagrams.ts).
+import { allFlows, diagramCss, renderFlow, toggleHtml, type FlowOptions } from '../lib/integration-diagrams';
+
+interface Props {
+  options?: FlowOptions;
+}
+const { options = {} } = Astro.props;
+const html = toggleHtml() + allFlows(options).map(renderFlow).join('');
+const css = `<style>${diagramCss}</style>`;
+---
+
+<Fragment set:html={css} />
+<div class="dg-host"><Fragment set:html={html} /></div>
+
+<script>
+  import { installToggle } from '../lib/integration-diagrams';
+  installToggle();
+</script>
+
+<style>
+  .dg-host {
+    --dg-ink: var(--ink);
+    --dg-soft: var(--ink-soft);
+    --dg-line: var(--line);
+    --dg-surface: var(--surface);
+    --dg-bg: var(--paper);
+    --dg-accent: var(--fjord);
+    --dg-accent-bg: #eaf1f4;
+    --dg-danger: var(--danger);
+    margin: 8px 0 24px;
+  }
+</style>

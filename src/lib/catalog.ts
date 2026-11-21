@@ -5,6 +5,7 @@ import path from 'node:path';
 import rawBrand from '../../content/brand.json' with { type: 'json' };
 import rawCatalog from '../../content/catalog/products.json' with { type: 'json' };
 import { brandSchema, catalogSchema, type Product, type Unit } from './catalog-schema';
+import { DEFAULT_MARKET, getMarket, marketPrice, type Market } from './markets';
 
 export type { Product, Unit };
 
@@ -89,9 +90,14 @@ export function unitImage(p: Product, u: Unit): string {
   return imageExists(own) ? own : productImages(p)[0]!;
 }
 
-/** Shape served by the mock commerce API at /api/products.json and /api/products/{id}.json. */
-export function toApiProduct(p: Product, site: string | URL | undefined) {
+/**
+ * Shape served by the mock commerce API: /api/products.json and /api/products/{id}.json in EUR, and
+ * /api/{market}/products.json and /api/{market}/products/{id}.json in that market's currency and price list.
+ */
+export function toApiProduct(p: Product, site: string | URL | undefined, market: Market = getMarket(DEFAULT_MARKET)) {
   const unit = defaultUnit(p);
+  const price = (eur: number) => marketPrice(eur, market);
+  const compare = (eur: number | undefined) => (eur === undefined ? null : price(eur));
   return {
     id: p.id,
     handle: p.handle,
@@ -101,15 +107,16 @@ export function toApiProduct(p: Product, site: string | URL | undefined) {
     url: absoluteUrl(productPath(p), site),
     image: absoluteUrl(productImages(p)[0]!, site),
     available: isProductAvailable(p),
-    price: unit.price,
-    compareAtPrice: unit.compareAtPrice ?? null,
-    currency: catalog.currency,
+    price: price(unit.price),
+    compareAtPrice: compare(unit.compareAtPrice),
+    currency: market.id === DEFAULT_MARKET ? catalog.currency : market.currency,
+    market: market.id,
     units: p.units.map((u) => ({
       id: u.id,
       name: u.name,
       option: u.option,
-      price: u.price,
-      compareAtPrice: u.compareAtPrice ?? null,
+      price: price(u.price),
+      compareAtPrice: compare(u.compareAtPrice),
       stock: u.stock,
       available: isUnitAvailable(u),
       isDefault: u === unit,
