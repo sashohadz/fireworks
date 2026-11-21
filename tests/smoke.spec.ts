@@ -109,10 +109,10 @@ test.describe('data endpoints', () => {
     expect(ch.units[0].price).toBe(26.9);
     const pl = await (await request.get('/api/pl/products/FJB-101.json')).json();
     expect(pl.units[0].price).toBe(103.99);
-    // The gift set isn't sold in Switzerland: not in the list, and its product URL is a 404.
+    // The SPF isn't sold in Switzerland: not in the list, and its product URL is a 404.
     const chAll = await (await request.get('/api/ch/products.json')).json();
-    expect(chAll.products.some((p: { id: string }) => p.id === 'FJB-112')).toBe(false);
-    expect((await request.get('/api/ch/products/FJB-112.json')).status()).toBe(404);
+    expect(chAll.products.some((p: { id: string }) => p.id === 'FJB-107')).toBe(false);
+    expect((await request.get('/api/ch/products/FJB-107.json')).status()).toBe(404);
   });
 });
 
@@ -260,19 +260,19 @@ test.describe('shopping integration', () => {
     await expect(page.locator('#shop-status')).toContainText('Switzerland (CHF)');
     await expect(page.locator('#shop-market input[value="ch"]')).toBeChecked();
 
-    const hydrated = (await callHook(page, 'onProductsLoaded', { products: [{ product_ext_id: 'FJB-103' }, { product_ext_id: 'FJB-112' }] })) as (BuiltProduct & { currency: string })[];
+    const hydrated = (await callHook(page, 'onProductsLoaded', { products: [{ product_ext_id: 'FJB-103' }, { product_ext_id: 'FJB-107' }] })) as (BuiltProduct & { currency: string })[];
     expect(hydrated).toHaveLength(2);
     expect(hydrated[0]).toMatchObject({ extId: 'FJB-103', currency: 'CHF' });
     expect(hydrated[0]!.variants[0]).toMatchObject({ extId: 'FJB-103-15ML', price: 31.9, originalPrice: 31.9, isAvailable: true });
-    // The gift set isn't sold in Switzerland: hydrated as unavailable, in CHF, rather than left at Firework's EUR price.
-    expect(hydrated[1]).toMatchObject({ extId: 'FJB-112', currency: 'CHF' });
+    // The SPF isn't sold in Switzerland: hydrated as unavailable, in CHF, rather than left at Firework's EUR price.
+    expect(hydrated[1]).toMatchObject({ extId: 'FJB-107', currency: 'CHF' });
     expect(hydrated[1]!.variants.every((v) => v.isAvailable === false)).toBe(true);
-    await expect(callHook(page, 'onCartUpdated', cartUpdate('FJB-112-SET', 1))).rejects.toThrow(/isn't sold in Switzerland/);
+    await expect(callHook(page, 'onCartUpdated', cartUpdate('FJB-107-50ML', 1))).rejects.toThrow(/isn't sold in Switzerland/);
 
-    // The shop's pages follow: CHF prices on the cards, and the gift set can't be added in Switzerland.
+    // The shop's pages follow: CHF prices on the cards, and the SPF can't be added in Switzerland.
     await page.goto('/shop/?fw=off');
     await expect(page.locator('.product-card[data-product-id="FJB-101"] .price')).toContainText('CHF');
-    await expect(page.locator('.product-card[data-product-id="FJB-112"] .badge-not-sold')).toHaveText('Not sold in Switzerland');
+    await expect(page.locator('.product-card[data-product-id="FJB-107"] .badge-not-sold')).toHaveText('Not sold in Switzerland');
 
     // Back to Germany: EUR again.
     await page.goto('/lab/shopping/?shopping=&market=de');
