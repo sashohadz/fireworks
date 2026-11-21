@@ -135,7 +135,7 @@ const noRevenue = [
 
 <script>
   import { getCart, onCartChange, setLine } from '../../scripts/cart';
-  import { formatEur } from '../../scripts/products-client';
+  import { formatMoney } from '../../scripts/products-client';
   import { effectiveSettings } from '../../scripts/settings';
   import { clearTrackingLog, getTrackingLog, onTrackingLog, trackingStatus, trackRequest, type TrackingLogEntry } from '../../scripts/tracking';
 
@@ -182,9 +182,9 @@ const noRevenue = [
     return el;
   };
   const summary = (e: TrackingLogEntry): string => {
-    const p = e.payload as { line_items?: { sku: string; quantity: number }[]; order_value?: number } | null;
+    const p = e.payload as { line_items?: { sku: string; quantity: number }[]; order_value?: number; currency?: string } | null;
     if (e.event === 'pageViewed') return 'no customer ID';
-    if (Array.isArray(p?.line_items)) return `${p.line_items.map((l) => `${l.sku} × ${l.quantity}`).join(', ')} · ${formatEur(p.order_value ?? 0)}`;
+    if (Array.isArray(p?.line_items)) return `${p.line_items.map((l) => `${l.sku} × ${l.quantity}`).join(', ')} · ${formatMoney(p.order_value ?? 0, p.currency ?? undefined)}`;
     return 'payload';
   };
 

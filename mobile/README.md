@@ -23,6 +23,12 @@ It uses React Native 0.78 (the version Firework's own sample app runs on) and `r
    - The first build downloads Gradle, the NDK, React Native and the Firework SDK, which takes about 15–25 minutes. Later builds take about a minute.
    - The build covers arm64 phones only (`reactNativeArchitectures` in `android/gradle.properties`). Add `x86_64` there for an Intel emulator.
 
+**Standalone version, for demos.** The development build above loads its code from Metro on your Mac, over the USB cable. If the cable drops, the app shows a red "Unable to load script" screen; `adb reverse tcp:8081 tcp:8081` and Reload fix that. For a workshop or a call, use a build with the code inside, which needs no Mac, no cable and no Metro:
+- `npm run build:apk` builds `android/app/build/outputs/apk/release/app-release.apk` in about 3–5 minutes.
+- `npm run install:apk` installs it on the plugged-in phone. It replaces the development build, because it has the same package name, which the App ID needs. `npm run android` puts the development build back.
+- It's signed with React Native's public debug key: fine for demos, not for a store.
+- Debug logging is off in this build (`__DEV__` is false), but the app's own `[hydration]` and `[cart]` lines still show in `adb logcat`.
+
 **Checks:**
 - `npm run typecheck`.
 - `npm test`: hydration mapping, modes and the API client, in Jest, without the native SDK.
@@ -61,6 +67,14 @@ It uses React Native 0.78 (the version Firework's own sample app runs on) and `r
 5. For IDs the store doesn't know, the app returns nothing, and Firework keeps its own product data.
 
 The **Log** button shows every request and the app's answer.
+
+## Countries
+
+The Data sheet has a **Country** switch: DE (EUR), CH (CHF) and PL (PLN), the same markets as the website (`src/lib/markets.ts` in the repo root, `src/market.ts` here).
+- Hydration asks `/api/{country}/products/{id}.json` and returns that country's price list and currency. Firework's catalog stays in EUR.
+- A product the country doesn't sell (the SPF in CH) is returned as `{ productId, hidden: true }`, so it disappears from the videos. The web SDK can't hide a product; there it shows as unavailable.
+- The cart, the popup and `trackPurchase` use the country's currency. Switching country empties the cart and reloads the feeds.
+- The per-country API base is in `src/config.ts`. `npm run snapshot` saves every country's catalog for Hardcoded mode.
 
 ## How the cart works
 

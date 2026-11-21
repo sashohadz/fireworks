@@ -4,6 +4,7 @@
 // https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2/tracking
 import { firework } from '../site.config';
 import { onCartWrite, type CartChange, type CartLine } from './cart';
+import { currentMarket } from './market';
 import { findUnit } from './products-client';
 import type { EffectiveSettings } from './settings';
 
@@ -19,7 +20,8 @@ export interface DemoOrderLine {
 export interface DemoOrder {
   id: string;
   createdAt: string;
-  currency: 'EUR';
+  /** The market's currency when the order was placed (ISO 4217). */
+  currency: string;
   lines: DemoOrderLine[];
   subtotal: number;
   shipping: number;
@@ -229,7 +231,7 @@ async function bagPayload(orderId: string, deltas: CartDelta[]): Promise<Commerc
     if (found) line_items.push({ sku: d.unitId, quantity: d.quantity, price: found.unit.price, product_name: `${found.product.name} (${found.unit.name})` });
   }
   const value = round2(line_items.reduce((sum, l) => sum + l.price * l.quantity, 0));
-  return { order_id: orderId, currency: 'EUR', subtotal: value, order_value: value, line_items };
+  return { order_id: orderId, currency: currentMarket().currency, subtotal: value, order_value: value, line_items };
 }
 
 /**
@@ -237,8 +239,9 @@ async function bagPayload(orderId: string, deltas: CartDelta[]): Promise<Commerc
  * it. The player's own commerce:click_* events report the tap, not what the store's cart accepted.
  */
 export async function trackCartChange(change: CartChange, settings: EffectiveSettings): Promise<void> {
-  // Checkout empties the bag. Those items were bought, not removed, and the purchase event reports them.
-  if (change.source === 'order') return;
+  // Checkout empties the bag. Those items were bought, not removed, and the purchase event reports them. A switch to
+  // another country's shop empties it too, but the shopper removed nothing.
+  if (change.source === 'order' || change.source === 'market') return;
   const source = change.source;
   const { added, removed } = cartDeltas(change.previous, change.lines);
   for (const [event, deltas] of [['addToCart', added], ['removeFromCart', removed]] as const) {

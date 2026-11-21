@@ -5,7 +5,8 @@
 // https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2
 import { QUANTITY_LIMIT, SLOW_MS, readSwitches, type ShoppingSwitch } from '../lab/shopping';
 import { getCart, setLine } from './cart';
-import { fetchProducts, type ApiProduct, type ApiUnit } from './products-client';
+import { currentMarket, marketAmount, soldHere } from './market';
+import { fetchEuroCatalog, fetchProducts, productsUrl, type ApiProduct, type ApiUnit } from './products-client';
 import type { EffectiveSettings } from './settings';
 
 export interface ShoppingStatus {
@@ -121,21 +122,57 @@ function install(shopping: FwShopping, switches: ShoppingSwitch[]): void {
     }, complete);
   }
 
-  async function hydrate(products: FwProduct[]): Promise<unknown[]> {
+  /**
+   * A product the shopper's country doesn't sell, as the player should show it there: every unit unavailable, in the
+   * market's currency. The web product factory has no way to hide a product (checked in the SDK, 21 Nov 2026), so
+   * without this the player would keep Firework's own EUR price and offer Add to Bag.
+   */
+  function notSoldHere(p: ApiProduct): ApiProduct {
+    const { currency } = currentMarket();
+    const convert = <U extends { price: number; compareAtPrice: number | null }>(x: U): U => ({
+      ...x,
+      price: marketAmount(x.price),
+      compareAtPrice: x.compareAtPrice === null ? null : marketAmount(x.compareAtPrice),
+    });
+    return { ...convert(p), currency, available: false, units: p.units.map((u) => ({ ...convert(u), available: false, stock: 0 })) };
+  }
+
+  /** The products for the player; notSold rides along for the log (the player ignores it). */
+  type Hydrated = unknown[] & { notSold?: string[] };
+
+  async function hydrate(products: FwProduct[]): Promise<Hydrated> {
     const catalog = await store('products');
-    const known = products.map((fw) => catalog.find((p) => p.id === fw.product_ext_id)).filter((p): p is ApiProduct => Boolean(p));
-    return [...new Set(known)].map((p) => toFirework(p, false));
+    const ids = [...new Set(products.map((fw) => fw.product_ext_id).filter((id): id is string => Boolean(id)))];
+    const out: unknown[] = [];
+    const notSold: string[] = [];
+    for (const id of ids) {
+      const here = catalog.find((p) => p.id === id);
+      if (here) {
+        out.push(toFirework(here, false));
+      } else if (!soldHere(id)) {
+        const elsewhere = (await fetchEuroCatalog()).find((p) => p.id === id);
+        if (elsewhere) {
+          out.push(toFirework(notSoldHere(elsewhere), false));
+          notSold.push(id);
+        }
+      }
+    }
+    return Object.assign(out, { notSold });
   }
 
   const describeProducts = (products: FwProduct[]) => {
     const extIds = [...new Set(products.map((p) => p.product_ext_id ?? '(no external ID)'))];
     return `${extIds.length} product${extIds.length === 1 ? '' : 's'}: ${extIds.join(', ')}`;
   };
-  const describeHydrated = (out: unknown[]) => `${out.length} product${out.length === 1 ? '' : 's'} with the store's prices, stock and links`;
+  const describeHydrated = (out: Hydrated) =>
+    `${out.length} product${out.length === 1 ? '' : 's'} from GET ${productsUrl()}: ${currentMarket().currency} prices, stock and links` +
+    (out.notSold?.length ? `. Not sold in ${currentMarket().country}, so shown as unavailable: ${out.notSold.join(', ')}` : '');
 
   if (!has('no-cart')) {
-    shopping.configureCart({ url: new URL('/cart', location.origin).href, currency: 'EUR' });
-    record({ at: Math.round(performance.now()), hook: 'configureCart', input: 'url /cart, currency EUR', output: 'Add to Bag on', ms: 0, error: false });
+    // The shopper's market decides the currency (src/scripts/market.ts); Firework's catalog itself stays in EUR.
+    const { currency, country } = currentMarket();
+    shopping.configureCart({ url: new URL('/cart', location.origin).href, currency });
+    record({ at: Math.round(performance.now()), hook: 'configureCart', input: `url /cart, currency ${currency} (${country})`, output: 'Add to Bag on', ms: 0, error: false });
 
     shopping.onCartUpdated((update) =>
       logged(
@@ -144,6 +181,8 @@ function install(shopping: FwShopping, switches: ShoppingSwitch[]): void {
         async () => {
           const catalog = await store('cart');
           const found = findUnit(catalog, update.productUnit?.unit_ext_id);
+          const productId = update.product?.product_ext_id ?? '';
+          if (!found && productId && !soldHere(productId)) throw new Error(`${update.productUnit?.unit_name ?? 'This product'} isn't sold in ${currentMarket().country}.`);
           if (!found) throw new Error(`${update.productUnit?.unit_name ?? 'This product'} is not in the Fjordbloom catalog, so it can't go in the bag.`);
           const adding = update.quantity > update.previousQuantity;
           if (adding && !found.unit.available) throw new Error(`${unitLabel(found.unit.id, found.product)} is sold out.`);

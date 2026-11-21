@@ -57,7 +57,7 @@ const countries = ['Austria', 'Belgium', 'Denmark', 'Finland', 'France', 'German
 <script>
   import { clearCart, getCart } from '../scripts/cart';
   import { createOrder, priceCart } from '../scripts/order';
-  import { formatEur } from '../scripts/products-client';
+  import { formatMoney } from '../scripts/products-client';
 
   const summary = document.getElementById('co-summary')!;
   const form = document.getElementById('checkout-form') as HTMLFormElement;
@@ -73,10 +73,10 @@ const countries = ['Austria', 'Belgium', 'Denmark', 'Finland', 'France', 'German
     }
     const totals = await priceCart(lines);
     summary.innerHTML = `<table class="table"><tbody>${totals.lines
-      .map((l) => `<tr><td>${l.quantity} × ${esc(l.name)}<div class="small muted">${esc(l.unitName)}</div></td><td>${formatEur(l.price * l.quantity)}</td></tr>`)
+      .map((l) => `<tr><td>${l.quantity} × ${esc(l.name)}<div class="small muted">${esc(l.unitName)}</div></td><td>${formatMoney(l.price * l.quantity)}</td></tr>`)
       .join('')}
-      <tr><td>Shipping</td><td>${totals.shipping === 0 ? 'Free' : formatEur(totals.shipping)}</td></tr>
-      <tr><th>Total</th><th>${formatEur(totals.total)}</th></tr></tbody></table>`;
+      <tr><td>Shipping</td><td>${totals.shipping === 0 ? 'Free' : formatMoney(totals.shipping)}</td></tr>
+      <tr><th>Total</th><th>${formatMoney(totals.total)}</th></tr></tbody></table>`;
   }
 
   form.addEventListener('submit', async (e) => {

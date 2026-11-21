@@ -6,6 +6,7 @@
 import FireworkSDK from 'react-native-firework-sdk';
 import { installCart } from './cart/install';
 import { installHydration } from './shopping/install';
+import { prefetchMarket } from './shopping/api';
 
 export type InitState = { status: 'starting' } | { status: 'ready' } | { status: 'failed'; reason: string };
 
@@ -32,4 +33,6 @@ export function startFirework() {
   sdk.markInitCalled();
   installHydration();
   installCart();
+  // Load the country's price list now, so the first video gets the app's prices without a flash of Firework's.
+  prefetchMarket().catch(() => {});
 }

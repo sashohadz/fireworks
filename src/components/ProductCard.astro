@@ -24,7 +24,7 @@ const compare = product.units.find((u) => u.compareAtPrice)?.compareAtPrice;
 const lowStock = available && product.units.some((u) => u.stock > 0 && u.stock <= 5);
 ---
 
-<a class="product-card" href={productPath(product)} data-category={product.category}>
+<a class="product-card" href={productPath(product)} data-category={product.category} data-product-id={product.id}>
   <div class="product-card-media">
     <img
       src={image}
@@ -47,7 +47,7 @@ const lowStock = available && product.units.some((u) => u.stock > 0 && u.stock <
   <span class="product-card-meta">{product.category}{product.units.length > 1 ? ` · ${product.units.length} options` : ''}</span>
   <span class="price">
     {hasPriceRange(product) ? 'From ' : ''}
-    <span class:list={[sale && 'price-sale']}>{formatPrice(minPrice(product))}</span>
-    {compare && <span class="price-compare">{formatPrice(compare)}</span>}
+    <span class:list={[sale && 'price-sale']} data-eur={minPrice(product)}>{formatPrice(minPrice(product))}</span>
+    {compare && <span class="price-compare" data-eur={compare}>{formatPrice(compare)}</span>}
   </span>
 </a>

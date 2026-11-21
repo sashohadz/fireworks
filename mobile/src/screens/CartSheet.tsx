@@ -5,8 +5,9 @@ import { getCart, getLastAdded, onCart, type CartLine } from '../cart/cart';
 import { cartSummary } from '../cart/rules';
 import { afterSheetClosed, keepWatching, requestCheckout } from '../cart/sheet';
 import { colors } from '../config';
+import { formatMoney } from '../market';
 
-const euro = (n: number) => `€${n.toFixed(2)}`;
+const euro = (n: number) => formatMoney(n);
 
 function Sheet() {
   const insets = useSafeAreaInsets();
