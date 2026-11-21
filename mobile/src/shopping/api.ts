@@ -39,6 +39,8 @@ export interface Lookup {
   found: ApiProduct[];
   /** IDs the store doesn't know: Firework's own product data stays as it is for these. */
   unknown: string[];
+  /** Answered from the country's price list in memory, without a request. */
+  cached?: boolean;
 }
 
 export type GetJson = (url: string) => Promise<{ status: number; body: unknown }>;
@@ -85,6 +87,31 @@ export async function fromLiveApi(ids: string[], market: MarketId = getMarket().
     unknown: answers.filter((a) => !a.product).map((a) => a.id),
   };
 }
+
+/**
+ * The country's whole price list, kept in memory for a few minutes, so hydration answers at once. Until Firework gets
+ * the app's answer, the player shows the price stored in Firework (EUR here), so a slow answer shows as a flash of the
+ * wrong currency. Loaded when the app starts and when the country changes (prefetchMarket).
+ */
+export const CACHE_MS = 5 * 60 * 1000;
+const priceLists = new Map<MarketId, { at: number; byId: Map<string, ApiProduct> }>();
+
+export async function prefetchMarket(market: MarketId = getMarket().id, getJson: GetJson = xhrGetJson): Promise<number> {
+  const res = await getJson(`${store.api}/${market}/products.json`);
+  if (res.status !== 200) { throw new Error(`Product API answered ${res.status} for the ${market} price list`); }
+  const list = (res.body as { products: ApiProduct[] }).products;
+  priceLists.set(market, { at: Date.now(), byId: new Map(list.map((p) => [p.id, p])) });
+  return list.length;
+}
+
+/** From the country's price list in memory, or undefined if it isn't loaded or is too old. Not in the list = not sold. */
+export function fromCache(ids: string[], market: MarketId = getMarket().id, now = Date.now()): Lookup | undefined {
+  const list = priceLists.get(market);
+  if (!list || now - list.at > CACHE_MS) { return undefined; }
+  return { found: ids.flatMap((id) => list.byId.get(id) ?? []), unknown: ids.filter((id) => !list.byId.has(id)), cached: true };
+}
+
+export const clearPriceLists = () => priceLists.clear();
 
 const bundled = (snapshot as unknown as { markets: Record<MarketId, { products: ApiProduct[] }> }).markets;
 

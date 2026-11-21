@@ -30,7 +30,8 @@ export function installHydration() {
       const { products, lookup, via } = await resolveProducts(event.productIds, mode);
       addLog({
         ...base,
-        title: via === modeLabel(mode) ? via : `${modeLabel(mode)} · ${via}`,
+        // via already names the source and country, e.g. "Live API · CH · CHF"; demo modes that change the data come first.
+        title: via.startsWith(modeLabel(mode)) ? via : `${modeLabel(mode)} · ${via}`,
         ms: Date.now() - t0,
         lines: products.map((p) => ({ ok: true, text: p.hidden ? `${p.productId}: hidden (not sold in this country)` : `${p.productId} ${p.name ?? ''}: ${money(p)}` })),
         note: lookup.unknown.length ? `Not in the store’s catalog (Firework’s data kept): ${lookup.unknown.join(', ')}` : undefined,

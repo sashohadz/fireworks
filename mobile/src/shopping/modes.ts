@@ -5,7 +5,7 @@
 export type Mode = 'live' | 'hardcoded' | 'sale' | 'soldout' | 'failing';
 
 export const MODES: { id: Mode; label: string; detail: string }[] = [
-  { id: 'live', label: 'Live API', detail: 'Prices and stock from the store’s mock API, one request per product.' },
+  { id: 'live', label: 'Live API', detail: 'Prices and stock from the store’s mock API. The country’s price list loads at start and on a country change, and is kept 5 minutes, so Firework gets its answer at once.' },
   { id: 'hardcoded', label: 'Hardcoded', detail: 'The same catalog bundled with the app. Works offline.' },
   { id: 'sale', label: '−20% sale', detail: 'Live prices × 0.8, with the real price struck through: proof that the price comes from the app.' },
   { id: 'soldout', label: 'Sold out', detail: 'Every unit unavailable, so the player can’t sell it.' },

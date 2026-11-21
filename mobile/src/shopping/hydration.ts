@@ -3,7 +3,7 @@
  * Settings. Pure functions, so they run in Jest. install.ts connects them to FireworkSDK.
  */
 import type { Product, ProductUnit } from 'react-native-firework-sdk';
-import { fromLiveApi, fromSnapshot, type ApiProduct, type Lookup } from './api';
+import { fromCache, fromLiveApi, fromSnapshot, type ApiProduct, type Lookup } from './api';
 import type { Mode } from './modes';
 import { getMarket, type Market } from '../market';
 
@@ -64,7 +64,8 @@ export interface Deps {
 
 const defaultDeps: Deps = {
   market: getMarket,
-  live: (ids, market) => fromLiveApi(ids, market.id),
+  // The country's price list in memory when it's loaded (fast), otherwise one request per product.
+  live: async (ids, market) => fromCache(ids, market.id) ?? fromLiveApi(ids, market.id),
   snapshot: (ids, market) => fromSnapshot(ids, market.id),
 };
 
@@ -86,7 +87,7 @@ export async function resolveProducts(productIds: string[], mode: Mode, deps: De
   } else {
     try {
       lookup = await deps.live(ids, market);
-      via = 'Live API';
+      via = lookup.cached ? 'Live API, cached' : 'Live API';
     } catch {
       lookup = deps.snapshot(ids, market);
       via = 'Hardcoded (live API unreachable)';

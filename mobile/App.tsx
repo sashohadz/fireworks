@@ -13,6 +13,7 @@ import { StoryblockScreen } from './src/screens/StoryblockScreen';
 import { cartCount, clearCart, getCart, onCart } from './src/cart/cart';
 import { getMarket, setMarket, type MarketId } from './src/market';
 import { addLog } from './src/shopping/log';
+import { prefetchMarket } from './src/shopping/api';
 import { CartScreen } from './src/screens/CartScreen';
 import { getInit, onInit } from './src/sdk';
 import { getLog, onLog } from './src/shopping/log';
@@ -48,6 +49,7 @@ function Shell() {
     const next = getMarket();
     setMarketState(next);
     clearCart();
+    prefetchMarket(next.id).catch(() => {});
     addLog({ at: new Date(), kind: 'cart', title: `Country: ${next.country}`, lines: [{ ok: true, text: `Prices in ${next.currency} from /api/${next.id}/…; cart emptied` }] });
     setReloadKey((k) => k + 1);
     setSheet(null);

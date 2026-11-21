@@ -1,6 +1,6 @@
 import { store } from '../src/config';
 import { MARKETS, type Market } from '../src/market';
-import { fromLiveApi, fromSnapshot, snapshotProducts } from '../src/shopping/api';
+import { CACHE_MS, clearPriceLists, fromCache, fromLiveApi, fromSnapshot, prefetchMarket, snapshotProducts } from '../src/shopping/api';
 import { resolveProducts, toFireworkProduct, type Deps } from '../src/shopping/hydration';
 
 const [DE, CH, PL] = MARKETS as [Market, Market, Market];
@@ -124,5 +124,34 @@ describe('countries', () => {
     expect(snapshotProducts('de')).toHaveLength(12);
     expect(snapshotProducts('ch').some((p) => p.id === 'FJB-107')).toBe(false);
     expect(snapshotProducts('pl')[0]!.currency).toBe('PLN');
+  });
+});
+
+describe('price list in memory', () => {
+  const fakeList = (market: string) => async (url: string) => {
+    expect(url).toBe(`${store.api}/${market}/products.json`);
+    return { status: 200, body: { products: snapshotProducts(market as 'ch') } };
+  };
+
+  test('nothing until the country is loaded; then answers without a request, unsold = unknown', async () => {
+    clearPriceLists();
+    expect(fromCache(['FJB-101'], 'ch')).toBeUndefined();
+    expect(await prefetchMarket('ch', fakeList('ch'))).toBe(11);
+    const hit = fromCache(['FJB-101', 'FJB-107'], 'ch')!;
+    expect(hit.cached).toBe(true);
+    expect(hit.found.map((p) => p.id)).toEqual(['FJB-101']);
+    expect(hit.unknown).toEqual(['FJB-107']);
+    expect(fromCache(['FJB-101'], 'pl')).toBeUndefined();
+  });
+
+  test('older than five minutes: asked again', async () => {
+    clearPriceLists();
+    await prefetchMarket('ch', fakeList('ch'));
+    expect(fromCache(['FJB-101'], 'ch', Date.now() + CACHE_MS + 1)).toBeUndefined();
+  });
+
+  test('hydration names the source: cached or not', async () => {
+    const cached = await resolveProducts(['FJB-101'], 'live', deps(async (ids, m) => ({ ...fromSnapshot(ids, m.id), cached: true }), CH));
+    expect(cached.via).toBe('Live API, cached · CH · CHF');
   });
 });
