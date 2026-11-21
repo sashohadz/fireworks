@@ -6,6 +6,8 @@
     "android": ". ./scripts/android-env.sh && react-native run-android",
     "start": ". ./scripts/android-env.sh && react-native start",
     "devices": ". ./scripts/android-env.sh && adb devices -l",
+    "build:apk": ". ./scripts/android-env.sh && cd android && ./gradlew :app:assembleRelease",
+    "install:apk": ". ./scripts/android-env.sh && adb install -r android/app/build/outputs/apk/release/app-release.apk",
     "snapshot": "node scripts/snapshot.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
