@@ -18,12 +18,12 @@ export const firework = {
 };
 
 /**
- * The store's mock commerce API (src/pages/api in the website). Same product and unit IDs as Firework's catalog. The
- * per-country endpoints (/api/{market}/…) are on PR #16's deploy preview until it's merged; then set this back to
- * https://fjordbloom.netlify.app/api and rebuild the app.
+ * The store's mock commerce API (src/pages/api in the website), per country: /api/{market}/products/{id}.json. Same
+ * product and unit IDs as Firework's catalog. To try API changes before they're merged, point this at a deploy
+ * preview (https://deploy-preview-N--fjordbloom.netlify.app/api) and rebuild the app.
  */
 export const store = {
-  api: 'https://deploy-preview-16--fjordbloom.netlify.app/api',
+  api: 'https://fjordbloom.netlify.app/api',
 };
 
 export const colors = {

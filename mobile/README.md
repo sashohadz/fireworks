@@ -74,7 +74,7 @@ The Data sheet has a **Country** switch: DE (EUR), CH (CHF) and PL (PLN), the sa
 - Hydration asks `/api/{country}/products/{id}.json` and returns that country's price list and currency. Firework's catalog stays in EUR.
 - A product the country doesn't sell (the SPF in CH) is returned as `{ productId, hidden: true }`, so it disappears from the videos. The web SDK can't hide a product; there it shows as unavailable.
 - The cart, the popup and `trackPurchase` use the country's currency. Switching country empties the cart and reloads the feeds.
-- The per-country API base is in `src/config.ts`. `npm run snapshot` saves every country's catalog for Hardcoded mode.
+- The API base is in `src/config.ts` (the live site; a deploy preview to try API changes). `npm run snapshot` saves every country's catalog for Hardcoded mode.
 
 ## How the cart works
 
