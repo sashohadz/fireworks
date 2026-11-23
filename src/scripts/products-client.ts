@@ -1,6 +1,10 @@
-// Client-side access to the mock commerce API (/api/products.json), memoised per page view.
-// The price-drop and sold-out switches from /lab/shopping change the data here, so the player, bag and checkout agree.
+// Client-side access to the mock commerce API in the shopper's market (/api/{market}/products.json), memoised per
+// page view. The price-drop and sold-out switches from /lab/shopping change the data here, so the player, bag and
+// checkout agree.
 import { applyScenario, readSwitches } from '../lab/shopping';
+import { currentMarket } from './market';
+
+export { formatMoney } from './market';
 
 export interface ApiUnit {
   id: string;
@@ -27,19 +31,44 @@ export interface ApiProduct {
   price: number;
   compareAtPrice: number | null;
   currency: string;
+  market?: string;
   units: ApiUnit[];
 }
 
-let cache: Promise<ApiProduct[]> | null = null;
+const cache = new Map<string, Promise<ApiProduct[]>>();
+
+/** The market's API path, for logs: e.g. /api/ch/products.json. */
+export const productsUrl = (): string => `/api/${currentMarket().id}/products.json`;
 
 export function fetchProducts(): Promise<ApiProduct[]> {
-  cache ??= fetch('/api/products.json')
+  const url = productsUrl();
+  let request = cache.get(url);
+  if (!request) {
+    request = fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`Mock API returned ${r.status}`);
+        return r.json() as Promise<{ products: ApiProduct[] }>;
+      })
+      .then((data) => applyScenario(data.products, readSwitches()));
+    cache.set(url, request);
+  }
+  return request;
+}
+
+let euroCatalog: Promise<ApiProduct[]> | null = null;
+
+/**
+ * The EUR catalog (/api/products.json): what Firework's own catalog holds. Hydration uses it for products the
+ * shopper's market doesn't sell, to mark them unavailable there.
+ */
+export function fetchEuroCatalog(): Promise<ApiProduct[]> {
+  euroCatalog ??= fetch('/api/products.json')
     .then((r) => {
       if (!r.ok) throw new Error(`Mock API returned ${r.status}`);
       return r.json() as Promise<{ products: ApiProduct[] }>;
     })
-    .then((data) => applyScenario(data.products, readSwitches()));
-  return cache;
+    .then((data) => data.products);
+  return euroCatalog;
 }
 
 export async function findUnit(unitId: string): Promise<{ product: ApiProduct; unit: ApiUnit } | undefined> {
@@ -50,5 +79,3 @@ export async function findUnit(unitId: string): Promise<{ product: ApiProduct; u
   return undefined;
 }
 
-export const formatEur = (amount: number) =>
-  new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(amount);

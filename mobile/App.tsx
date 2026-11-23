@@ -10,7 +10,10 @@ import { LogSheet, ModeSheet } from './src/components/Sheets';
 import { colors } from './src/config';
 import { FeedScreen } from './src/screens/FeedScreen';
 import { StoryblockScreen } from './src/screens/StoryblockScreen';
-import { cartCount, getCart, onCart } from './src/cart/cart';
+import { cartCount, clearCart, getCart, onCart } from './src/cart/cart';
+import { getMarket, setMarket, type MarketId } from './src/market';
+import { addLog } from './src/shopping/log';
+import { prefetchMarket } from './src/shopping/api';
 import { CartScreen } from './src/screens/CartScreen';
 import { getInit, onInit } from './src/sdk';
 import { getLog, onLog } from './src/shopping/log';
@@ -28,6 +31,7 @@ function Shell() {
   const [tab, setTab] = useState<Tab>(getTab());
   const [inCart, setInCart] = useState(cartCount(getCart()));
   const [mode, setModeState] = useState<Mode>(getMode());
+  const [market, setMarketState] = useState(getMarket());
   const [reloadKey, setReloadKey] = useState(0);
   const [sheet, setSheet] = useState<'mode' | 'log' | null>(null);
   const [logCount, setLogCount] = useState(getLog().length);
@@ -36,6 +40,20 @@ function Shell() {
   useEffect(() => onInit(setInit), []);
   useEffect(() => onTab(setTab), []);
   useEffect(() => onCart((lines) => setInCart(cartCount(lines))), []);
+
+  // Another country: another price list and currency, and its own cart. Reload the Firework components so the
+  // player asks for the products again.
+  const pickMarket = (id: MarketId) => {
+    if (id === market.id) { return setSheet(null); }
+    setMarket(id);
+    const next = getMarket();
+    setMarketState(next);
+    clearCart();
+    prefetchMarket(next.id).catch(() => {});
+    addLog({ at: new Date(), kind: 'cart', title: `Country: ${next.country}`, lines: [{ ok: true, text: `Prices in ${next.currency} from /api/${next.id}/…; cart emptied` }] });
+    setReloadKey((k) => k + 1);
+    setSheet(null);
+  };
 
   const pick = (m: Mode) => {
     setMode(m);
@@ -53,8 +71,10 @@ function Shell() {
           <Text style={s.sub}>Firework mobile SDK workshop</Text>
         </View>
         <View style={s.actions}>
-          <Pressable onPress={() => setSheet('mode')} style={s.chip} accessibilityRole="button" accessibilityLabel={`Product data: ${modeLabel(mode)}`}>
-            <Text style={s.chipText}>Data: {modeLabel(mode)}</Text>
+          <Pressable onPress={() => setSheet('mode')} style={s.chip} accessibilityRole="button" accessibilityLabel={`Country ${market.country}, product data: ${modeLabel(mode)}`}>
+            <Text style={s.chipText}>
+              {market.id.toUpperCase()} · {modeLabel(mode)}
+            </Text>
           </Pressable>
           <Pressable onPress={() => setSheet('log')} style={s.chip} accessibilityRole="button" accessibilityLabel={`Hydration log, ${logCount} entries`}>
             <Text style={s.chipText}>Log {logCount ? `(${logCount})` : ''}</Text>
@@ -79,7 +99,7 @@ function Shell() {
         ))}
       </View>
 
-      <ModeSheet visible={sheet === 'mode'} mode={mode} onPick={pick} onClose={() => setSheet(null)} />
+      <ModeSheet visible={sheet === 'mode'} mode={mode} market={market.id} onPick={pick} onPickMarket={pickMarket} onClose={() => setSheet(null)} />
       <LogSheet visible={sheet === 'log'} onClose={() => setSheet(null)} />
     </View>
   );

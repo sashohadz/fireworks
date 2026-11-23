@@ -10,16 +10,20 @@ import { effectiveSettings } from './settings';
 import { initShopping } from './shopping';
 import { initTracking } from './tracking';
 import { initUi } from './ui';
+import { repriceDocument, syncMarketFromUrl } from './market';
 
 export function boot(): void {
   // A performance run (?perf=) watches this page from the start, then moves to the next one.
   continueRun();
   syncSwitchesFromUrl();
+  // The shopper's country before anything reads prices; then the euro prices written into the page are re-priced.
+  syncMarketFromUrl();
   const settings = effectiveSettings();
   window.__fjb = { ...(window.__fjb ?? {}), settings };
   if (settings.debug || document.body.dataset.eventTap === 'on') installEventTap();
   applyOverrides(settings);
   initUi(settings);
+  repriceDocument();
   initPitchMode();
   // The shopping hooks register as soon as the SDK defines window._fwn.shopping.
   initShopping(settings);

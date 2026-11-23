@@ -1,8 +1,11 @@
 ---
 import FwWidget from '../../components/FwWidget.astro';
+import IntegrationDiagrams from '../../components/IntegrationDiagrams.astro';
 import SnippetPanel from '../../components/SnippetPanel.astro';
 import Lab from '../../layouts/Lab.astro';
+import { reactDifferences, reactSketch } from '../../lab/react';
 import { integrationSnippet, shoppingSwitches } from '../../lab/shopping';
+import { markets } from '../../lib/markets';
 import { elementSnippet } from '../../lib/snippet';
 import { firework, repoUrl } from '../../site.config';
 
@@ -25,6 +28,8 @@ const findings = [
   'While hydration is pending, the player shows the Business Portal price, then switches to the store\'s price when the hook returns.',
   'Check out in the player\'s cart opens the url from configureCart in the same tab.',
   'configureCart\'s addToCartText still works but logs a deprecation warning. The SDK points to shopping_cart_style="bag" on the widget, which the web docs don\'t list yet.',
+  'Checked 21 November 2026: the player shows the currency hydration gives it. Firework\'s catalog here is in EUR, and with the Country set to CH or PL the product cards show CHF 26.90 or PLN 103.99, from productFactory(…).currency() and configureCart({ currency }).',
+  'Checked 21 November 2026 in the SDK code: the web product factory sets name, description, currency, handle, subtitle and position, and per variant price, original price, URL and availability. It has no way to hide a product, so a product a country doesn\'t sell is hydrated as unavailable there. The app SDKs have hidden: true.',
   'Checked 12 November 2026: when analytics.js is on the page too, it fires fw:ready first, before window._fwn.shopping exists. The SDK fires fw:ready again once shopping is ready. The docs say shopping is available in the fw:ready callback, so check for it and keep listening. See /lab/tracking.',
 ];
 
@@ -44,6 +49,25 @@ const shopNowReasons = [
     site runs Firework's Shopping Integration V2 on every page. Use the switches below to reproduce the tickets it causes.
   </p>
   <p id="shop-status" class="note note-info" aria-live="polite">Checking the integration…</p>
+
+  <fieldset class="market-switch" id="shop-market">
+    <legend>Country</legend>
+    <div class="market-options">
+      {
+        markets.map((m) => (
+          <label class="market-option">
+            <input type="radio" name="market" value={m.id} />
+            <span>{m.label}</span>
+          </label>
+        ))
+      }
+    </div>
+    <p class="small muted">
+      Firework's catalog stays in EUR. The country picks the store's price list and currency
+      (<code>/api/&#123;country&#125;/products/&#123;id&#125;.json</code>), and hydration hands them to the player. Each
+      country has its own bag, so switching empties it and reloads the page. Also on any page: <code>?market=ch</code>.
+    </p>
+  </fieldset>
 
   <div class="lab-grid">
     <section aria-labelledby="try-heading">
@@ -106,6 +130,13 @@ const shopNowReasons = [
     </table>
   </div>
 
+  <h2>Who does what</h2>
+  <p>
+    The same three flows, for two audiences: <strong>High level</strong> in plain words, <strong>Detailed</strong> with
+    the hooks, calls, data and failure paths a developer builds against. The switch changes every diagram on the page.
+  </p>
+  <IntegrationDiagrams />
+
   <h2>The code</h2>
   <p>
     A developer adds one script next to the Firework script. Product and variant IDs must be the same external IDs as
@@ -124,6 +155,20 @@ const shopNowReasons = [
     <a href="/api/products.json">mock commerce API</a>, and links in the player follow the site you're on, so a deploy
     preview links to itself.
   </p>
+
+  <h2>In a React app</h2>
+  <p>
+    Firework's web integration doesn't depend on a framework: a script, web components and global hooks. A React or
+    Next.js shop calls the same hooks with the same data and gets the same failure behaviour. What changes is where the
+    code lives.
+  </p>
+  <div class="table-wrap">
+    <table class="table react-table">
+      <thead><tr><th></th><th>Stays the same</th><th>Changes in React</th></tr></thead>
+      <tbody>{reactDifferences.map((r) => <tr><th scope="row">{r.topic}</th><td>{r.same}</td><td>{r.changes}</td></tr>)}</tbody>
+    </table>
+  </div>
+  <SnippetPanel id="shop-react" title="Sketch: the hooks in a React app (not run here)" code={reactSketch} />
 
   <h2>Checked with the live SDK</h2>
   <ul>{findings.map((f) => <li>{f}</li>)}</ul>
@@ -145,16 +190,30 @@ const shopNowReasons = [
 
 <script>
   import { parseSwitches, readSwitches, saveSwitches, switchLabel } from '../../lab/shopping';
+  import { isMarketId } from '../../lib/markets';
+  import { currentMarket, setMarket } from '../../scripts/market';
   import { getCart, onCartChange, setLine } from '../../scripts/cart';
   import { onFwEvent, type FwEventRecord } from '../../scripts/event-tap';
-  import { fetchProducts, formatEur } from '../../scripts/products-client';
+  import { fetchProducts, formatMoney } from '../../scripts/products-client';
   import { effectiveSettings } from '../../scripts/settings';
   import { getShoppingLog, onShoppingLog, shoppingStatus, type ShoppingLogEntry } from '../../scripts/shopping';
 
   const status = shoppingStatus(effectiveSettings());
   const switches = readSwitches();
   const statusEl = document.getElementById('shop-status')!;
-  statusEl.textContent = `${status.on ? 'On' : 'Off'}. ${status.reason}${switches.length ? ` Switches on: ${switches.map(switchLabel).join(', ')}.` : ''}`;
+  const market = currentMarket();
+  statusEl.textContent = `${status.on ? 'On' : 'Off'}. ${status.reason} Country: ${market.country} (${market.currency}).${switches.length ? ` Switches on: ${switches.map(switchLabel).join(', ')}.` : ''}`;
+
+  // Country: another price list and currency, so reload for the player to hydrate again.
+  document.querySelectorAll<HTMLInputElement>('#shop-market input[name="market"]').forEach((input) => {
+    input.checked = input.value === market.id;
+    input.addEventListener('change', () => {
+      if (!isMarketId(input.value) || !setMarket(input.value)) return;
+      const url = new URL(location.href);
+      url.searchParams.delete('market');
+      location.href = url.toString();
+    });
+  });
   statusEl.classList.toggle('note-info', status.on);
 
   // Failure switches
@@ -195,7 +254,7 @@ const shopNowReasons = [
         const name = product ? `${product.name}, ${unit?.name ?? l.unitId}` : l.unitId;
         return `<li>
           <span><strong>${esc(name)}</strong>${fromPlayer.has(l.unitId) ? ' <span class="badge-video">from the video</span>' : ''}<br>
-          <span class="small muted">${esc(l.unitId)} · ${unit ? formatEur(unit.price) : ''}</span></span>
+          <span class="small muted">${esc(l.unitId)} · ${unit ? formatMoney(unit.price) : ''}</span></span>
           <span class="qty" role="group" aria-label="Quantity for ${esc(name)}">
             <button type="button" data-unit="${esc(l.unitId)}" data-product="${esc(l.productId)}" data-qty="${l.quantity - 1}" aria-label="Decrease">−</button>
             <span>${l.quantity}</span>
@@ -299,6 +358,42 @@ const shopNowReasons = [
     background: var(--warning-bg);
     white-space: nowrap;
   }
+  .market-switch {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin: 0 0 20px;
+  }
+  .market-switch legend {
+    font-weight: 700;
+    padding: 0 6px;
+  }
+  .market-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .market-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    cursor: pointer;
+  }
+  .market-option input {
+    width: auto;
+    margin: 0;
+  }
+  .market-option:has(input:checked) {
+    border-color: var(--fjord);
+    box-shadow: 0 0 0 1px var(--fjord);
+  }
+  .market-switch p {
+    margin: 10px 0 0;
+  }
   .switch-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -331,6 +426,10 @@ const shopNowReasons = [
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 12px;
+  }
+  .react-table th[scope='row'] {
+    white-space: nowrap;
+    vertical-align: top;
   }
   .shop-log :global(tr.is-error td) {
     color: var(--danger);

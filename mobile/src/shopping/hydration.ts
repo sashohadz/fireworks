@@ -3,8 +3,9 @@
  * Settings. Pure functions, so they run in Jest. install.ts connects them to FireworkSDK.
  */
 import type { Product, ProductUnit } from 'react-native-firework-sdk';
-import { fromLiveApi, fromSnapshot, type ApiProduct, type Lookup } from './api';
+import { fromCache, fromLiveApi, fromSnapshot, type ApiProduct, type Lookup } from './api';
 import type { Mode } from './modes';
+import { getMarket, type Market } from '../market';
 
 export interface Adjust {
   /** Price multiplier for the demo sale, e.g. 0.8 for −20%. The real price becomes the struck-through one. */
@@ -51,16 +52,21 @@ export interface Resolved {
   lookup: Lookup;
   /** Where the data came from, for the log. */
   via: string;
+  /** Products the shopper's country doesn't sell: returned as hidden, so the videos don't show them. */
+  hidden: string[];
 }
 
 export interface Deps {
-  live: (ids: string[]) => Promise<Lookup>;
-  snapshot: (ids: string[]) => Lookup;
+  market: () => Market;
+  live: (ids: string[], market: Market) => Promise<Lookup>;
+  snapshot: (ids: string[], market: Market) => Lookup;
 }
 
 const defaultDeps: Deps = {
-  live: (ids) => fromLiveApi(ids),
-  snapshot: (ids) => fromSnapshot(ids),
+  market: getMarket,
+  // The country's price list in memory when it's loaded (fast), otherwise one request per product.
+  live: async (ids, market) => fromCache(ids, market.id) ?? fromLiveApi(ids, market.id),
+  snapshot: (ids, market) => fromSnapshot(ids, market.id),
 };
 
 /**
@@ -70,22 +76,26 @@ const defaultDeps: Deps = {
  */
 export async function resolveProducts(productIds: string[], mode: Mode, deps: Deps = defaultDeps): Promise<Resolved> {
   const ids = [...new Set(productIds)];
+  const market = deps.market();
   if (mode === 'failing') { throw new Error('Demo: the product API is down (Failing mode)'); }
   // No timers in here (setTimeout, delays): React Native pauses them while Firework's player is open. See api.ts.
   let lookup: Lookup;
   let via: string;
   if (mode === 'hardcoded') {
-    lookup = deps.snapshot(ids);
+    lookup = deps.snapshot(ids, market);
     via = 'Hardcoded';
   } else {
     try {
-      lookup = await deps.live(ids);
-      via = 'Live API';
+      lookup = await deps.live(ids, market);
+      via = lookup.cached ? 'Live API, cached' : 'Live API';
     } catch {
-      lookup = deps.snapshot(ids);
+      lookup = deps.snapshot(ids, market);
       via = 'Hardcoded (live API unreachable)';
     }
   }
   const adjust: Adjust = mode === 'sale' ? { sale: 0.8 } : mode === 'soldout' ? { soldOut: true } : {};
-  return { products: lookup.found.map((p) => toFireworkProduct(p, adjust)), lookup, via };
+  // Not sold in this country: the app SDK can hide a product (the web one can't), so it disappears from the videos.
+  const hidden = lookup.unknown.filter((id) => market.notSold.includes(id));
+  const products: Product[] = [...lookup.found.map((p) => toFireworkProduct(p, adjust)), ...hidden.map((id) => ({ productId: id, hidden: true }))];
+  return { products, lookup: { ...lookup, unknown: lookup.unknown.filter((id) => !hidden.includes(id)) }, via: `${via} · ${market.label}`, hidden };
 }

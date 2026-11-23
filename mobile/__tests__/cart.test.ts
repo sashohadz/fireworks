@@ -2,9 +2,9 @@ import { addToCart, cartCount, cartSubtotal, clearCart, getCart, getLastAdded, q
 import { addedMessage, cartSummary, decideAdd, purchaseFor } from '../src/cart/rules';
 import type { ApiProduct } from '../src/shopping/api';
 import { toFireworkProduct } from '../src/shopping/hydration';
-import snapshot from '../src/shopping/catalog.snapshot.json';
+import { snapshotProducts } from '../src/shopping/api';
 
-const catalog = (snapshot as { products: ApiProduct[] }).products;
+const catalog: ApiProduct[] = snapshotProducts('de');
 const byId = (id: string) => catalog.find((p) => p.id === id)!;
 
 beforeEach(() => clearCart());
@@ -105,5 +105,12 @@ describe('cartSummary: what the popup shows about the cart', () => {
     const sum = cartSummary([mk(1), mk(2), mk(3), mk(4), mk(5)]);
     expect(sum.shown.map((l) => l.unitId)).toEqual(['U5', 'U4', 'U3']);
     expect(sum.more).toBe(2);
+  });
+});
+
+describe('purchase currency', () => {
+  test('the order goes to Firework in the market currency', () => {
+    const line = { productId: 'FJB-101', unitId: 'FJB-101-150ML', name: 'Cleanser', unitName: '150 ml', price: 26.9, regularPrice: 26.9, stock: 5, image: '', quantity: 2 };
+    expect(purchaseFor('FJB-APP-2', [line], 'CHF')).toMatchObject({ currencyCode: 'CHF', value: 53.8 });
   });
 });

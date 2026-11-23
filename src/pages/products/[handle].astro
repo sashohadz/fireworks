@@ -322,7 +322,8 @@ const jsonLd = [
 
 <script>
   import { addToCart } from '../../scripts/cart';
-  import { formatEur } from '../../scripts/products-client';
+  import { currentMarket, marketAmount, soldHere } from '../../scripts/market';
+  import { formatMoney } from '../../scripts/products-client';
   import { toast } from '../../scripts/ui';
 
   interface UnitData {
@@ -351,11 +352,12 @@ const jsonLd = [
 
   function render(unit: UnitData, updateUrl: boolean) {
     current = unit;
-    $('pdp-price').textContent = formatEur(unit.price);
+    // Build-time prices are EUR; the shopper's market has its own price list (src/scripts/market.ts).
+    $('pdp-price').textContent = formatMoney(marketAmount(unit.price));
     $('pdp-price').classList.toggle('price-sale', unit.compareAtPrice !== null);
     const compare = $('pdp-compare');
     compare.hidden = unit.compareAtPrice === null;
-    compare.textContent = unit.compareAtPrice === null ? '' : formatEur(unit.compareAtPrice);
+    compare.textContent = unit.compareAtPrice === null ? '' : formatMoney(marketAmount(unit.compareAtPrice));
     $('pdp-variant-name').textContent = unit.name;
     $('pdp-unit-id').textContent = unit.id;
     showImage(unit.image, unit.srcset);
@@ -363,8 +365,9 @@ const jsonLd = [
     if (unit.stock === 0) stock.textContent = 'Sold out. This option cannot be added to the bag.';
     else if (unit.stock <= 5) stock.textContent = `Only ${unit.stock} left.`;
     else stock.textContent = 'In stock. Ships in 1 to 2 working days.';
-    addButton.disabled = unit.stock === 0;
-    addButton.textContent = unit.stock === 0 ? 'Sold out' : 'Add to bag';
+    const sold = soldHere(productId);
+    addButton.disabled = unit.stock === 0 || !sold;
+    addButton.textContent = !sold ? `Not sold in ${currentMarket().country}` : unit.stock === 0 ? 'Sold out' : 'Add to bag';
     if (updateUrl) {
       const url = new URL(location.href);
       url.searchParams.set('variant', unit.id);

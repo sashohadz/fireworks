@@ -9,6 +9,7 @@ import FireworkSDK from 'react-native-firework-sdk';
 import { resolveProducts } from '../shopping/hydration';
 import { addLog } from '../shopping/log';
 import { getMode, modeLabel } from '../shopping/modes';
+import { formatMoney, getMarket } from '../market';
 import { openTab } from '../ui';
 import { addToCart, cartCount, getCart, onCart, quantityInCart } from './cart';
 import { addedMessage, decideAdd } from './rules';
@@ -25,7 +26,10 @@ export function installCart() {
     try {
       // The same lookup as hydration, so the cart gets the price and stock the player showed.
       const { products, lookup } = await resolveProducts([event.productId], getMode());
-      const decision = decideAdd(event.unitId, lookup.found[0], products[0], quantityInCart(event.unitId));
+      const notSold = getMarket().notSold.includes(event.productId);
+      const decision = notSold
+        ? ({ ok: false, reason: `Not sold in ${getMarket().country}.` } as const)
+        : decideAdd(event.unitId, lookup.found[0], products[0], quantityInCart(event.unitId));
       if (!decision.ok) {
         addLog({ ...base, ms: Date.now() - t0, lines: [{ ok: false, text: decision.reason }] });
         return { res: 'fail', tips: decision.reason };
@@ -35,7 +39,7 @@ export function installCart() {
       // The "Added to cart" popup over the video, with the cart and Check out. If Firework can't open it, the
       // confirmation falls back to a toast: the bridge shows any tips text, for success as well as failure.
       const popup = await showCartSheet(l.unitId).catch(() => false);
-      addLog({ ...base, ms: Date.now() - t0, lines: [{ ok: true, text: `${l.name} (${l.unitName}) €${l.price.toFixed(2)} · cart: ${cartCount()} item${cartCount() === 1 ? '' : 's'} · ${popup ? 'popup shown' : 'toast (popup failed)'}` }] });
+      addLog({ ...base, ms: Date.now() - t0, lines: [{ ok: true, text: `${l.name} (${l.unitName}) ${formatMoney(l.price)} · cart: ${cartCount()} item${cartCount() === 1 ? '' : 's'} · ${popup ? 'popup shown' : 'toast (popup failed)'}` }] });
       return popup ? { res: 'success' } : { res: 'success', tips: addedMessage(l, cartCount()) };
     } catch (e) {
       const reason = 'The shop can’t be reached right now. Please try again.';
