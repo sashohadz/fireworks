@@ -1,6 +1,7 @@
 // Shared schema for the brand and product catalog.
 // Used by the Astro site at build time and by the content scripts, so a bad edit fails fast.
 import { z } from 'zod';
+import { TEXT_LANGUAGES } from './markets';
 
 const hex = z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'expected a #RRGGBB colour');
 
@@ -92,7 +93,24 @@ export const catalogSchema = z
     });
   });
 
+/** One product's text in one language. Subtitles follow Firework's limit (75 characters). */
+export const productTextSchema = z.object({
+  name: z.string().min(1),
+  subtitle: z.string().min(1).max(75),
+  summary: z.string().min(1),
+});
+
+/** content/catalog/translations.json: every product's text in every language besides English. */
+export const translationsSchema = z.object({
+  _comment: z.string().optional(),
+  products: z.record(
+    z.string().regex(/^FJB-\d{3}$/),
+    z.object(Object.fromEntries(TEXT_LANGUAGES.map((l) => [l, productTextSchema])) as Record<(typeof TEXT_LANGUAGES)[number], typeof productTextSchema>),
+  ),
+});
+
 export type Brand = z.infer<typeof brandSchema>;
 export type Catalog = z.infer<typeof catalogSchema>;
 export type Product = z.infer<typeof productSchema>;
 export type Unit = z.infer<typeof unitSchema>;
+export type ProductText = z.infer<typeof productTextSchema>;

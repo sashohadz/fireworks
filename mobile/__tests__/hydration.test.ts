@@ -1,6 +1,6 @@
 import { store } from '../src/config';
-import { MARKETS, type Market } from '../src/market';
-import { CACHE_MS, clearPriceLists, fromCache, fromLiveApi, fromSnapshot, prefetchMarket, snapshotProducts } from '../src/shopping/api';
+import { MARKETS, catalogKey, getLanguage, marketLanguages, setLanguage, setMarket, type Market } from '../src/market';
+import { CACHE_MS, clearPriceLists, fromCache, fromLiveApi, fromSnapshot, prefetchMarket, snapshotProducts, type ApiProduct } from '../src/shopping/api';
 import { resolveProducts, toFireworkProduct, type Deps } from '../src/shopping/hydration';
 
 const [DE, CH, PL] = MARKETS as [Market, Market, Market];
@@ -57,7 +57,7 @@ describe('resolveProducts', () => {
   test('repeated IDs are looked up once; unknown IDs are left to Firework', async () => {
     const live = jest.fn(async (ids: string[], m: Market) => fromSnapshot(ids, m.id));
     const r = await resolveProducts(['FJB-103', 'FJB-103', 'NOT-OURS'], 'live', deps(live));
-    expect(live).toHaveBeenCalledWith(['FJB-103', 'NOT-OURS'], DE);
+    expect(live).toHaveBeenCalledWith(['FJB-103', 'NOT-OURS'], DE, 'en');
     expect(r.products.map((p) => p.productId)).toEqual(['FJB-103']);
     expect(r.lookup.unknown).toEqual(['NOT-OURS']);
     expect(r.via).toBe('Live API · DE · EUR');
@@ -124,6 +124,65 @@ describe('countries', () => {
     expect(snapshotProducts('de')).toHaveLength(12);
     expect(snapshotProducts('ch').some((p) => p.id === 'FJB-107')).toBe(false);
     expect(snapshotProducts('pl')[0]!.currency).toBe('PLN');
+  });
+});
+
+describe('languages', () => {
+  // What /api/ch/fr/products/FJB-103.json answers: CHF prices, French text.
+  const french = (): ApiProduct => ({
+    ...snapshotProducts('ch').find((p) => p.id === 'FJB-103')!,
+    name: 'Sérum éclat vitamine C Cloudberry',
+    subtitle: 'Sérum éclat · 15 % de vitamine C et plaquebière',
+    summary: 'Notre sérum phare : vitamine C stable et plaquebière arctique.',
+    language: 'fr',
+  });
+
+  test('another language: name, subtitle and description in it, prices still the country\'s', () => {
+    const p = toFireworkProduct(french());
+    expect(p).toMatchObject({ name: 'Sérum éclat vitamine C Cloudberry', subtitle: 'Sérum éclat · 15 % de vitamine C et plaquebière', description: expect.stringContaining('Notre sérum phare'), currency: 'CHF' });
+    // Options and images still stay Firework's (they replaced the swatches in our test).
+    expect(p.units![0]).not.toHaveProperty('options');
+    expect(p.units![0]).not.toHaveProperty('imageUrl');
+  });
+
+  test('English: only the name, as before; Firework keeps its own description', () => {
+    const p = toFireworkProduct(byId('FJB-103'));
+    expect(p.name).toBe('Cloudberry Vitamin C Glow Serum');
+    expect(p).not.toHaveProperty('subtitle');
+    expect(p).not.toHaveProperty('description');
+  });
+
+  test('the language reaches the lookup and the log', async () => {
+    const live = jest.fn(async () => ({ found: [french()], unknown: [] }));
+    const r = await resolveProducts(['FJB-103'], 'live', { ...deps(live, CH), language: () => 'fr' });
+    expect(live).toHaveBeenCalledWith(['FJB-103'], CH, 'fr');
+    expect(r.via).toBe('Live API · CH · CHF · fr');
+    expect(r.products[0]!.name).toBe('Sérum éclat vitamine C Cloudberry');
+  });
+
+  test('a language has its own address and its own price list in memory', async () => {
+    expect(catalogKey('ch', 'fr')).toBe('ch/fr');
+    expect(catalogKey('ch', 'en')).toBe('ch');
+    clearPriceLists();
+    const urls: string[] = [];
+    await prefetchMarket('ch/fr', async (url) => {
+      urls.push(url);
+      return { status: 200, body: { products: [french()] } };
+    });
+    expect(urls).toEqual([`${store.api}/ch/fr/products.json`]);
+    expect(fromCache(['FJB-103'], 'ch/fr')!.found[0]!.name).toBe('Sérum éclat vitamine C Cloudberry');
+    expect(fromCache(['FJB-103'], 'ch')).toBeUndefined();
+  });
+
+  test('a country without the language goes back to English', () => {
+    setMarket('ch');
+    expect(setLanguage('fr')).toBe(true);
+    expect(getLanguage()).toBe('fr');
+    setMarket('pl');
+    expect(getLanguage()).toBe('en');
+    expect(setLanguage('fr')).toBe(false);
+    expect(marketLanguages()).toEqual(['en', 'pl']);
+    setMarket('de');
   });
 });
 

@@ -2,6 +2,7 @@
 // Widgets are rendered by src/components/FwWidget.astro with data-fw-managed. When no channel is
 // configured they render as placeholders and are turned into real elements here if a channel is set.
 import { ava, firework } from '../site.config';
+import { currentLanguage } from './market';
 import { playlistFor, type EffectiveSettings } from './settings';
 import { trackingStatus } from './tracking';
 
@@ -18,6 +19,10 @@ function desiredAttributes(el: HTMLElement, settings: EffectiveSettings): { chan
 function applyToElement(el: HTMLElement, settings: EffectiveSettings): void {
   const { channel, playlist } = desiredAttributes(el, settings);
   if (channel && el.getAttribute('channel') !== channel) el.setAttribute('channel', channel);
+  // The player's own buttons and labels in the shopper's language. Without the attribute the SDK uses <html lang>
+  // (English here), then the browser's language. Not in Firework's docs: lang is in the SDK's widget attribute list.
+  const lang = currentLanguage();
+  if (lang !== 'en') el.setAttribute('lang', lang);
   if (playlist === null) return;
   if (playlist) el.setAttribute('playlist', playlist);
   else el.removeAttribute('playlist');

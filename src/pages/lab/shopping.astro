@@ -5,7 +5,7 @@ import SnippetPanel from '../../components/SnippetPanel.astro';
 import Lab from '../../layouts/Lab.astro';
 import { reactDifferences, reactSketch } from '../../lab/react';
 import { integrationSnippet, shoppingSwitches } from '../../lab/shopping';
-import { markets } from '../../lib/markets';
+import { languageNames, markets, type Language } from '../../lib/markets';
 import { elementSnippet } from '../../lib/snippet';
 import { firework, repoUrl } from '../../site.config';
 
@@ -66,6 +66,27 @@ const shopNowReasons = [
       Firework's catalog stays in EUR. The country picks the store's price list and currency
       (<code>/api/&#123;country&#125;/products/&#123;id&#125;.json</code>), and hydration hands them to the player. Each
       country has its own bag, so switching empties it and reloads the page. Also on any page: <code>?market=ch</code>.
+    </p>
+  </fieldset>
+
+  <fieldset class="market-switch" id="shop-language">
+    <legend>Language</legend>
+    <div class="market-options">
+      {
+        (Object.keys(languageNames) as Language[]).map((lang) => (
+          <label class="market-option" data-lang={lang}>
+            <input type="radio" name="language" value={lang} />
+            <span lang={lang}>{languageNames[lang]}</span>
+          </label>
+        ))
+      }
+    </div>
+    <p class="small muted">
+      Only what the video player shows changes language: the product name, subtitle and description come from
+      <code>/api/&#123;country&#125;/&#123;language&#125;/products/&#123;id&#125;.json</code> through hydration, and the
+      player's own buttons follow the <code>lang</code> attribute on the widget. English is Firework's catalog text. The
+      store's own pages stay English. Each country offers its own languages (Switzerland: German and French). Also on
+      any page: <code>?lang=fr</code>.
     </p>
   </fieldset>
 
@@ -190,8 +211,8 @@ const shopNowReasons = [
 
 <script>
   import { parseSwitches, readSwitches, saveSwitches, switchLabel } from '../../lab/shopping';
-  import { isMarketId } from '../../lib/markets';
-  import { currentMarket, setMarket } from '../../scripts/market';
+  import { isLanguage, isMarketId, languageNames } from '../../lib/markets';
+  import { currentLanguage, currentLanguages, currentMarket, setLanguage, setMarket } from '../../scripts/market';
   import { getCart, onCartChange, setLine } from '../../scripts/cart';
   import { onFwEvent, type FwEventRecord } from '../../scripts/event-tap';
   import { fetchProducts, formatMoney } from '../../scripts/products-client';
@@ -202,7 +223,8 @@ const shopNowReasons = [
   const switches = readSwitches();
   const statusEl = document.getElementById('shop-status')!;
   const market = currentMarket();
-  statusEl.textContent = `${status.on ? 'On' : 'Off'}. ${status.reason} Country: ${market.country} (${market.currency}).${switches.length ? ` Switches on: ${switches.map(switchLabel).join(', ')}.` : ''}`;
+  const language = currentLanguage();
+  statusEl.textContent = `${status.on ? 'On' : 'Off'}. ${status.reason} Country: ${market.country} (${market.currency}). Language in the player: ${languageNames[language]}.${switches.length ? ` Switches on: ${switches.map(switchLabel).join(', ')}.` : ''}`;
 
   // Country: another price list and currency, so reload for the player to hydrate again.
   document.querySelectorAll<HTMLInputElement>('#shop-market input[name="market"]').forEach((input) => {
@@ -215,6 +237,21 @@ const shopNowReasons = [
     });
   });
   statusEl.classList.toggle('note-info', status.on);
+
+  // Language: other product text and player buttons, so reload for the widgets to start again in it. Only the
+  // languages this country offers are shown.
+  const offered = currentLanguages();
+  document.querySelectorAll<HTMLLabelElement>('#shop-language label[data-lang]').forEach((label) => {
+    label.hidden = !offered.includes(label.dataset.lang as (typeof offered)[number]);
+    const input = label.querySelector('input')!;
+    input.checked = input.value === language;
+    input.addEventListener('change', () => {
+      if (!isLanguage(input.value) || !setLanguage(input.value)) return;
+      const url = new URL(location.href);
+      url.searchParams.delete('lang');
+      location.href = url.toString();
+    });
+  });
 
   // Failure switches
   const form = document.getElementById('shop-switches') as HTMLFormElement;

@@ -11,11 +11,11 @@ import { colors } from './src/config';
 import { FeedScreen } from './src/screens/FeedScreen';
 import { StoryblockScreen } from './src/screens/StoryblockScreen';
 import { cartCount, clearCart, getCart, onCart } from './src/cart/cart';
-import { getMarket, setMarket, type MarketId } from './src/market';
+import { catalogKey, getLanguage, getMarket, languageNames, setLanguage, setMarket, type Language, type MarketId } from './src/market';
 import { addLog } from './src/shopping/log';
 import { prefetchMarket } from './src/shopping/api';
 import { CartScreen } from './src/screens/CartScreen';
-import { getInit, onInit } from './src/sdk';
+import { applyPlayerLanguage, getInit, onInit } from './src/sdk';
 import { getLog, onLog } from './src/shopping/log';
 import { getMode, modeLabel, setMode, type Mode } from './src/shopping/modes';
 import { getTab, onTab, openTab, type Tab } from './src/ui';
@@ -32,6 +32,7 @@ function Shell() {
   const [inCart, setInCart] = useState(cartCount(getCart()));
   const [mode, setModeState] = useState<Mode>(getMode());
   const [market, setMarketState] = useState(getMarket());
+  const [language, setLanguageState] = useState<Language>(getLanguage());
   const [reloadKey, setReloadKey] = useState(0);
   const [sheet, setSheet] = useState<'mode' | 'log' | null>(null);
   const [logCount, setLogCount] = useState(getLog().length);
@@ -40,19 +41,40 @@ function Shell() {
   useEffect(() => onInit(setInit), []);
   useEffect(() => onTab(setTab), []);
   useEffect(() => onCart((lines) => setInCart(cartCount(lines))), []);
+  // The player's language is kept by the SDK across restarts; the product text's isn't. Line them up at start (a no-op
+  // unless the last session ended in another language).
+  useEffect(() => {
+    applyPlayerLanguage(getLanguage());
+  }, []);
 
   // Another country: another price list and currency, and its own cart. Reload the Firework components so the
   // player asks for the products again.
   const pickMarket = (id: MarketId) => {
     if (id === market.id) { return setSheet(null); }
+    const before = getLanguage();
     setMarket(id);
     const next = getMarket();
     setMarketState(next);
+    setLanguageState(getLanguage());
     clearCart();
-    prefetchMarket(next.id).catch(() => {});
-    addLog({ at: new Date(), kind: 'cart', title: `Country: ${next.country}`, lines: [{ ok: true, text: `Prices in ${next.currency} from /api/${next.id}/…; cart emptied` }] });
+    prefetchMarket(catalogKey()).catch(() => {});
+    addLog({ at: new Date(), kind: 'cart', title: `Country: ${next.country}`, lines: [{ ok: true, text: `Prices in ${next.currency} from /api/${catalogKey()}/…; cart emptied` }] });
     setReloadKey((k) => k + 1);
     setSheet(null);
+    // The country doesn't offer the language that was picked: back to English in the player too.
+    if (getLanguage() !== before) { applyPlayerLanguage(getLanguage()); }
+  };
+
+  // Another language: the product text comes from /api/{market}/{lang}/… and Firework's buttons follow. Prices and the
+  // cart stay (same country). changeAppLanguage goes last, as Firework's docs say: on Android it recreates the screen.
+  const pickLanguage = (lang: Language) => {
+    if (!setLanguage(lang)) { return setSheet(null); }
+    setLanguageState(lang);
+    prefetchMarket(catalogKey()).catch(() => {});
+    addLog({ at: new Date(), kind: 'cart', title: `Language: ${languageNames[lang]}`, lines: [{ ok: true, text: lang === 'en' ? `Product text: Firework's catalog (English), prices from /api/${market.id}/…` : `Name, subtitle and description from /api/${catalogKey()}/…; player buttons in ${languageNames[lang]}` }] });
+    setReloadKey((k) => k + 1);
+    setSheet(null);
+    applyPlayerLanguage(lang);
   };
 
   const pick = (m: Mode) => {
@@ -71,9 +93,9 @@ function Shell() {
           <Text style={s.sub}>Firework mobile SDK workshop</Text>
         </View>
         <View style={s.actions}>
-          <Pressable onPress={() => setSheet('mode')} style={s.chip} accessibilityRole="button" accessibilityLabel={`Country ${market.country}, product data: ${modeLabel(mode)}`}>
+          <Pressable onPress={() => setSheet('mode')} style={s.chip} accessibilityRole="button" accessibilityLabel={`Country ${market.country}, language ${languageNames[language]}, product data: ${modeLabel(mode)}`}>
             <Text style={s.chipText}>
-              {market.id.toUpperCase()} · {modeLabel(mode)}
+              {market.id.toUpperCase()}{language === 'en' ? '' : `-${language}`} · {modeLabel(mode)}
             </Text>
           </Pressable>
           <Pressable onPress={() => setSheet('log')} style={s.chip} accessibilityRole="button" accessibilityLabel={`Hydration log, ${logCount} entries`}>
@@ -99,7 +121,7 @@ function Shell() {
         ))}
       </View>
 
-      <ModeSheet visible={sheet === 'mode'} mode={mode} market={market.id} onPick={pick} onPickMarket={pickMarket} onClose={() => setSheet(null)} />
+      <ModeSheet visible={sheet === 'mode'} mode={mode} market={market.id} language={language} onPick={pick} onPickMarket={pickMarket} onPickLanguage={pickLanguage} onClose={() => setSheet(null)} />
       <LogSheet visible={sheet === 'log'} onClose={() => setSheet(null)} />
     </View>
   );

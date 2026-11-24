@@ -4,14 +4,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 import rawBrand from '../../content/brand.json' with { type: 'json' };
 import rawCatalog from '../../content/catalog/products.json' with { type: 'json' };
-import { brandSchema, catalogSchema, type Product, type Unit } from './catalog-schema';
-import { DEFAULT_MARKET, getMarket, marketPrice, type Market } from './markets';
+import rawTranslations from '../../content/catalog/translations.json' with { type: 'json' };
+import { brandSchema, catalogSchema, translationsSchema, type Product, type ProductText, type Unit } from './catalog-schema';
+import { DEFAULT_MARKET, getMarket, marketPrice, type Language, type Market } from './markets';
 
 export type { Product, Unit };
 
 export const brand = brandSchema.parse(rawBrand);
 export const catalog = catalogSchema.parse(rawCatalog);
 export const products: Product[] = catalog.products;
+export const translations = translationsSchema.parse(rawTranslations);
+
+// Every product needs its text in every language, and nothing else may be translated: fail the build otherwise.
+for (const p of products) if (!translations.products[p.id]) throw new Error(`translations.json: ${p.id} is missing`);
+for (const id of Object.keys(translations.products)) if (!products.some((p) => p.id === id)) throw new Error(`translations.json: unknown product ${id}`);
+
+/** A product's text in a language: the translation, or the catalog's English (with no subtitle: the catalog has none). */
+export function productText(p: Product, lang: Language = 'en'): ProductText | { name: string; subtitle: null; summary: string } {
+  return lang === 'en' ? { name: p.name, subtitle: null, summary: p.summary } : translations.products[p.id]![lang];
+}
 
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
 export const PLACEHOLDER_IMAGE = '/images/placeholder.jpg';
@@ -92,17 +103,21 @@ export function unitImage(p: Product, u: Unit): string {
 
 /**
  * Shape served by the mock commerce API: /api/products.json and /api/products/{id}.json in EUR, and
- * /api/{market}/products.json and /api/{market}/products/{id}.json in that market's currency and price list.
+ * /api/{market}/products.json and /api/{market}/products/{id}.json in that market's currency and price list, in
+ * English. /api/{market}/{lang}/… adds the text in that language (name, subtitle, summary); prices stay the market's.
  */
-export function toApiProduct(p: Product, site: string | URL | undefined, market: Market = getMarket(DEFAULT_MARKET)) {
+export function toApiProduct(p: Product, site: string | URL | undefined, market: Market = getMarket(DEFAULT_MARKET), lang: Language = 'en') {
   const unit = defaultUnit(p);
+  const text = productText(p, lang);
   const price = (eur: number) => marketPrice(eur, market);
   const compare = (eur: number | undefined) => (eur === undefined ? null : price(eur));
   return {
     id: p.id,
     handle: p.handle,
-    name: p.name,
-    summary: p.summary,
+    name: text.name,
+    subtitle: text.subtitle,
+    summary: text.summary,
+    language: lang,
     category: p.category,
     url: absoluteUrl(productPath(p), site),
     image: absoluteUrl(productImages(p)[0]!, site),
