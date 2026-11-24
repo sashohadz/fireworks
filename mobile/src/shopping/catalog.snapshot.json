@@ -1,15 +1,18 @@
 {
-  "source": "https://fjordbloom.netlify.app/api",
-  "savedAt": "2026-11-23",
+  "source": "https://deploy-preview-18--fjordbloom.netlify.app/api",
+  "savedAt": "2026-11-24",
   "markets": {
     "de": {
       "currency": "EUR",
+      "language": "en",
       "products": [
         {
           "id": "FJB-101",
           "handle": "cloud-milk-cleanser",
           "name": "Cloud Milk Cleanser",
+          "subtitle": null,
           "summary": "A cushiony milk cleanser that lifts sunscreen and city grime without the tight feeling.",
+          "language": "en",
           "category": "Cleansers",
           "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser",
           "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/packshot.jpg",
@@ -55,7 +58,9 @@
           "id": "FJB-102",
           "handle": "glacier-water-toner",
           "name": "Glacier Water Essence Toner",
+          "subtitle": null,
           "summary": "A watery essence that floods skin with hydration and preps it for serum.",
+          "language": "en",
           "category": "Toners",
           "url": "https://fjordbloom.netlify.app/products/glacier-water-toner",
           "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg",
@@ -86,7 +91,9 @@
           "id": "FJB-103",
           "handle": "cloudberry-vitamin-c-serum",
           "name": "Cloudberry Vitamin C Glow Serum",
+          "subtitle": null,
           "summary": "Our hero serum: stable vitamin C and Arctic cloudberry for a brighter, more even look.",
+          "language": "en",
           "category": "Serums",
           "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum",
           "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/packshot.jpg",
@@ -132,7 +139,9 @@
           "id": "FJB-104",
           "handle": "birch-sap-hydra-serum",
           "name": "Birch Sap Hydra Serum",
+          "subtitle": null,
           "summary": "A bouncy hydrating serum made with 70% Finnish birch sap.",
+          "language": "en",
           "category": "Serums",
           "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum",
           "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg",
@@ -163,7 +172,9 @@
           "id": "FJB-105",
           "handle": "midnight-sea-buckthorn-night-cream",
           "name": "Midnight Sea Buckthorn Night Cream",
+          "subtitle": null,
           "summary": "A rich, cocooning night cream with sea buckthorn and bakuchiol.",
+          "language": "en",
           "category": "Moisturisers",
           "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream",
           "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg",
@@ -194,7 +205,9 @@
           "id": "FJB-106",
           "handle": "arctic-barrier-day-cream",
           "name": "Arctic Barrier Day Cream",
+          "subtitle": null,
           "summary": "A light daily cream that defends against cold, wind and dry indoor air. Now 20% off.",
+          "language": "en",
           "category": "Moisturisers",
           "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream",
           "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg",
@@ -225,7 +238,9 @@
           "id": "FJB-107",
           "handle": "daylight-mineral-spf-50",
           "name": "Daylight Mineral Fluid SPF 50",
+          "subtitle": null,
           "summary": "A weightless mineral sunscreen fluid with a sheer tint and no white cast.",
+          "language": "en",
           "category": "Sun care",
           "url": "https://fjordbloom.netlify.app/products/daylight-mineral-spf-50",
           "image": "https://fjordbloom.netlify.app/images/products/daylight-mineral-spf-50/packshot.jpg",
@@ -256,7 +271,9 @@
           "id": "FJB-108",
           "handle": "sea-kelp-clay-mask",
           "name": "Sea Kelp Clay Mask",
+          "subtitle": null,
           "summary": "A 10-minute mask with Nordic sea kelp and white clay for clearer-looking pores.",
+          "language": "en",
           "category": "Masks",
           "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask",
           "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg",
@@ -287,7 +304,9 @@
           "id": "FJB-109",
           "handle": "lingonberry-tinted-lip-balm",
           "name": "Lingonberry Tinted Lip Balm",
+          "subtitle": null,
           "summary": "A nourishing balm with a sheer wash of Nordic berry colour, in six shades.",
+          "language": "en",
           "category": "Lips",
           "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm",
           "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/packshot.jpg",
@@ -393,7 +412,9 @@
           "id": "FJB-110",
           "handle": "sauna-ritual-body-oil",
           "name": "Sauna Ritual Body Oil",
+          "subtitle": null,
           "summary": "A dry-touch body oil inspired by the Nordic sauna ritual, with birch and juniper.",
+          "language": "en",
           "category": "Body",
           "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil",
           "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg",
@@ -424,7 +445,9 @@
           "id": "FJB-111",
           "handle": "rose-quartz-gua-sha",
           "name": "Rose Quartz Gua Sha Stone",
+          "subtitle": null,
           "summary": "A hand-polished rose quartz gua sha for a de-puffing facial massage. Currently sold out.",
+          "language": "en",
           "category": "Tools",
           "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha",
           "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg",
@@ -455,7 +478,516 @@
           "id": "FJB-112",
           "handle": "complete-nordic-ritual-discovery-set",
           "name": "The Complete Nordic Ritual Discovery Set with Travel Pouch (Cleanser, Toner, Serum and Night Cream Minis)",
+          "subtitle": null,
           "summary": "Four bestselling minis in a recycled linen pouch: cleanser, toner, vitamin C serum and night cream.",
+          "language": "en",
+          "category": "Sets",
+          "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set",
+          "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg",
+          "available": true,
+          "price": 59,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-112-SET",
+              "name": "Discovery set",
+              "option": {
+                "name": "Format",
+                "value": "Set of 4 minis"
+              },
+              "price": 59,
+              "compareAtPrice": null,
+              "stock": 18,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set?variant=FJB-112-SET",
+              "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    "de/de": {
+      "currency": "EUR",
+      "language": "de",
+      "products": [
+        {
+          "id": "FJB-101",
+          "handle": "cloud-milk-cleanser",
+          "name": "Cloud Milk Reinigungsmilch",
+          "subtitle": "Sanfte Reinigungsmilch · Hafermilch & Birkenwasser",
+          "summary": "Eine weiche Reinigungsmilch, die Sonnenschutz und Stadtschmutz löst, ohne dass die Haut spannt.",
+          "language": "de",
+          "category": "Cleansers",
+          "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser",
+          "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/packshot.jpg",
+          "available": true,
+          "price": 24,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-101-150ML",
+              "name": "150 ml",
+              "option": {
+                "name": "Size",
+                "value": "150 ml"
+              },
+              "price": 24,
+              "compareAtPrice": null,
+              "stock": 64,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser?variant=FJB-101-150ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/unit-FJB-101-150ML.jpg"
+            },
+            {
+              "id": "FJB-101-300ML",
+              "name": "300 ml",
+              "option": {
+                "name": "Size",
+                "value": "300 ml"
+              },
+              "price": 39,
+              "compareAtPrice": null,
+              "stock": 31,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser?variant=FJB-101-300ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/unit-FJB-101-300ML.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-102",
+          "handle": "glacier-water-toner",
+          "name": "Glacier Water Essenz-Toner",
+          "subtitle": "Feuchtigkeitsessenz · Gletscherwasser & Hyaluron",
+          "summary": "Eine wässrige Essenz, die die Haut mit Feuchtigkeit flutet und auf das Serum vorbereitet.",
+          "language": "de",
+          "category": "Toners",
+          "url": "https://fjordbloom.netlify.app/products/glacier-water-toner",
+          "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg",
+          "available": true,
+          "price": 28,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-102-200ML",
+              "name": "200 ml",
+              "option": {
+                "name": "Size",
+                "value": "200 ml"
+              },
+              "price": 28,
+              "compareAtPrice": null,
+              "stock": 48,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/glacier-water-toner?variant=FJB-102-200ML",
+              "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-103",
+          "handle": "cloudberry-vitamin-c-serum",
+          "name": "Cloudberry Glow Vitamin-C-Serum",
+          "subtitle": "Strahlkraft-Serum · 15 % Vitamin C & Moltebeere",
+          "summary": "Unser Bestseller: stabiles Vitamin C und arktische Moltebeere für einen strahlenderen, ebenmäßigeren Teint.",
+          "language": "de",
+          "category": "Serums",
+          "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum",
+          "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/packshot.jpg",
+          "available": true,
+          "price": 48,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-103-15ML",
+              "name": "15 ml",
+              "option": {
+                "name": "Size",
+                "value": "15 ml"
+              },
+              "price": 29,
+              "compareAtPrice": null,
+              "stock": 25,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum?variant=FJB-103-15ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/unit-FJB-103-15ML.jpg"
+            },
+            {
+              "id": "FJB-103-30ML",
+              "name": "30 ml",
+              "option": {
+                "name": "Size",
+                "value": "30 ml"
+              },
+              "price": 48,
+              "compareAtPrice": null,
+              "stock": 40,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum?variant=FJB-103-30ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/unit-FJB-103-30ML.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-104",
+          "handle": "birch-sap-hydra-serum",
+          "name": "Birch Sap Hydra Feuchtigkeitsserum",
+          "subtitle": "Feuchtigkeitsserum · 70 % finnischer Birkensaft",
+          "summary": "Ein federleichtes Feuchtigkeitsserum mit 70 % finnischem Birkensaft.",
+          "language": "de",
+          "category": "Serums",
+          "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum",
+          "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg",
+          "available": true,
+          "price": 42,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-104-30ML",
+              "name": "30 ml",
+              "option": {
+                "name": "Size",
+                "value": "30 ml"
+              },
+              "price": 42,
+              "compareAtPrice": null,
+              "stock": 37,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum?variant=FJB-104-30ML",
+              "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-105",
+          "handle": "midnight-sea-buckthorn-night-cream",
+          "name": "Midnight Sanddorn-Nachtcreme",
+          "subtitle": "Reichhaltige Nachtcreme · Sanddorn & Bakuchiol",
+          "summary": "Eine reichhaltige, umhüllende Nachtcreme mit Sanddorn und Bakuchiol.",
+          "language": "de",
+          "category": "Moisturisers",
+          "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream",
+          "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg",
+          "available": true,
+          "price": 52,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-105-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 52,
+              "compareAtPrice": null,
+              "stock": 22,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream?variant=FJB-105-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-106",
+          "handle": "arctic-barrier-day-cream",
+          "name": "Arctic Barrier Tagescreme",
+          "subtitle": "Leichte Tagescreme · schützt vor Kälte und Wind",
+          "summary": "Eine leichte Tagescreme, die vor Kälte, Wind und trockener Heizungsluft schützt. Jetzt 20 % reduziert.",
+          "language": "de",
+          "category": "Moisturisers",
+          "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream",
+          "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg",
+          "available": true,
+          "price": 35.2,
+          "compareAtPrice": 44,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-106-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 35.2,
+              "compareAtPrice": 44,
+              "stock": 53,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream?variant=FJB-106-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-107",
+          "handle": "daylight-mineral-spf-50",
+          "name": "Daylight Mineral-Sonnenfluid LSF 50",
+          "subtitle": "Mineralischer Sonnenschutz · zart getönt",
+          "summary": "Ein federleichtes mineralisches Sonnenschutzfluid mit zarter Tönung und ohne Weißeleffekt.",
+          "language": "de",
+          "category": "Sun care",
+          "url": "https://fjordbloom.netlify.app/products/daylight-mineral-spf-50",
+          "image": "https://fjordbloom.netlify.app/images/products/daylight-mineral-spf-50/packshot.jpg",
+          "available": true,
+          "price": 32,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-107-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 32,
+              "compareAtPrice": null,
+              "stock": 70,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/daylight-mineral-spf-50?variant=FJB-107-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/daylight-mineral-spf-50/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-108",
+          "handle": "sea-kelp-clay-mask",
+          "name": "Sea Kelp Tonerde-Maske",
+          "subtitle": "10-Minuten-Maske · Seetang & weiße Tonerde",
+          "summary": "Eine 10-Minuten-Maske mit nordischem Seetang und weißer Tonerde für sichtbar klarere Poren.",
+          "language": "de",
+          "category": "Masks",
+          "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask",
+          "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg",
+          "available": true,
+          "price": 30,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-108-75ML",
+              "name": "75 ml",
+              "option": {
+                "name": "Size",
+                "value": "75 ml"
+              },
+              "price": 30,
+              "compareAtPrice": null,
+              "stock": 33,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask?variant=FJB-108-75ML",
+              "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-109",
+          "handle": "lingonberry-tinted-lip-balm",
+          "name": "Lingonberry getönter Lippenbalsam",
+          "subtitle": "Getönter Lippenbalsam · 6 Farbtöne",
+          "summary": "Ein pflegender Balsam mit einem zarten Hauch nordischer Beerenfarbe, in sechs Farbtönen.",
+          "language": "de",
+          "category": "Lips",
+          "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm",
+          "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/packshot.jpg",
+          "available": true,
+          "price": 16,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-109-CLEAR",
+              "name": "Clear",
+              "option": {
+                "name": "Shade",
+                "value": "Clear"
+              },
+              "price": 16,
+              "compareAtPrice": null,
+              "stock": 40,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-CLEAR",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-CLEAR.jpg"
+            },
+            {
+              "id": "FJB-109-ROSEHIP",
+              "name": "Rosehip",
+              "option": {
+                "name": "Shade",
+                "value": "Rosehip"
+              },
+              "price": 16,
+              "compareAtPrice": null,
+              "stock": 25,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-ROSEHIP",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-ROSEHIP.jpg"
+            },
+            {
+              "id": "FJB-109-LINGONBERRY",
+              "name": "Lingonberry",
+              "option": {
+                "name": "Shade",
+                "value": "Lingonberry"
+              },
+              "price": 16,
+              "compareAtPrice": null,
+              "stock": 30,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-LINGONBERRY",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-LINGONBERRY.jpg"
+            },
+            {
+              "id": "FJB-109-CLOUDBERRY",
+              "name": "Cloudberry",
+              "option": {
+                "name": "Shade",
+                "value": "Cloudberry"
+              },
+              "price": 16,
+              "compareAtPrice": null,
+              "stock": 12,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-CLOUDBERRY",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-CLOUDBERRY.jpg"
+            },
+            {
+              "id": "FJB-109-HEATHER",
+              "name": "Heather",
+              "option": {
+                "name": "Shade",
+                "value": "Heather"
+              },
+              "price": 16,
+              "compareAtPrice": null,
+              "stock": 3,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-HEATHER",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-HEATHER.jpg"
+            },
+            {
+              "id": "FJB-109-PLUM",
+              "name": "Midnight Plum",
+              "option": {
+                "name": "Shade",
+                "value": "Midnight Plum"
+              },
+              "price": 16,
+              "compareAtPrice": null,
+              "stock": 0,
+              "available": false,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-PLUM",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-PLUM.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-110",
+          "handle": "sauna-ritual-body-oil",
+          "name": "Sauna Ritual Körperöl",
+          "subtitle": "Trockenöl für den Körper · Birke & Wacholder",
+          "summary": "Ein schnell einziehendes Körperöl nach dem nordischen Saunaritual, mit Birke und Wacholder.",
+          "language": "de",
+          "category": "Body",
+          "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil",
+          "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg",
+          "available": true,
+          "price": 38,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-110-100ML",
+              "name": "100 ml",
+              "option": {
+                "name": "Size",
+                "value": "100 ml"
+              },
+              "price": 38,
+              "compareAtPrice": null,
+              "stock": 28,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil?variant=FJB-110-100ML",
+              "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-111",
+          "handle": "rose-quartz-gua-sha",
+          "name": "Rosenquarz Gua-Sha-Stein",
+          "subtitle": "Gesichtsmassage · handpolierter Rosenquarz",
+          "summary": "Ein handpolierter Gua Sha aus Rosenquarz für eine abschwellende Gesichtsmassage. Derzeit ausverkauft.",
+          "language": "de",
+          "category": "Tools",
+          "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha",
+          "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg",
+          "available": false,
+          "price": 26,
+          "compareAtPrice": null,
+          "currency": "EUR",
+          "market": "de",
+          "units": [
+            {
+              "id": "FJB-111-STONE",
+              "name": "Rose quartz",
+              "option": {
+                "name": "Material",
+                "value": "Rose quartz"
+              },
+              "price": 26,
+              "compareAtPrice": null,
+              "stock": 0,
+              "available": false,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha?variant=FJB-111-STONE",
+              "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-112",
+          "handle": "complete-nordic-ritual-discovery-set",
+          "name": "Nordic Ritual Entdeckungsset mit Reisetasche (Reinigung, Toner, Serum und Nachtcreme als Minis)",
+          "subtitle": "4 Bestseller-Minis im Leinenbeutel",
+          "summary": "Vier Bestseller-Minis in einem Beutel aus recyceltem Leinen: Reinigungsmilch, Toner, Vitamin-C-Serum und Nachtcreme.",
+          "language": "de",
           "category": "Sets",
           "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set",
           "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg",
@@ -486,12 +1018,15 @@
     },
     "ch": {
       "currency": "CHF",
+      "language": "en",
       "products": [
         {
           "id": "FJB-101",
           "handle": "cloud-milk-cleanser",
           "name": "Cloud Milk Cleanser",
+          "subtitle": null,
           "summary": "A cushiony milk cleanser that lifts sunscreen and city grime without the tight feeling.",
+          "language": "en",
           "category": "Cleansers",
           "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser",
           "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/packshot.jpg",
@@ -537,7 +1072,9 @@
           "id": "FJB-102",
           "handle": "glacier-water-toner",
           "name": "Glacier Water Essence Toner",
+          "subtitle": null,
           "summary": "A watery essence that floods skin with hydration and preps it for serum.",
+          "language": "en",
           "category": "Toners",
           "url": "https://fjordbloom.netlify.app/products/glacier-water-toner",
           "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg",
@@ -568,7 +1105,9 @@
           "id": "FJB-103",
           "handle": "cloudberry-vitamin-c-serum",
           "name": "Cloudberry Vitamin C Glow Serum",
+          "subtitle": null,
           "summary": "Our hero serum: stable vitamin C and Arctic cloudberry for a brighter, more even look.",
+          "language": "en",
           "category": "Serums",
           "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum",
           "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/packshot.jpg",
@@ -614,7 +1153,9 @@
           "id": "FJB-104",
           "handle": "birch-sap-hydra-serum",
           "name": "Birch Sap Hydra Serum",
+          "subtitle": null,
           "summary": "A bouncy hydrating serum made with 70% Finnish birch sap.",
+          "language": "en",
           "category": "Serums",
           "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum",
           "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg",
@@ -645,7 +1186,9 @@
           "id": "FJB-105",
           "handle": "midnight-sea-buckthorn-night-cream",
           "name": "Midnight Sea Buckthorn Night Cream",
+          "subtitle": null,
           "summary": "A rich, cocooning night cream with sea buckthorn and bakuchiol.",
+          "language": "en",
           "category": "Moisturisers",
           "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream",
           "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg",
@@ -676,7 +1219,9 @@
           "id": "FJB-106",
           "handle": "arctic-barrier-day-cream",
           "name": "Arctic Barrier Day Cream",
+          "subtitle": null,
           "summary": "A light daily cream that defends against cold, wind and dry indoor air. Now 20% off.",
+          "language": "en",
           "category": "Moisturisers",
           "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream",
           "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg",
@@ -707,7 +1252,9 @@
           "id": "FJB-108",
           "handle": "sea-kelp-clay-mask",
           "name": "Sea Kelp Clay Mask",
+          "subtitle": null,
           "summary": "A 10-minute mask with Nordic sea kelp and white clay for clearer-looking pores.",
+          "language": "en",
           "category": "Masks",
           "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask",
           "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg",
@@ -738,7 +1285,9 @@
           "id": "FJB-109",
           "handle": "lingonberry-tinted-lip-balm",
           "name": "Lingonberry Tinted Lip Balm",
+          "subtitle": null,
           "summary": "A nourishing balm with a sheer wash of Nordic berry colour, in six shades.",
+          "language": "en",
           "category": "Lips",
           "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm",
           "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/packshot.jpg",
@@ -844,7 +1393,9 @@
           "id": "FJB-110",
           "handle": "sauna-ritual-body-oil",
           "name": "Sauna Ritual Body Oil",
+          "subtitle": null,
           "summary": "A dry-touch body oil inspired by the Nordic sauna ritual, with birch and juniper.",
+          "language": "en",
           "category": "Body",
           "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil",
           "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg",
@@ -875,7 +1426,9 @@
           "id": "FJB-111",
           "handle": "rose-quartz-gua-sha",
           "name": "Rose Quartz Gua Sha Stone",
+          "subtitle": null,
           "summary": "A hand-polished rose quartz gua sha for a de-puffing facial massage. Currently sold out.",
+          "language": "en",
           "category": "Tools",
           "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha",
           "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg",
@@ -906,7 +1459,957 @@
           "id": "FJB-112",
           "handle": "complete-nordic-ritual-discovery-set",
           "name": "The Complete Nordic Ritual Discovery Set with Travel Pouch (Cleanser, Toner, Serum and Night Cream Minis)",
+          "subtitle": null,
           "summary": "Four bestselling minis in a recycled linen pouch: cleanser, toner, vitamin C serum and night cream.",
+          "language": "en",
+          "category": "Sets",
+          "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set",
+          "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg",
+          "available": true,
+          "price": 64.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-112-SET",
+              "name": "Discovery set",
+              "option": {
+                "name": "Format",
+                "value": "Set of 4 minis"
+              },
+              "price": 64.9,
+              "compareAtPrice": null,
+              "stock": 18,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set?variant=FJB-112-SET",
+              "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    "ch/de": {
+      "currency": "CHF",
+      "language": "de",
+      "products": [
+        {
+          "id": "FJB-101",
+          "handle": "cloud-milk-cleanser",
+          "name": "Cloud Milk Reinigungsmilch",
+          "subtitle": "Sanfte Reinigungsmilch · Hafermilch & Birkenwasser",
+          "summary": "Eine weiche Reinigungsmilch, die Sonnenschutz und Stadtschmutz löst, ohne dass die Haut spannt.",
+          "language": "de",
+          "category": "Cleansers",
+          "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser",
+          "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/packshot.jpg",
+          "available": true,
+          "price": 26.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-101-150ML",
+              "name": "150 ml",
+              "option": {
+                "name": "Size",
+                "value": "150 ml"
+              },
+              "price": 26.9,
+              "compareAtPrice": null,
+              "stock": 64,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser?variant=FJB-101-150ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/unit-FJB-101-150ML.jpg"
+            },
+            {
+              "id": "FJB-101-300ML",
+              "name": "300 ml",
+              "option": {
+                "name": "Size",
+                "value": "300 ml"
+              },
+              "price": 42.9,
+              "compareAtPrice": null,
+              "stock": 31,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser?variant=FJB-101-300ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/unit-FJB-101-300ML.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-102",
+          "handle": "glacier-water-toner",
+          "name": "Glacier Water Essenz-Toner",
+          "subtitle": "Feuchtigkeitsessenz · Gletscherwasser & Hyaluron",
+          "summary": "Eine wässrige Essenz, die die Haut mit Feuchtigkeit flutet und auf das Serum vorbereitet.",
+          "language": "de",
+          "category": "Toners",
+          "url": "https://fjordbloom.netlify.app/products/glacier-water-toner",
+          "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg",
+          "available": true,
+          "price": 30.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-102-200ML",
+              "name": "200 ml",
+              "option": {
+                "name": "Size",
+                "value": "200 ml"
+              },
+              "price": 30.9,
+              "compareAtPrice": null,
+              "stock": 48,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/glacier-water-toner?variant=FJB-102-200ML",
+              "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-103",
+          "handle": "cloudberry-vitamin-c-serum",
+          "name": "Cloudberry Glow Vitamin-C-Serum",
+          "subtitle": "Strahlkraft-Serum · 15 % Vitamin C & Moltebeere",
+          "summary": "Unser Bestseller: stabiles Vitamin C und arktische Moltebeere für einen strahlenderen, ebenmäßigeren Teint.",
+          "language": "de",
+          "category": "Serums",
+          "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum",
+          "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/packshot.jpg",
+          "available": true,
+          "price": 52.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-103-15ML",
+              "name": "15 ml",
+              "option": {
+                "name": "Size",
+                "value": "15 ml"
+              },
+              "price": 31.9,
+              "compareAtPrice": null,
+              "stock": 25,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum?variant=FJB-103-15ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/unit-FJB-103-15ML.jpg"
+            },
+            {
+              "id": "FJB-103-30ML",
+              "name": "30 ml",
+              "option": {
+                "name": "Size",
+                "value": "30 ml"
+              },
+              "price": 52.9,
+              "compareAtPrice": null,
+              "stock": 40,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum?variant=FJB-103-30ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/unit-FJB-103-30ML.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-104",
+          "handle": "birch-sap-hydra-serum",
+          "name": "Birch Sap Hydra Feuchtigkeitsserum",
+          "subtitle": "Feuchtigkeitsserum · 70 % finnischer Birkensaft",
+          "summary": "Ein federleichtes Feuchtigkeitsserum mit 70 % finnischem Birkensaft.",
+          "language": "de",
+          "category": "Serums",
+          "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum",
+          "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg",
+          "available": true,
+          "price": 46.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-104-30ML",
+              "name": "30 ml",
+              "option": {
+                "name": "Size",
+                "value": "30 ml"
+              },
+              "price": 46.9,
+              "compareAtPrice": null,
+              "stock": 37,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum?variant=FJB-104-30ML",
+              "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-105",
+          "handle": "midnight-sea-buckthorn-night-cream",
+          "name": "Midnight Sanddorn-Nachtcreme",
+          "subtitle": "Reichhaltige Nachtcreme · Sanddorn & Bakuchiol",
+          "summary": "Eine reichhaltige, umhüllende Nachtcreme mit Sanddorn und Bakuchiol.",
+          "language": "de",
+          "category": "Moisturisers",
+          "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream",
+          "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg",
+          "available": true,
+          "price": 57.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-105-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 57.9,
+              "compareAtPrice": null,
+              "stock": 22,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream?variant=FJB-105-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-106",
+          "handle": "arctic-barrier-day-cream",
+          "name": "Arctic Barrier Tagescreme",
+          "subtitle": "Leichte Tagescreme · schützt vor Kälte und Wind",
+          "summary": "Eine leichte Tagescreme, die vor Kälte, Wind und trockener Heizungsluft schützt. Jetzt 20 % reduziert.",
+          "language": "de",
+          "category": "Moisturisers",
+          "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream",
+          "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg",
+          "available": true,
+          "price": 38.9,
+          "compareAtPrice": 48.9,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-106-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 38.9,
+              "compareAtPrice": 48.9,
+              "stock": 53,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream?variant=FJB-106-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-108",
+          "handle": "sea-kelp-clay-mask",
+          "name": "Sea Kelp Tonerde-Maske",
+          "subtitle": "10-Minuten-Maske · Seetang & weiße Tonerde",
+          "summary": "Eine 10-Minuten-Maske mit nordischem Seetang und weißer Tonerde für sichtbar klarere Poren.",
+          "language": "de",
+          "category": "Masks",
+          "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask",
+          "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg",
+          "available": true,
+          "price": 33.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-108-75ML",
+              "name": "75 ml",
+              "option": {
+                "name": "Size",
+                "value": "75 ml"
+              },
+              "price": 33.9,
+              "compareAtPrice": null,
+              "stock": 33,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask?variant=FJB-108-75ML",
+              "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-109",
+          "handle": "lingonberry-tinted-lip-balm",
+          "name": "Lingonberry getönter Lippenbalsam",
+          "subtitle": "Getönter Lippenbalsam · 6 Farbtöne",
+          "summary": "Ein pflegender Balsam mit einem zarten Hauch nordischer Beerenfarbe, in sechs Farbtönen.",
+          "language": "de",
+          "category": "Lips",
+          "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm",
+          "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/packshot.jpg",
+          "available": true,
+          "price": 17.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-109-CLEAR",
+              "name": "Clear",
+              "option": {
+                "name": "Shade",
+                "value": "Clear"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 40,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-CLEAR",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-CLEAR.jpg"
+            },
+            {
+              "id": "FJB-109-ROSEHIP",
+              "name": "Rosehip",
+              "option": {
+                "name": "Shade",
+                "value": "Rosehip"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 25,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-ROSEHIP",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-ROSEHIP.jpg"
+            },
+            {
+              "id": "FJB-109-LINGONBERRY",
+              "name": "Lingonberry",
+              "option": {
+                "name": "Shade",
+                "value": "Lingonberry"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 30,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-LINGONBERRY",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-LINGONBERRY.jpg"
+            },
+            {
+              "id": "FJB-109-CLOUDBERRY",
+              "name": "Cloudberry",
+              "option": {
+                "name": "Shade",
+                "value": "Cloudberry"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 12,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-CLOUDBERRY",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-CLOUDBERRY.jpg"
+            },
+            {
+              "id": "FJB-109-HEATHER",
+              "name": "Heather",
+              "option": {
+                "name": "Shade",
+                "value": "Heather"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 3,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-HEATHER",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-HEATHER.jpg"
+            },
+            {
+              "id": "FJB-109-PLUM",
+              "name": "Midnight Plum",
+              "option": {
+                "name": "Shade",
+                "value": "Midnight Plum"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 0,
+              "available": false,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-PLUM",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-PLUM.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-110",
+          "handle": "sauna-ritual-body-oil",
+          "name": "Sauna Ritual Körperöl",
+          "subtitle": "Trockenöl für den Körper · Birke & Wacholder",
+          "summary": "Ein schnell einziehendes Körperöl nach dem nordischen Saunaritual, mit Birke und Wacholder.",
+          "language": "de",
+          "category": "Body",
+          "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil",
+          "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg",
+          "available": true,
+          "price": 41.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-110-100ML",
+              "name": "100 ml",
+              "option": {
+                "name": "Size",
+                "value": "100 ml"
+              },
+              "price": 41.9,
+              "compareAtPrice": null,
+              "stock": 28,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil?variant=FJB-110-100ML",
+              "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-111",
+          "handle": "rose-quartz-gua-sha",
+          "name": "Rosenquarz Gua-Sha-Stein",
+          "subtitle": "Gesichtsmassage · handpolierter Rosenquarz",
+          "summary": "Ein handpolierter Gua Sha aus Rosenquarz für eine abschwellende Gesichtsmassage. Derzeit ausverkauft.",
+          "language": "de",
+          "category": "Tools",
+          "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha",
+          "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg",
+          "available": false,
+          "price": 28.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-111-STONE",
+              "name": "Rose quartz",
+              "option": {
+                "name": "Material",
+                "value": "Rose quartz"
+              },
+              "price": 28.9,
+              "compareAtPrice": null,
+              "stock": 0,
+              "available": false,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha?variant=FJB-111-STONE",
+              "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-112",
+          "handle": "complete-nordic-ritual-discovery-set",
+          "name": "Nordic Ritual Entdeckungsset mit Reisetasche (Reinigung, Toner, Serum und Nachtcreme als Minis)",
+          "subtitle": "4 Bestseller-Minis im Leinenbeutel",
+          "summary": "Vier Bestseller-Minis in einem Beutel aus recyceltem Leinen: Reinigungsmilch, Toner, Vitamin-C-Serum und Nachtcreme.",
+          "language": "de",
+          "category": "Sets",
+          "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set",
+          "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg",
+          "available": true,
+          "price": 64.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-112-SET",
+              "name": "Discovery set",
+              "option": {
+                "name": "Format",
+                "value": "Set of 4 minis"
+              },
+              "price": 64.9,
+              "compareAtPrice": null,
+              "stock": 18,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set?variant=FJB-112-SET",
+              "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    "ch/fr": {
+      "currency": "CHF",
+      "language": "fr",
+      "products": [
+        {
+          "id": "FJB-101",
+          "handle": "cloud-milk-cleanser",
+          "name": "Lait démaquillant Cloud Milk",
+          "subtitle": "Lait nettoyant doux · lait d’avoine et eau de bouleau",
+          "summary": "Un lait nettoyant onctueux qui élimine la crème solaire et la pollution, sans sensation de tiraillement.",
+          "language": "fr",
+          "category": "Cleansers",
+          "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser",
+          "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/packshot.jpg",
+          "available": true,
+          "price": 26.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-101-150ML",
+              "name": "150 ml",
+              "option": {
+                "name": "Size",
+                "value": "150 ml"
+              },
+              "price": 26.9,
+              "compareAtPrice": null,
+              "stock": 64,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser?variant=FJB-101-150ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/unit-FJB-101-150ML.jpg"
+            },
+            {
+              "id": "FJB-101-300ML",
+              "name": "300 ml",
+              "option": {
+                "name": "Size",
+                "value": "300 ml"
+              },
+              "price": 42.9,
+              "compareAtPrice": null,
+              "stock": 31,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser?variant=FJB-101-300ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/unit-FJB-101-300ML.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-102",
+          "handle": "glacier-water-toner",
+          "name": "Lotion essence Glacier Water",
+          "subtitle": "Essence hydratante · eau glaciaire et acide hyaluronique",
+          "summary": "Une essence aqueuse qui inonde la peau d’hydratation et la prépare au sérum.",
+          "language": "fr",
+          "category": "Toners",
+          "url": "https://fjordbloom.netlify.app/products/glacier-water-toner",
+          "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg",
+          "available": true,
+          "price": 30.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-102-200ML",
+              "name": "200 ml",
+              "option": {
+                "name": "Size",
+                "value": "200 ml"
+              },
+              "price": 30.9,
+              "compareAtPrice": null,
+              "stock": 48,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/glacier-water-toner?variant=FJB-102-200ML",
+              "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-103",
+          "handle": "cloudberry-vitamin-c-serum",
+          "name": "Sérum éclat vitamine C Cloudberry",
+          "subtitle": "Sérum éclat · 15 % de vitamine C et plaquebière",
+          "summary": "Notre sérum phare : vitamine C stable et plaquebière arctique pour un teint plus lumineux et plus uniforme.",
+          "language": "fr",
+          "category": "Serums",
+          "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum",
+          "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/packshot.jpg",
+          "available": true,
+          "price": 52.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-103-15ML",
+              "name": "15 ml",
+              "option": {
+                "name": "Size",
+                "value": "15 ml"
+              },
+              "price": 31.9,
+              "compareAtPrice": null,
+              "stock": 25,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum?variant=FJB-103-15ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/unit-FJB-103-15ML.jpg"
+            },
+            {
+              "id": "FJB-103-30ML",
+              "name": "30 ml",
+              "option": {
+                "name": "Size",
+                "value": "30 ml"
+              },
+              "price": 52.9,
+              "compareAtPrice": null,
+              "stock": 40,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum?variant=FJB-103-30ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/unit-FJB-103-30ML.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-104",
+          "handle": "birch-sap-hydra-serum",
+          "name": "Sérum hydratant Birch Sap Hydra",
+          "subtitle": "Sérum hydratant · 70 % de sève de bouleau finlandaise",
+          "summary": "Un sérum hydratant rebondi à 70 % de sève de bouleau finlandaise.",
+          "language": "fr",
+          "category": "Serums",
+          "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum",
+          "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg",
+          "available": true,
+          "price": 46.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-104-30ML",
+              "name": "30 ml",
+              "option": {
+                "name": "Size",
+                "value": "30 ml"
+              },
+              "price": 46.9,
+              "compareAtPrice": null,
+              "stock": 37,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum?variant=FJB-104-30ML",
+              "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-105",
+          "handle": "midnight-sea-buckthorn-night-cream",
+          "name": "Crème de nuit à l’argousier Midnight",
+          "subtitle": "Crème de nuit riche · argousier et bakuchiol",
+          "summary": "Une crème de nuit riche et enveloppante à l’argousier et au bakuchiol.",
+          "language": "fr",
+          "category": "Moisturisers",
+          "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream",
+          "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg",
+          "available": true,
+          "price": 57.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-105-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 57.9,
+              "compareAtPrice": null,
+              "stock": 22,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream?variant=FJB-105-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-106",
+          "handle": "arctic-barrier-day-cream",
+          "name": "Crème de jour Arctic Barrier",
+          "subtitle": "Crème de jour légère · protège du froid et du vent",
+          "summary": "Une crème de jour légère qui protège du froid, du vent et de l’air sec intérieur. Actuellement à -20 %.",
+          "language": "fr",
+          "category": "Moisturisers",
+          "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream",
+          "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg",
+          "available": true,
+          "price": 38.9,
+          "compareAtPrice": 48.9,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-106-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 38.9,
+              "compareAtPrice": 48.9,
+              "stock": 53,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream?variant=FJB-106-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-108",
+          "handle": "sea-kelp-clay-mask",
+          "name": "Masque à l’argile Sea Kelp",
+          "subtitle": "Masque 10 minutes · varech et argile blanche",
+          "summary": "Un masque de 10 minutes au varech nordique et à l’argile blanche pour des pores visiblement plus nets.",
+          "language": "fr",
+          "category": "Masks",
+          "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask",
+          "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg",
+          "available": true,
+          "price": 33.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-108-75ML",
+              "name": "75 ml",
+              "option": {
+                "name": "Size",
+                "value": "75 ml"
+              },
+              "price": 33.9,
+              "compareAtPrice": null,
+              "stock": 33,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask?variant=FJB-108-75ML",
+              "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-109",
+          "handle": "lingonberry-tinted-lip-balm",
+          "name": "Baume à lèvres teinté Lingonberry",
+          "subtitle": "Baume à lèvres teinté · 6 teintes",
+          "summary": "Un baume nourrissant au léger voile de couleur de baies nordiques, en six teintes.",
+          "language": "fr",
+          "category": "Lips",
+          "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm",
+          "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/packshot.jpg",
+          "available": true,
+          "price": 17.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-109-CLEAR",
+              "name": "Clear",
+              "option": {
+                "name": "Shade",
+                "value": "Clear"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 40,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-CLEAR",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-CLEAR.jpg"
+            },
+            {
+              "id": "FJB-109-ROSEHIP",
+              "name": "Rosehip",
+              "option": {
+                "name": "Shade",
+                "value": "Rosehip"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 25,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-ROSEHIP",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-ROSEHIP.jpg"
+            },
+            {
+              "id": "FJB-109-LINGONBERRY",
+              "name": "Lingonberry",
+              "option": {
+                "name": "Shade",
+                "value": "Lingonberry"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 30,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-LINGONBERRY",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-LINGONBERRY.jpg"
+            },
+            {
+              "id": "FJB-109-CLOUDBERRY",
+              "name": "Cloudberry",
+              "option": {
+                "name": "Shade",
+                "value": "Cloudberry"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 12,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-CLOUDBERRY",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-CLOUDBERRY.jpg"
+            },
+            {
+              "id": "FJB-109-HEATHER",
+              "name": "Heather",
+              "option": {
+                "name": "Shade",
+                "value": "Heather"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 3,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-HEATHER",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-HEATHER.jpg"
+            },
+            {
+              "id": "FJB-109-PLUM",
+              "name": "Midnight Plum",
+              "option": {
+                "name": "Shade",
+                "value": "Midnight Plum"
+              },
+              "price": 17.9,
+              "compareAtPrice": null,
+              "stock": 0,
+              "available": false,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-PLUM",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-PLUM.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-110",
+          "handle": "sauna-ritual-body-oil",
+          "name": "Huile pour le corps Sauna Ritual",
+          "subtitle": "Huile sèche pour le corps · bouleau et genévrier",
+          "summary": "Une huile sèche pour le corps inspirée du rituel du sauna nordique, au bouleau et au genévrier.",
+          "language": "fr",
+          "category": "Body",
+          "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil",
+          "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg",
+          "available": true,
+          "price": 41.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-110-100ML",
+              "name": "100 ml",
+              "option": {
+                "name": "Size",
+                "value": "100 ml"
+              },
+              "price": 41.9,
+              "compareAtPrice": null,
+              "stock": 28,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil?variant=FJB-110-100ML",
+              "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-111",
+          "handle": "rose-quartz-gua-sha",
+          "name": "Pierre gua sha en quartz rose",
+          "subtitle": "Massage du visage · quartz rose poli à la main",
+          "summary": "Un gua sha en quartz rose poli à la main pour un massage du visage qui dégonfle. Actuellement en rupture de stock.",
+          "language": "fr",
+          "category": "Tools",
+          "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha",
+          "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg",
+          "available": false,
+          "price": 28.9,
+          "compareAtPrice": null,
+          "currency": "CHF",
+          "market": "ch",
+          "units": [
+            {
+              "id": "FJB-111-STONE",
+              "name": "Rose quartz",
+              "option": {
+                "name": "Material",
+                "value": "Rose quartz"
+              },
+              "price": 28.9,
+              "compareAtPrice": null,
+              "stock": 0,
+              "available": false,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha?variant=FJB-111-STONE",
+              "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-112",
+          "handle": "complete-nordic-ritual-discovery-set",
+          "name": "Coffret découverte Nordic Ritual avec trousse de voyage (nettoyant, lotion, sérum et crème de nuit en mini)",
+          "subtitle": "4 minis best-sellers dans une trousse en lin",
+          "summary": "Quatre minis best-sellers dans une trousse en lin recyclé : nettoyant, lotion, sérum à la vitamine C et crème de nuit.",
+          "language": "fr",
           "category": "Sets",
           "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set",
           "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg",
@@ -937,12 +2440,15 @@
     },
     "pl": {
       "currency": "PLN",
+      "language": "en",
       "products": [
         {
           "id": "FJB-101",
           "handle": "cloud-milk-cleanser",
           "name": "Cloud Milk Cleanser",
+          "subtitle": null,
           "summary": "A cushiony milk cleanser that lifts sunscreen and city grime without the tight feeling.",
+          "language": "en",
           "category": "Cleansers",
           "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser",
           "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/packshot.jpg",
@@ -988,7 +2494,9 @@
           "id": "FJB-102",
           "handle": "glacier-water-toner",
           "name": "Glacier Water Essence Toner",
+          "subtitle": null,
           "summary": "A watery essence that floods skin with hydration and preps it for serum.",
+          "language": "en",
           "category": "Toners",
           "url": "https://fjordbloom.netlify.app/products/glacier-water-toner",
           "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg",
@@ -1019,7 +2527,9 @@
           "id": "FJB-103",
           "handle": "cloudberry-vitamin-c-serum",
           "name": "Cloudberry Vitamin C Glow Serum",
+          "subtitle": null,
           "summary": "Our hero serum: stable vitamin C and Arctic cloudberry for a brighter, more even look.",
+          "language": "en",
           "category": "Serums",
           "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum",
           "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/packshot.jpg",
@@ -1065,7 +2575,9 @@
           "id": "FJB-104",
           "handle": "birch-sap-hydra-serum",
           "name": "Birch Sap Hydra Serum",
+          "subtitle": null,
           "summary": "A bouncy hydrating serum made with 70% Finnish birch sap.",
+          "language": "en",
           "category": "Serums",
           "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum",
           "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg",
@@ -1096,7 +2608,9 @@
           "id": "FJB-105",
           "handle": "midnight-sea-buckthorn-night-cream",
           "name": "Midnight Sea Buckthorn Night Cream",
+          "subtitle": null,
           "summary": "A rich, cocooning night cream with sea buckthorn and bakuchiol.",
+          "language": "en",
           "category": "Moisturisers",
           "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream",
           "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg",
@@ -1127,7 +2641,9 @@
           "id": "FJB-106",
           "handle": "arctic-barrier-day-cream",
           "name": "Arctic Barrier Day Cream",
+          "subtitle": null,
           "summary": "A light daily cream that defends against cold, wind and dry indoor air. Now 20% off.",
+          "language": "en",
           "category": "Moisturisers",
           "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream",
           "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg",
@@ -1158,7 +2674,9 @@
           "id": "FJB-107",
           "handle": "daylight-mineral-spf-50",
           "name": "Daylight Mineral Fluid SPF 50",
+          "subtitle": null,
           "summary": "A weightless mineral sunscreen fluid with a sheer tint and no white cast.",
+          "language": "en",
           "category": "Sun care",
           "url": "https://fjordbloom.netlify.app/products/daylight-mineral-spf-50",
           "image": "https://fjordbloom.netlify.app/images/products/daylight-mineral-spf-50/packshot.jpg",
@@ -1189,7 +2707,9 @@
           "id": "FJB-108",
           "handle": "sea-kelp-clay-mask",
           "name": "Sea Kelp Clay Mask",
+          "subtitle": null,
           "summary": "A 10-minute mask with Nordic sea kelp and white clay for clearer-looking pores.",
+          "language": "en",
           "category": "Masks",
           "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask",
           "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg",
@@ -1220,7 +2740,9 @@
           "id": "FJB-109",
           "handle": "lingonberry-tinted-lip-balm",
           "name": "Lingonberry Tinted Lip Balm",
+          "subtitle": null,
           "summary": "A nourishing balm with a sheer wash of Nordic berry colour, in six shades.",
+          "language": "en",
           "category": "Lips",
           "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm",
           "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/packshot.jpg",
@@ -1326,7 +2848,9 @@
           "id": "FJB-110",
           "handle": "sauna-ritual-body-oil",
           "name": "Sauna Ritual Body Oil",
+          "subtitle": null,
           "summary": "A dry-touch body oil inspired by the Nordic sauna ritual, with birch and juniper.",
+          "language": "en",
           "category": "Body",
           "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil",
           "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg",
@@ -1357,7 +2881,9 @@
           "id": "FJB-111",
           "handle": "rose-quartz-gua-sha",
           "name": "Rose Quartz Gua Sha Stone",
+          "subtitle": null,
           "summary": "A hand-polished rose quartz gua sha for a de-puffing facial massage. Currently sold out.",
+          "language": "en",
           "category": "Tools",
           "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha",
           "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg",
@@ -1388,7 +2914,516 @@
           "id": "FJB-112",
           "handle": "complete-nordic-ritual-discovery-set",
           "name": "The Complete Nordic Ritual Discovery Set with Travel Pouch (Cleanser, Toner, Serum and Night Cream Minis)",
+          "subtitle": null,
           "summary": "Four bestselling minis in a recycled linen pouch: cleanser, toner, vitamin C serum and night cream.",
+          "language": "en",
+          "category": "Sets",
+          "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set",
+          "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg",
+          "available": true,
+          "price": 253.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-112-SET",
+              "name": "Discovery set",
+              "option": {
+                "name": "Format",
+                "value": "Set of 4 minis"
+              },
+              "price": 253.99,
+              "compareAtPrice": null,
+              "stock": 18,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set?variant=FJB-112-SET",
+              "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg"
+            }
+          ]
+        }
+      ]
+    },
+    "pl/pl": {
+      "currency": "PLN",
+      "language": "pl",
+      "products": [
+        {
+          "id": "FJB-101",
+          "handle": "cloud-milk-cleanser",
+          "name": "Mleczko oczyszczające Cloud Milk",
+          "subtitle": "Delikatne mleczko · mleko owsiane i woda brzozowa",
+          "summary": "Kremowe mleczko, które usuwa filtr przeciwsłoneczny i miejski brud bez uczucia ściągnięcia.",
+          "language": "pl",
+          "category": "Cleansers",
+          "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser",
+          "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/packshot.jpg",
+          "available": true,
+          "price": 103.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-101-150ML",
+              "name": "150 ml",
+              "option": {
+                "name": "Size",
+                "value": "150 ml"
+              },
+              "price": 103.99,
+              "compareAtPrice": null,
+              "stock": 64,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser?variant=FJB-101-150ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/unit-FJB-101-150ML.jpg"
+            },
+            {
+              "id": "FJB-101-300ML",
+              "name": "300 ml",
+              "option": {
+                "name": "Size",
+                "value": "300 ml"
+              },
+              "price": 167.99,
+              "compareAtPrice": null,
+              "stock": 31,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/cloud-milk-cleanser?variant=FJB-101-300ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloud-milk-cleanser/unit-FJB-101-300ML.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-102",
+          "handle": "glacier-water-toner",
+          "name": "Tonik-esencja Glacier Water",
+          "subtitle": "Nawilżająca esencja · woda lodowcowa i kwas hialuronowy",
+          "summary": "Wodnista esencja, która intensywnie nawilża skórę i przygotowuje ją na serum.",
+          "language": "pl",
+          "category": "Toners",
+          "url": "https://fjordbloom.netlify.app/products/glacier-water-toner",
+          "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg",
+          "available": true,
+          "price": 120.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-102-200ML",
+              "name": "200 ml",
+              "option": {
+                "name": "Size",
+                "value": "200 ml"
+              },
+              "price": 120.99,
+              "compareAtPrice": null,
+              "stock": 48,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/glacier-water-toner?variant=FJB-102-200ML",
+              "image": "https://fjordbloom.netlify.app/images/products/glacier-water-toner/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-103",
+          "handle": "cloudberry-vitamin-c-serum",
+          "name": "Serum rozświetlające z witaminą C Cloudberry",
+          "subtitle": "Serum rozświetlające · 15% witaminy C i moroszka",
+          "summary": "Nasz bestseller: stabilna witamina C i arktyczna moroszka dla jaśniejszej, bardziej wyrównanej cery.",
+          "language": "pl",
+          "category": "Serums",
+          "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum",
+          "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/packshot.jpg",
+          "available": true,
+          "price": 206.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-103-15ML",
+              "name": "15 ml",
+              "option": {
+                "name": "Size",
+                "value": "15 ml"
+              },
+              "price": 124.99,
+              "compareAtPrice": null,
+              "stock": 25,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum?variant=FJB-103-15ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/unit-FJB-103-15ML.jpg"
+            },
+            {
+              "id": "FJB-103-30ML",
+              "name": "30 ml",
+              "option": {
+                "name": "Size",
+                "value": "30 ml"
+              },
+              "price": 206.99,
+              "compareAtPrice": null,
+              "stock": 40,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/cloudberry-vitamin-c-serum?variant=FJB-103-30ML",
+              "image": "https://fjordbloom.netlify.app/images/products/cloudberry-vitamin-c-serum/unit-FJB-103-30ML.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-104",
+          "handle": "birch-sap-hydra-serum",
+          "name": "Serum nawilżające Birch Sap Hydra",
+          "subtitle": "Serum nawilżające · 70% fińskiego soku z brzozy",
+          "summary": "Sprężyste serum nawilżające z 70% fińskiego soku z brzozy.",
+          "language": "pl",
+          "category": "Serums",
+          "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum",
+          "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg",
+          "available": true,
+          "price": 180.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-104-30ML",
+              "name": "30 ml",
+              "option": {
+                "name": "Size",
+                "value": "30 ml"
+              },
+              "price": 180.99,
+              "compareAtPrice": null,
+              "stock": 37,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/birch-sap-hydra-serum?variant=FJB-104-30ML",
+              "image": "https://fjordbloom.netlify.app/images/products/birch-sap-hydra-serum/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-105",
+          "handle": "midnight-sea-buckthorn-night-cream",
+          "name": "Krem na noc z rokitnikiem Midnight",
+          "subtitle": "Bogaty krem na noc · rokitnik i bakuchiol",
+          "summary": "Bogaty, otulający krem na noc z rokitnikiem i bakuchiolem.",
+          "language": "pl",
+          "category": "Moisturisers",
+          "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream",
+          "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg",
+          "available": true,
+          "price": 223.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-105-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 223.99,
+              "compareAtPrice": null,
+              "stock": 22,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/midnight-sea-buckthorn-night-cream?variant=FJB-105-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/midnight-sea-buckthorn-night-cream/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-106",
+          "handle": "arctic-barrier-day-cream",
+          "name": "Krem na dzień Arctic Barrier",
+          "subtitle": "Lekki krem na dzień · ochrona przed zimnem i wiatrem",
+          "summary": "Lekki krem na co dzień, który chroni przed zimnem, wiatrem i suchym powietrzem w pomieszczeniach. Teraz 20% taniej.",
+          "language": "pl",
+          "category": "Moisturisers",
+          "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream",
+          "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg",
+          "available": true,
+          "price": 151.99,
+          "compareAtPrice": 189.99,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-106-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 151.99,
+              "compareAtPrice": 189.99,
+              "stock": 53,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/arctic-barrier-day-cream?variant=FJB-106-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/arctic-barrier-day-cream/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-107",
+          "handle": "daylight-mineral-spf-50",
+          "name": "Mineralny fluid z filtrem Daylight SPF 50",
+          "subtitle": "Mineralna ochrona przeciwsłoneczna · lekko koloryzujący",
+          "summary": "Lekki mineralny fluid z filtrem, z delikatnym odcieniem i bez białych smug.",
+          "language": "pl",
+          "category": "Sun care",
+          "url": "https://fjordbloom.netlify.app/products/daylight-mineral-spf-50",
+          "image": "https://fjordbloom.netlify.app/images/products/daylight-mineral-spf-50/packshot.jpg",
+          "available": true,
+          "price": 137.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-107-50ML",
+              "name": "50 ml",
+              "option": {
+                "name": "Size",
+                "value": "50 ml"
+              },
+              "price": 137.99,
+              "compareAtPrice": null,
+              "stock": 70,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/daylight-mineral-spf-50?variant=FJB-107-50ML",
+              "image": "https://fjordbloom.netlify.app/images/products/daylight-mineral-spf-50/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-108",
+          "handle": "sea-kelp-clay-mask",
+          "name": "Maska z glinką Sea Kelp",
+          "subtitle": "Maska 10-minutowa · wodorosty i biała glinka",
+          "summary": "10-minutowa maska z nordyckimi wodorostami i białą glinką, która wizualnie oczyszcza pory.",
+          "language": "pl",
+          "category": "Masks",
+          "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask",
+          "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg",
+          "available": true,
+          "price": 129.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-108-75ML",
+              "name": "75 ml",
+              "option": {
+                "name": "Size",
+                "value": "75 ml"
+              },
+              "price": 129.99,
+              "compareAtPrice": null,
+              "stock": 33,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/sea-kelp-clay-mask?variant=FJB-108-75ML",
+              "image": "https://fjordbloom.netlify.app/images/products/sea-kelp-clay-mask/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-109",
+          "handle": "lingonberry-tinted-lip-balm",
+          "name": "Koloryzujący balsam do ust Lingonberry",
+          "subtitle": "Koloryzujący balsam do ust · 6 odcieni",
+          "summary": "Odżywczy balsam z delikatnym kolorem nordyckich jagód, w sześciu odcieniach.",
+          "language": "pl",
+          "category": "Lips",
+          "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm",
+          "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/packshot.jpg",
+          "available": true,
+          "price": 68.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-109-CLEAR",
+              "name": "Clear",
+              "option": {
+                "name": "Shade",
+                "value": "Clear"
+              },
+              "price": 68.99,
+              "compareAtPrice": null,
+              "stock": 40,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-CLEAR",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-CLEAR.jpg"
+            },
+            {
+              "id": "FJB-109-ROSEHIP",
+              "name": "Rosehip",
+              "option": {
+                "name": "Shade",
+                "value": "Rosehip"
+              },
+              "price": 68.99,
+              "compareAtPrice": null,
+              "stock": 25,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-ROSEHIP",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-ROSEHIP.jpg"
+            },
+            {
+              "id": "FJB-109-LINGONBERRY",
+              "name": "Lingonberry",
+              "option": {
+                "name": "Shade",
+                "value": "Lingonberry"
+              },
+              "price": 68.99,
+              "compareAtPrice": null,
+              "stock": 30,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-LINGONBERRY",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-LINGONBERRY.jpg"
+            },
+            {
+              "id": "FJB-109-CLOUDBERRY",
+              "name": "Cloudberry",
+              "option": {
+                "name": "Shade",
+                "value": "Cloudberry"
+              },
+              "price": 68.99,
+              "compareAtPrice": null,
+              "stock": 12,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-CLOUDBERRY",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-CLOUDBERRY.jpg"
+            },
+            {
+              "id": "FJB-109-HEATHER",
+              "name": "Heather",
+              "option": {
+                "name": "Shade",
+                "value": "Heather"
+              },
+              "price": 68.99,
+              "compareAtPrice": null,
+              "stock": 3,
+              "available": true,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-HEATHER",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-HEATHER.jpg"
+            },
+            {
+              "id": "FJB-109-PLUM",
+              "name": "Midnight Plum",
+              "option": {
+                "name": "Shade",
+                "value": "Midnight Plum"
+              },
+              "price": 68.99,
+              "compareAtPrice": null,
+              "stock": 0,
+              "available": false,
+              "isDefault": false,
+              "url": "https://fjordbloom.netlify.app/products/lingonberry-tinted-lip-balm?variant=FJB-109-PLUM",
+              "image": "https://fjordbloom.netlify.app/images/products/lingonberry-tinted-lip-balm/unit-FJB-109-PLUM.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-110",
+          "handle": "sauna-ritual-body-oil",
+          "name": "Olejek do ciała Sauna Ritual",
+          "subtitle": "Suchy olejek do ciała · brzoza i jałowiec",
+          "summary": "Suchy olejek do ciała inspirowany nordyckim rytuałem sauny, z brzozą i jałowcem.",
+          "language": "pl",
+          "category": "Body",
+          "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil",
+          "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg",
+          "available": true,
+          "price": 163.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-110-100ML",
+              "name": "100 ml",
+              "option": {
+                "name": "Size",
+                "value": "100 ml"
+              },
+              "price": 163.99,
+              "compareAtPrice": null,
+              "stock": 28,
+              "available": true,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/sauna-ritual-body-oil?variant=FJB-110-100ML",
+              "image": "https://fjordbloom.netlify.app/images/products/sauna-ritual-body-oil/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-111",
+          "handle": "rose-quartz-gua-sha",
+          "name": "Kamień gua sha z kwarcu różowego",
+          "subtitle": "Masaż twarzy · ręcznie polerowany kwarc różowy",
+          "summary": "Ręcznie polerowany kamień gua sha z kwarcu różowego do masażu twarzy, który zmniejsza opuchnięcia. Obecnie wyprzedany.",
+          "language": "pl",
+          "category": "Tools",
+          "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha",
+          "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg",
+          "available": false,
+          "price": 111.99,
+          "compareAtPrice": null,
+          "currency": "PLN",
+          "market": "pl",
+          "units": [
+            {
+              "id": "FJB-111-STONE",
+              "name": "Rose quartz",
+              "option": {
+                "name": "Material",
+                "value": "Rose quartz"
+              },
+              "price": 111.99,
+              "compareAtPrice": null,
+              "stock": 0,
+              "available": false,
+              "isDefault": true,
+              "url": "https://fjordbloom.netlify.app/products/rose-quartz-gua-sha?variant=FJB-111-STONE",
+              "image": "https://fjordbloom.netlify.app/images/products/rose-quartz-gua-sha/packshot.jpg"
+            }
+          ]
+        },
+        {
+          "id": "FJB-112",
+          "handle": "complete-nordic-ritual-discovery-set",
+          "name": "Zestaw odkrywczy Nordic Ritual z kosmetyczką (mleczko, tonik, serum i krem na noc w miniaturach)",
+          "subtitle": "4 bestsellerowe miniatury w lnianej kosmetyczce",
+          "summary": "Cztery bestsellerowe miniatury w kosmetyczce z lnu z recyklingu: mleczko, tonik, serum z witaminą C i krem na noc.",
+          "language": "pl",
           "category": "Sets",
           "url": "https://fjordbloom.netlify.app/products/complete-nordic-ritual-discovery-set",
           "image": "https://fjordbloom.netlify.app/images/products/complete-nordic-ritual-discovery-set/packshot.jpg",

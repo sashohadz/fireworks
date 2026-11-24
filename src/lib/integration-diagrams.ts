@@ -269,6 +269,74 @@ export function purchaseFlow(options: FlowOptions = {}): Flow {
   };
 }
 
+/**
+ * Product text in the shopper's language: the same hydration call as the price, answered in the language as well
+ * as the country, plus Firework's own buttons in that language. Web and app differ only in the calls.
+ */
+export function languageFlow(options: FlowOptions & { platform?: 'web' | 'app' } = {}): Flow {
+  const { shop } = { ...defaults, ...options };
+  const app = options.platform === 'app';
+  const card = 'card: Sérum éclat vitamine C · 31,90 CHF';
+  const fail = { from: 1, to: 0, label: 'throws or slow: Firework’s stored text', fail: true };
+  const seq: Seq = app
+    ? {
+        lanes: ['Firework SDK', 'Your app code', 'Your product API'],
+        steps: [
+          { from: 1, to: 0, label: "changeAppLanguage('fr')", hook: true },
+          { from: 0, to: 1, label: 'onUpdateProductDetails({ productIds })', hook: true },
+          { from: 1, to: 2, label: 'GET /api/ch/fr/products/FJB-103.json' },
+          { from: 2, to: 1, label: '{ name, subtitle, summary, price }' },
+          { from: 1, to: 0, label: '{ name, subtitle, description }', hook: true },
+          { from: 0, to: 0, label: card },
+          fail,
+        ],
+      }
+    : {
+        lanes: ['Firework player', 'Your page code', 'Your product API'],
+        steps: [
+          { from: 0, to: 0, label: '<fw-storyblock lang="fr">: buttons in French' },
+          { from: 0, to: 1, label: 'onProductsLoaded({ products })', hook: true },
+          { from: 1, to: 2, label: 'GET /api/ch/fr/products/FJB-103.json' },
+          { from: 2, to: 1, label: '{ name, subtitle, summary, price }' },
+          { from: 1, to: 0, label: '.name().subtitle().description()', hook: true },
+          { from: 0, to: 0, label: card },
+          fail,
+        ],
+      };
+  return {
+    id: app ? 'dg-app-language' : 'dg-language',
+    title: 'Product text in the shopper’s language',
+    high: {
+      svg: overviewSvg(
+        `${app ? 'dg-app-language' : 'dg-language'}-high`,
+        {
+          fwSub: app ? 'videos in the app' : 'videos with product cards',
+          shopTitle: shop,
+          shopSub: 'product text, per language',
+          rows: [
+            { fw: 'A video with products starts', shop: 'Text in the shopper’s language', out: 'asks: text and price for these?', back: 'answers in French, in CHF' },
+            { fw: 'Buttons: “Ajouter au sac”', shop: 'The shopper’s language', back: app ? 'sets the player’s language' : 'the page says: French' },
+          ],
+        },
+        `Firework asks ${shop} for the products in a video; ${shop} answers with their name, subtitle and description in the shopper's language and the price in their currency. Firework's own buttons follow the ${app ? 'app' : 'page'} language.`,
+      ),
+      caption: `Firework stores one text per product. ${shop} answers with the text in the shopper’s language, in the same call as the price, and Firework’s buttons follow the ${app ? 'app' : 'page'} language. If the shop can’t answer, the video shows the text stored at Firework.`,
+    },
+    detailed: {
+      svg: seqSvg(
+        `${app ? 'dg-app-language' : 'dg-language'}-detail`,
+        seq,
+        app
+          ? 'The app sets the SDK language with changeAppLanguage; on onUpdateProductDetails it asks its product API for Swiss French text and prices and returns name, subtitle and description.'
+          : 'The widget has lang="fr"; on onProductsLoaded the page asks its product API for Swiss French text and prices and returns them with productFactory name, subtitle and description.',
+      ),
+      caption: app
+        ? 'The country and the language are both in the request. On Android in our test, the name, subtitle and Firework’s buttons changed language; the description stayed Firework’s, although the SDK bridge passes it on (ask Firework). changeAppLanguage takes 24 languages, including de, fr, it and pl. On Android it recreates the screen, so call it last and add attachBaseContext to MainActivity; on iOS, add the languages in Xcode. Leave options and images out unless Firework’s catalog names them the same way: in our test they replaced the colour swatches.'
+        : 'The country and the language are both in the request. .subtitle() is in the web SDK but not in Firework’s web docs; it worked in our test. The player’s buttons follow the widget’s lang attribute, then <html lang>, then the browser’s language (42 languages in the SDK). Right after Add to bag, the player’s bag shows Firework’s stored name until it reloads.',
+    },
+  };
+}
+
 export const allFlows = (options: FlowOptions = {}): Flow[] => [hydrationFlow(options), cartFlow(options), purchaseFlow(options)];
 
 // ---------------------------------------------------------------- page parts
