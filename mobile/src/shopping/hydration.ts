@@ -5,7 +5,7 @@
 import type { Product, ProductUnit } from 'react-native-firework-sdk';
 import { fromCache, fromLiveApi, fromSnapshot, type ApiProduct, type Lookup } from './api';
 import type { Mode } from './modes';
-import { getMarket, type Market } from '../market';
+import { catalogKey, getLanguage, getMarket, type Language, type Market } from '../market';
 
 export interface Adjust {
   /** Price multiplier for the demo sale, e.g. 0.8 for −20%. The real price becomes the struck-through one. */
@@ -24,8 +24,12 @@ const cents = (n: number) => Math.round(n * 100) / 100;
  * Catalog structure stays Firework's (imported from the product feed). Tested on Android: sending unit options
  * replaced the variant swatches with a plain "Select" list, because the store calls the option "Shade" and Firework's
  * import calls it "color"; sending unit images added the store's image URLs next to Firework's copies (8 → 13 images).
+ *
+ * In a language other than the catalog's English the text is live too: name, subtitle and description in the
+ * shopper's language replace the English that Firework's catalog holds. In English only the name goes (as before).
  */
 export function toFireworkProduct(p: ApiProduct, adjust: Adjust = {}): Product {
+  const translated = Boolean(p.language && p.language !== 'en');
   const units: ProductUnit[] = p.units.map((u) => {
     const regular = u.compareAtPrice ?? u.price;
     const price = adjust.sale ? cents(u.price * adjust.sale) : u.price;
@@ -41,6 +45,7 @@ export function toFireworkProduct(p: ApiProduct, adjust: Adjust = {}): Product {
   return {
     productId: p.id,
     name: p.name,
+    ...(translated ? { description: p.summary, ...(p.subtitle ? { subtitle: p.subtitle } : {}) } : {}),
     currency: p.currency,
     isAvailable: adjust.soldOut ? false : p.available,
     units,
@@ -58,15 +63,18 @@ export interface Resolved {
 
 export interface Deps {
   market: () => Market;
-  live: (ids: string[], market: Market) => Promise<Lookup>;
-  snapshot: (ids: string[], market: Market) => Lookup;
+  /** The product text's language; English (the catalog's own text) when left out. */
+  language?: () => Language;
+  live: (ids: string[], market: Market, lang: Language) => Promise<Lookup>;
+  snapshot: (ids: string[], market: Market, lang: Language) => Lookup;
 }
 
 const defaultDeps: Deps = {
   market: getMarket,
+  language: getLanguage,
   // The country's price list in memory when it's loaded (fast), otherwise one request per product.
-  live: async (ids, market) => fromCache(ids, market.id) ?? fromLiveApi(ids, market.id),
-  snapshot: (ids, market) => fromSnapshot(ids, market.id),
+  live: async (ids, market, lang) => fromCache(ids, catalogKey(market.id, lang)) ?? fromLiveApi(ids, catalogKey(market.id, lang)),
+  snapshot: (ids, market, lang) => fromSnapshot(ids, catalogKey(market.id, lang)),
 };
 
 /**
@@ -77,19 +85,20 @@ const defaultDeps: Deps = {
 export async function resolveProducts(productIds: string[], mode: Mode, deps: Deps = defaultDeps): Promise<Resolved> {
   const ids = [...new Set(productIds)];
   const market = deps.market();
+  const lang = deps.language?.() ?? 'en';
   if (mode === 'failing') { throw new Error('Demo: the product API is down (Failing mode)'); }
   // No timers in here (setTimeout, delays): React Native pauses them while Firework's player is open. See api.ts.
   let lookup: Lookup;
   let via: string;
   if (mode === 'hardcoded') {
-    lookup = deps.snapshot(ids, market);
+    lookup = deps.snapshot(ids, market, lang);
     via = 'Hardcoded';
   } else {
     try {
-      lookup = await deps.live(ids, market);
+      lookup = await deps.live(ids, market, lang);
       via = lookup.cached ? 'Live API, cached' : 'Live API';
     } catch {
-      lookup = deps.snapshot(ids, market);
+      lookup = deps.snapshot(ids, market, lang);
       via = 'Hardcoded (live API unreachable)';
     }
   }
@@ -97,5 +106,5 @@ export async function resolveProducts(productIds: string[], mode: Mode, deps: De
   // Not sold in this country: the app SDK can hide a product (the web one can't), so it disappears from the videos.
   const hidden = lookup.unknown.filter((id) => market.notSold.includes(id));
   const products: Product[] = [...lookup.found.map((p) => toFireworkProduct(p, adjust)), ...hidden.map((id) => ({ productId: id, hidden: true }))];
-  return { products, lookup: { ...lookup, unknown: lookup.unknown.filter((id) => !hidden.includes(id)) }, via: `${via} · ${market.label}`, hidden };
+  return { products, lookup: { ...lookup, unknown: lookup.unknown.filter((id) => !hidden.includes(id)) }, via: `${via} · ${market.label}${lang === 'en' ? '' : ` · ${lang}`}`, hidden };
 }

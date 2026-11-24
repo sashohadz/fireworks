@@ -2,6 +2,7 @@
 // page view. The price-drop and sold-out switches from /lab/shopping change the data here, so the player, bag and
 // checkout agree.
 import { applyScenario, readSwitches } from '../lab/shopping';
+import type { Language } from '../lib/markets';
 import { currentMarket } from './market';
 
 export { formatMoney } from './market';
@@ -23,7 +24,11 @@ export interface ApiProduct {
   id: string;
   handle: string;
   name: string;
+  /** Only in a language other than the catalog's English (Firework's catalog has no subtitles). */
+  subtitle?: string | null;
   summary: string;
+  /** The language of name, subtitle and summary: 'en' is the catalog's own text. */
+  language?: string;
   category: string;
   url: string;
   image: string;
@@ -37,11 +42,15 @@ export interface ApiProduct {
 
 const cache = new Map<string, Promise<ApiProduct[]>>();
 
-/** The market's API path, for logs: e.g. /api/ch/products.json. */
-export const productsUrl = (): string => `/api/${currentMarket().id}/products.json`;
+/** The market's API path in a language, also for logs: e.g. /api/ch/products.json, /api/ch/fr/products.json. */
+export const productsUrl = (lang: Language = 'en'): string => `/api/${currentMarket().id}${lang === 'en' ? '' : `/${lang}`}/products.json`;
 
-export function fetchProducts(): Promise<ApiProduct[]> {
-  const url = productsUrl();
+/**
+ * The market's products. English by default: the store's own pages (bag, checkout, orders) are English. The player
+ * hooks ask in the shopper's language (src/scripts/shopping.ts), so only what Firework shows is translated.
+ */
+export function fetchProducts(lang: Language = 'en'): Promise<ApiProduct[]> {
+  const url = productsUrl(lang);
   let request = cache.get(url);
   if (!request) {
     request = fetch(url)

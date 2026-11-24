@@ -1,0 +1,65 @@
+{
+  "_comment": "Product text per language for the mock commerce API (/api/{market}/{lang}/...). English lives in products.json, which is also what Firework's catalog holds. Brand lines stay, product types are translated; sizes and shades stay as they are. Subtitles are at most 75 characters (Firework's limit).",
+  "products": {
+    "FJB-101": {
+      "de": { "name": "Cloud Milk Reinigungsmilch", "subtitle": "Sanfte Reinigungsmilch · Hafermilch & Birkenwasser", "summary": "Eine weiche Reinigungsmilch, die Sonnenschutz und Stadtschmutz löst, ohne dass die Haut spannt." },
+      "fr": { "name": "Lait démaquillant Cloud Milk", "subtitle": "Lait nettoyant doux · lait d’avoine et eau de bouleau", "summary": "Un lait nettoyant onctueux qui élimine la crème solaire et la pollution, sans sensation de tiraillement." },
+      "pl": { "name": "Mleczko oczyszczające Cloud Milk", "subtitle": "Delikatne mleczko · mleko owsiane i woda brzozowa", "summary": "Kremowe mleczko, które usuwa filtr przeciwsłoneczny i miejski brud bez uczucia ściągnięcia." }
+    },
+    "FJB-102": {
+      "de": { "name": "Glacier Water Essenz-Toner", "subtitle": "Feuchtigkeitsessenz · Gletscherwasser & Hyaluron", "summary": "Eine wässrige Essenz, die die Haut mit Feuchtigkeit flutet und auf das Serum vorbereitet." },
+      "fr": { "name": "Lotion essence Glacier Water", "subtitle": "Essence hydratante · eau glaciaire et acide hyaluronique", "summary": "Une essence aqueuse qui inonde la peau d’hydratation et la prépare au sérum." },
+      "pl": { "name": "Tonik-esencja Glacier Water", "subtitle": "Nawilżająca esencja · woda lodowcowa i kwas hialuronowy", "summary": "Wodnista esencja, która intensywnie nawilża skórę i przygotowuje ją na serum." }
+    },
+    "FJB-103": {
+      "de": { "name": "Cloudberry Glow Vitamin-C-Serum", "subtitle": "Strahlkraft-Serum · 15 % Vitamin C & Moltebeere", "summary": "Unser Bestseller: stabiles Vitamin C und arktische Moltebeere für einen strahlenderen, ebenmäßigeren Teint." },
+      "fr": { "name": "Sérum éclat vitamine C Cloudberry", "subtitle": "Sérum éclat · 15 % de vitamine C et plaquebière", "summary": "Notre sérum phare : vitamine C stable et plaquebière arctique pour un teint plus lumineux et plus uniforme." },
+      "pl": { "name": "Serum rozświetlające z witaminą C Cloudberry", "subtitle": "Serum rozświetlające · 15% witaminy C i moroszka", "summary": "Nasz bestseller: stabilna witamina C i arktyczna moroszka dla jaśniejszej, bardziej wyrównanej cery." }
+    },
+    "FJB-104": {
+      "de": { "name": "Birch Sap Hydra Feuchtigkeitsserum", "subtitle": "Feuchtigkeitsserum · 70 % finnischer Birkensaft", "summary": "Ein federleichtes Feuchtigkeitsserum mit 70 % finnischem Birkensaft." },
+      "fr": { "name": "Sérum hydratant Birch Sap Hydra", "subtitle": "Sérum hydratant · 70 % de sève de bouleau finlandaise", "summary": "Un sérum hydratant rebondi à 70 % de sève de bouleau finlandaise." },
+      "pl": { "name": "Serum nawilżające Birch Sap Hydra", "subtitle": "Serum nawilżające · 70% fińskiego soku z brzozy", "summary": "Sprężyste serum nawilżające z 70% fińskiego soku z brzozy." }
+    },
+    "FJB-105": {
+      "de": { "name": "Midnight Sanddorn-Nachtcreme", "subtitle": "Reichhaltige Nachtcreme · Sanddorn & Bakuchiol", "summary": "Eine reichhaltige, umhüllende Nachtcreme mit Sanddorn und Bakuchiol." },
+      "fr": { "name": "Crème de nuit à l’argousier Midnight", "subtitle": "Crème de nuit riche · argousier et bakuchiol", "summary": "Une crème de nuit riche et enveloppante à l’argousier et au bakuchiol." },
+      "pl": { "name": "Krem na noc z rokitnikiem Midnight", "subtitle": "Bogaty krem na noc · rokitnik i bakuchiol", "summary": "Bogaty, otulający krem na noc z rokitnikiem i bakuchiolem." }
+    },
+    "FJB-106": {
+      "de": { "name": "Arctic Barrier Tagescreme", "subtitle": "Leichte Tagescreme · schützt vor Kälte und Wind", "summary": "Eine leichte Tagescreme, die vor Kälte, Wind und trockener Heizungsluft schützt. Jetzt 20 % reduziert." },
+      "fr": { "name": "Crème de jour Arctic Barrier", "subtitle": "Crème de jour légère · protège du froid et du vent", "summary": "Une crème de jour légère qui protège du froid, du vent et de l’air sec intérieur. Actuellement à -20 %." },
+      "pl": { "name": "Krem na dzień Arctic Barrier", "subtitle": "Lekki krem na dzień · ochrona przed zimnem i wiatrem", "summary": "Lekki krem na co dzień, który chroni przed zimnem, wiatrem i suchym powietrzem w pomieszczeniach. Teraz 20% taniej." }
+    },
+    "FJB-107": {
+      "de": { "name": "Daylight Mineral-Sonnenfluid LSF 50", "subtitle": "Mineralischer Sonnenschutz · zart getönt", "summary": "Ein federleichtes mineralisches Sonnenschutzfluid mit zarter Tönung und ohne Weißeleffekt." },
+      "fr": { "name": "Fluide solaire minéral Daylight SPF 50", "subtitle": "Protection solaire minérale · légèrement teintée", "summary": "Un fluide solaire minéral ultra-léger, légèrement teinté et sans traces blanches." },
+      "pl": { "name": "Mineralny fluid z filtrem Daylight SPF 50", "subtitle": "Mineralna ochrona przeciwsłoneczna · lekko koloryzujący", "summary": "Lekki mineralny fluid z filtrem, z delikatnym odcieniem i bez białych smug." }
+    },
+    "FJB-108": {
+      "de": { "name": "Sea Kelp Tonerde-Maske", "subtitle": "10-Minuten-Maske · Seetang & weiße Tonerde", "summary": "Eine 10-Minuten-Maske mit nordischem Seetang und weißer Tonerde für sichtbar klarere Poren." },
+      "fr": { "name": "Masque à l’argile Sea Kelp", "subtitle": "Masque 10 minutes · varech et argile blanche", "summary": "Un masque de 10 minutes au varech nordique et à l’argile blanche pour des pores visiblement plus nets." },
+      "pl": { "name": "Maska z glinką Sea Kelp", "subtitle": "Maska 10-minutowa · wodorosty i biała glinka", "summary": "10-minutowa maska z nordyckimi wodorostami i białą glinką, która wizualnie oczyszcza pory." }
+    },
+    "FJB-109": {
+      "de": { "name": "Lingonberry getönter Lippenbalsam", "subtitle": "Getönter Lippenbalsam · 6 Farbtöne", "summary": "Ein pflegender Balsam mit einem zarten Hauch nordischer Beerenfarbe, in sechs Farbtönen." },
+      "fr": { "name": "Baume à lèvres teinté Lingonberry", "subtitle": "Baume à lèvres teinté · 6 teintes", "summary": "Un baume nourrissant au léger voile de couleur de baies nordiques, en six teintes." },
+      "pl": { "name": "Koloryzujący balsam do ust Lingonberry", "subtitle": "Koloryzujący balsam do ust · 6 odcieni", "summary": "Odżywczy balsam z delikatnym kolorem nordyckich jagód, w sześciu odcieniach." }
+    },
+    "FJB-110": {
+      "de": { "name": "Sauna Ritual Körperöl", "subtitle": "Trockenöl für den Körper · Birke & Wacholder", "summary": "Ein schnell einziehendes Körperöl nach dem nordischen Saunaritual, mit Birke und Wacholder." },
+      "fr": { "name": "Huile pour le corps Sauna Ritual", "subtitle": "Huile sèche pour le corps · bouleau et genévrier", "summary": "Une huile sèche pour le corps inspirée du rituel du sauna nordique, au bouleau et au genévrier." },
+      "pl": { "name": "Olejek do ciała Sauna Ritual", "subtitle": "Suchy olejek do ciała · brzoza i jałowiec", "summary": "Suchy olejek do ciała inspirowany nordyckim rytuałem sauny, z brzozą i jałowcem." }
+    },
+    "FJB-111": {
+      "de": { "name": "Rosenquarz Gua-Sha-Stein", "subtitle": "Gesichtsmassage · handpolierter Rosenquarz", "summary": "Ein handpolierter Gua Sha aus Rosenquarz für eine abschwellende Gesichtsmassage. Derzeit ausverkauft." },
+      "fr": { "name": "Pierre gua sha en quartz rose", "subtitle": "Massage du visage · quartz rose poli à la main", "summary": "Un gua sha en quartz rose poli à la main pour un massage du visage qui dégonfle. Actuellement en rupture de stock." },
+      "pl": { "name": "Kamień gua sha z kwarcu różowego", "subtitle": "Masaż twarzy · ręcznie polerowany kwarc różowy", "summary": "Ręcznie polerowany kamień gua sha z kwarcu różowego do masażu twarzy, który zmniejsza opuchnięcia. Obecnie wyprzedany." }
+    },
+    "FJB-112": {
+      "de": { "name": "Nordic Ritual Entdeckungsset mit Reisetasche (Reinigung, Toner, Serum und Nachtcreme als Minis)", "subtitle": "4 Bestseller-Minis im Leinenbeutel", "summary": "Vier Bestseller-Minis in einem Beutel aus recyceltem Leinen: Reinigungsmilch, Toner, Vitamin-C-Serum und Nachtcreme." },
+      "fr": { "name": "Coffret découverte Nordic Ritual avec trousse de voyage (nettoyant, lotion, sérum et crème de nuit en mini)", "subtitle": "4 minis best-sellers dans une trousse en lin", "summary": "Quatre minis best-sellers dans une trousse en lin recyclé : nettoyant, lotion, sérum à la vitamine C et crème de nuit." },
+      "pl": { "name": "Zestaw odkrywczy Nordic Ritual z kosmetyczką (mleczko, tonik, serum i krem na noc w miniaturach)", "subtitle": "4 bestsellerowe miniatury w lnianej kosmetyczce", "summary": "Cztery bestsellerowe miniatury w kosmetyczce z lnu z recyklingu: mleczko, tonik, serum z witaminą C i krem na noc." }
+    }
+  }
+}

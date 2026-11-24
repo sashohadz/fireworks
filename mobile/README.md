@@ -74,7 +74,11 @@ The Data sheet has a **Country** switch: DE (EUR), CH (CHF) and PL (PLN), the sa
 - Hydration asks `/api/{country}/products/{id}.json` and returns that country's price list and currency. Firework's catalog stays in EUR.
 - A product the country doesn't sell (the SPF in CH) is returned as `{ productId, hidden: true }`, so it disappears from the videos. The web SDK can't hide a product; there it shows as unavailable.
 - The cart, the popup and `trackPurchase` use the country's currency. Switching country empties the cart and reloads the feeds.
-- The API base is in `src/config.ts` (the live site; a deploy preview to try API changes). `npm run snapshot` saves every country's catalog for Hardcoded mode.
+- The API base is in `src/config.ts` (the live site; a deploy preview to try API changes). `npm run snapshot` saves every country's catalog, in each of its languages, for Hardcoded mode.
+
+Below it, a **Language** switch: the languages the country offers (DE: German; CH: German, French; PL: Polish) plus English, Firework's catalog text. The country picks the prices, the language picks the text.
+- Hydration asks `/api/{country}/{language}/products/{id}.json` and also sends `name`, `subtitle` and `description` in that language. In English it sends only the name, as before.
+- Firework's own buttons follow with `FireworkSDK.getInstance().changeAppLanguage(code)` (English is `null`: the phone's language). On Android this recreates the activity, so `MainActivity.attachBaseContext` calls `FWReactNativeSDK.updateBaseContextLocale`, as Firework's docs require. The SDK keeps the language across restarts; the app lines it up with its own (English) at start.
 
 ## How the cart works
 

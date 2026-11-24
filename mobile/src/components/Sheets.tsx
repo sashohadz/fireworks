@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../config';
 import { clearLog, getLog, onLog, type LogEntry } from '../shopping/log';
 import { MODES, type Mode } from '../shopping/modes';
-import { MARKETS, type MarketId } from '../market';
+import { MARKETS, languageNames, marketLanguages, type Language, type MarketId } from '../market';
 
 function Sheet({ visible, title, onClose, children, action }: { visible: boolean; title: string; onClose: () => void; children: React.ReactNode; action?: React.ReactNode }) {
   const insets = useSafeAreaInsets();
@@ -32,17 +32,22 @@ export function ModeSheet({
   visible,
   mode,
   market,
+  language,
   onPick,
   onPickMarket,
+  onPickLanguage,
   onClose,
 }: {
   visible: boolean;
   mode: Mode;
   market: MarketId;
+  language: Language;
   onPick: (m: Mode) => void;
   onPickMarket: (m: MarketId) => void;
+  onPickLanguage: (l: Language) => void;
   onClose: () => void;
 }) {
+  const languages = marketLanguages(MARKETS.find((m) => m.id === market));
   return (
     <Sheet visible={visible} title="Product data" onClose={onClose}>
       <Text style={s.sectionTitle}>Country</Text>
@@ -51,6 +56,15 @@ export function ModeSheet({
         {MARKETS.map((m) => (
           <Pressable key={m.id} onPress={() => onPickMarket(m.id)} style={[s.marketChip, m.id === market && s.marketChipOn]} accessibilityRole="radio" accessibilityState={{ checked: m.id === market }}>
             <Text style={[s.marketChipText, m.id === market && s.marketChipTextOn]}>{m.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <Text style={s.sectionTitle}>Language</Text>
+      <Text style={s.help}>Product name, subtitle and description in this language, and Firework’s buttons too. English is Firework’s catalog text. Changing it restarts the screen.</Text>
+      <View style={s.chips} accessibilityRole="radiogroup">
+        {languages.map((l) => (
+          <Pressable key={l} onPress={() => onPickLanguage(l)} style={[s.marketChip, l === language && s.marketChipOn]} accessibilityRole="radio" accessibilityState={{ checked: l === language }} accessibilityLanguage={l}>
+            <Text style={[s.marketChipText, l === language && s.marketChipTextOn]}>{languageNames[l]}</Text>
           </Pressable>
         ))}
       </View>

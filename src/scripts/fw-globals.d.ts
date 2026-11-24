@@ -37,6 +37,8 @@ declare global {
     extId(id: string): FwProductBuilder;
     name(name: string): FwProductBuilder;
     description(description: string): FwProductBuilder;
+    /** Not in Firework's web docs (the React Native and Android SDKs document it); in the web SDK's product builder. */
+    subtitle(subtitle: string): FwProductBuilder;
     currency(currency: string): FwProductBuilder;
     variant(build: (variant: FwVariantBuilder) => void): FwProductBuilder;
   }

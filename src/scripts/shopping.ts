@@ -5,7 +5,8 @@
 // https://docs.firework.com/firework-for-developers/web/integration-guide/shopping-integration-v2
 import { QUANTITY_LIMIT, SLOW_MS, readSwitches, type ShoppingSwitch } from '../lab/shopping';
 import { getCart, setLine } from './cart';
-import { currentMarket, marketAmount, soldHere } from './market';
+import { languageNames } from '../lib/markets';
+import { currentLanguage, currentMarket, marketAmount, soldHere } from './market';
 import { fetchEuroCatalog, fetchProducts, productsUrl, type ApiProduct, type ApiUnit } from './products-client';
 import type { EffectiveSettings } from './settings';
 
@@ -87,7 +88,8 @@ function install(shopping: FwShopping, switches: ShoppingSwitch[]): void {
     if (has('slow')) await wait(SLOW_MS);
     if (part === 'products' && has('api-error')) throw new Error('The store\'s product API returned 503. (Lab switch: Product API fails)');
     if (part === 'cart' && has('cart-error')) throw new Error('The store\'s cart did not respond, so your bag was not changed. (Lab switch: Cart API fails)');
-    return fetchProducts();
+    // The player shows the product text in the shopper's language; the store's own pages stay English.
+    return fetchProducts(currentLanguage());
   }
 
   function findUnit(catalog: ApiProduct[], unitId: string | undefined): { product: ApiProduct; unit: ApiUnit } | undefined {
@@ -98,11 +100,17 @@ function install(shopping: FwShopping, switches: ShoppingSwitch[]): void {
     return undefined;
   }
 
-  /** A Firework product from the store's data. Cart items need every required field; hydration only what changes. */
+  /**
+   * A Firework product from the store's data. Cart items need every required field; hydration only what changes. In a
+   * language other than the catalog's English, the text changes too: name, subtitle and description in the shopper's
+   * language, replacing the English that Firework's catalog holds.
+   */
   function toFirework(p: ApiProduct, complete: boolean): unknown {
+    const translated = Boolean(p.language && p.language !== 'en');
     return shopping.productFactory((b) => {
       b.extId(p.id).currency(p.currency);
-      if (complete) b.name(p.name).description(p.summary);
+      if (complete || translated) b.name(p.name).description(p.summary);
+      if (translated && p.subtitle) b.subtitle(p.subtitle);
       p.units.forEach((u, i) =>
         b.variant((v) => {
           v.extId(u.id)
@@ -165,7 +173,9 @@ function install(shopping: FwShopping, switches: ShoppingSwitch[]): void {
     return `${extIds.length} product${extIds.length === 1 ? '' : 's'}: ${extIds.join(', ')}`;
   };
   const describeHydrated = (out: Hydrated) =>
-    `${out.length} product${out.length === 1 ? '' : 's'} from GET ${productsUrl()}: ${currentMarket().currency} prices, stock and links` +
+    `${out.length} product${out.length === 1 ? '' : 's'} from GET ${productsUrl(currentLanguage())}: ` +
+    (currentLanguage() === 'en' ? '' : `name, subtitle and description in ${languageNames[currentLanguage()]}, `) +
+    `${currentMarket().currency} prices, stock and links` +
     (out.notSold?.length ? `. Not sold in ${currentMarket().country}, so shown as unavailable: ${out.notSold.join(', ')}` : '');
 
   if (!has('no-cart')) {

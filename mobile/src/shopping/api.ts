@@ -4,7 +4,7 @@
  * API, and a hardcoded snapshot of it for every market that ships with the app (npm run snapshot refreshes it).
  */
 import { store } from '../config';
-import { getMarket, type MarketId } from '../market';
+import { catalogKey, type CatalogKey } from '../market';
 import snapshot from './catalog.snapshot.json';
 
 export interface ApiUnit {
@@ -24,7 +24,11 @@ export interface ApiProduct {
   id: string;
   handle: string;
   name: string;
+  /** Only in a language other than the catalog's English (Firework's catalog has no subtitles). */
+  subtitle?: string | null;
   summary: string;
+  /** The language of name, subtitle and summary: 'en' is the catalog's own text. */
+  language?: string;
   category: string;
   url: string;
   image: string;
@@ -70,10 +74,10 @@ export const xhrGetJson: GetJson = (url) =>
   });
 
 /**
- * One request per product, like a real product API: GET /api/{market}/products/{id}.json. A 404 means the store
- * doesn't sell it in that market.
+ * One request per product, like a real product API: GET /api/{market}/products/{id}.json, or
+ * /api/{market}/{lang}/products/{id}.json in another language. A 404 means the store doesn't sell it in that market.
  */
-export async function fromLiveApi(ids: string[], market: MarketId = getMarket().id, getJson: GetJson = xhrGetJson): Promise<Lookup> {
+export async function fromLiveApi(ids: string[], market: CatalogKey = catalogKey(), getJson: GetJson = xhrGetJson): Promise<Lookup> {
   const answers = await Promise.all(
     ids.map(async (id) => {
       const res = await getJson(`${store.api}/${market}/products/${encodeURIComponent(id)}.json`);
@@ -94,9 +98,10 @@ export async function fromLiveApi(ids: string[], market: MarketId = getMarket().
  * wrong currency. Loaded when the app starts and when the country changes (prefetchMarket).
  */
 export const CACHE_MS = 5 * 60 * 1000;
-const priceLists = new Map<MarketId, { at: number; byId: Map<string, ApiProduct> }>();
+const priceLists = new Map<CatalogKey, { at: number; byId: Map<string, ApiProduct> }>();
 
-export async function prefetchMarket(market: MarketId = getMarket().id, getJson: GetJson = xhrGetJson): Promise<number> {
+/** Loads a market's price list, in a language when the key has one ('ch/fr'): its own entry in memory. */
+export async function prefetchMarket(market: CatalogKey = catalogKey(), getJson: GetJson = xhrGetJson): Promise<number> {
   const res = await getJson(`${store.api}/${market}/products.json`);
   if (res.status !== 200) { throw new Error(`Product API answered ${res.status} for the ${market} price list`); }
   const list = (res.body as { products: ApiProduct[] }).products;
@@ -105,7 +110,7 @@ export async function prefetchMarket(market: MarketId = getMarket().id, getJson:
 }
 
 /** From the country's price list in memory, or undefined if it isn't loaded or is too old. Not in the list = not sold. */
-export function fromCache(ids: string[], market: MarketId = getMarket().id, now = Date.now()): Lookup | undefined {
+export function fromCache(ids: string[], market: CatalogKey = catalogKey(), now = Date.now()): Lookup | undefined {
   const list = priceLists.get(market);
   if (!list || now - list.at > CACHE_MS) { return undefined; }
   return { found: ids.flatMap((id) => list.byId.get(id) ?? []), unknown: ids.filter((id) => !list.byId.has(id)), cached: true };
@@ -113,13 +118,13 @@ export function fromCache(ids: string[], market: MarketId = getMarket().id, now 
 
 export const clearPriceLists = () => priceLists.clear();
 
-const bundled = (snapshot as unknown as { markets: Record<MarketId, { products: ApiProduct[] }> }).markets;
+const bundled = (snapshot as unknown as { markets: Partial<Record<CatalogKey, { products: ApiProduct[] }>> }).markets;
 
-/** A market's bundled catalog (the hardcoded response). */
-export const snapshotProducts = (market: MarketId = getMarket().id): ApiProduct[] => bundled[market]?.products ?? [];
+/** A market's bundled catalog (the hardcoded response), in a language when the key has one ('ch/fr'). */
+export const snapshotProducts = (market: CatalogKey = catalogKey()): ApiProduct[] => bundled[market]?.products ?? [];
 
-/** The hardcoded response: the same catalog per market, bundled with the app, so it works offline. */
-export function fromSnapshot(ids: string[], market: MarketId = getMarket().id, products: ApiProduct[] = snapshotProducts(market)): Lookup {
+/** The hardcoded response: the same catalog per market and language, bundled with the app, so it works offline. */
+export function fromSnapshot(ids: string[], market: CatalogKey = catalogKey(), products: ApiProduct[] = snapshotProducts(market)): Lookup {
   const found = ids.map((id) => products.find((p) => p.id === id)).filter((p): p is ApiProduct => Boolean(p));
   return { found, unknown: ids.filter((id) => !found.some((p) => p.id === id)) };
 }

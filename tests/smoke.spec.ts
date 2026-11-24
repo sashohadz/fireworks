@@ -114,6 +114,24 @@ test.describe('data endpoints', () => {
     expect(chAll.products.some((p: { id: string }) => p.id === 'FJB-107')).toBe(false);
     expect((await request.get('/api/ch/products/FJB-107.json')).status()).toBe(404);
   });
+
+  test('product text comes in each market\'s languages, with the market\'s prices', async ({ request }) => {
+    const list = await (await request.get('/api/markets.json')).json();
+    expect(list.markets.map((m: { id: string; languages: string[] }) => `${m.id}:${m.languages.join('+')}`)).toEqual(['de:en+de', 'ch:en+de+fr', 'pl:en+pl']);
+    // English is the catalog's own text, as before: no subtitle.
+    const en = await (await request.get('/api/ch/products/FJB-103.json')).json();
+    expect(en).toMatchObject({ name: 'Cloudberry Vitamin C Glow Serum', subtitle: null, language: 'en' });
+    const pl = await (await request.get('/api/pl/pl/products/FJB-103.json')).json();
+    expect(pl).toMatchObject({ language: 'pl', currency: 'PLN', name: 'Serum rozświetlające z witaminą C Cloudberry' });
+    expect(pl.subtitle.length).toBeLessThanOrEqual(75);
+    expect(pl.units[0].price).toBe(124.99);
+    const fr = await (await request.get('/api/ch/fr/products.json')).json();
+    expect(fr).toMatchObject({ market: 'ch', currency: 'CHF', language: 'fr' });
+    expect(fr.products.find((p: { id: string }) => p.id === 'FJB-101').name).toBe('Lait démaquillant Cloud Milk');
+    // French isn't offered in Germany, and the SPF isn't sold in Switzerland in any language.
+    expect((await request.get('/api/de/fr/products/FJB-103.json')).status()).toBe(404);
+    expect((await request.get('/api/ch/fr/products/FJB-107.json')).status()).toBe(404);
+  });
 });
 
 test('cart to order confirmation', async ({ page }) => {
@@ -278,6 +296,41 @@ test.describe('shopping integration', () => {
     await page.goto('/lab/shopping/?shopping=&market=de');
     await page.waitForFunction(() => Boolean((window as unknown as { __fake: FakeShopping }).__fake.hooks.onCartUpdated));
     expect(await page.evaluate(() => (window as unknown as { __fake: FakeShopping }).__fake.config?.currency)).toBe('EUR');
+  });
+
+  test('the language picks the product text the player gets; the country decides which languages there are', async ({ page }) => {
+    await withFakeShopping(page);
+    await page.goto('/lab/shopping/?shopping=&market=ch&lang=fr');
+    await page.waitForFunction(() => Boolean((window as unknown as { __fake: FakeShopping }).__fake.hooks.onCartUpdated));
+    await expect(page.locator('#shop-status')).toContainText('Language in the player: Français');
+    await expect(page.locator('#shop-language input[value="fr"]')).toBeChecked();
+    // Switzerland offers English, German and French; Polish isn't shown.
+    await expect(page.locator('#shop-language label[data-lang="pl"]')).toBeHidden();
+    await expect(page.locator('#shop-language label[data-lang="de"]')).toBeVisible();
+    // The player's own buttons follow the widget's lang attribute.
+    await expect(page.locator('fw-storyblock').first()).toHaveAttribute('lang', 'fr');
+
+    type Translated = BuiltProduct & { currency: string; subtitle?: string; description?: string };
+    const hydrated = (await callHook(page, 'onProductsLoaded', { products: [{ product_ext_id: 'FJB-103' }] })) as Translated[];
+    expect(hydrated[0]).toMatchObject({ extId: 'FJB-103', currency: 'CHF', name: 'Sérum éclat vitamine C Cloudberry' });
+    expect(hydrated[0]!.subtitle).toContain('vitamine C');
+    expect(hydrated[0]!.description).toContain('Notre sérum phare');
+    expect(hydrated[0]!.variants[0]).toMatchObject({ price: 31.9 });
+    await expect(page.locator('#shop-log')).toContainText('/api/ch/fr/products.json');
+    await expect(page.locator('#shop-log')).toContainText('in Français');
+    // The store's own pages stay English.
+    expect(await callHook(page, 'onCartUpdated', cartUpdate('FJB-101-150ML', 1))).toBe(1);
+    await expect(page.locator('#shop-bag')).toContainText('Cloud Milk Cleanser');
+
+    // Poland doesn't offer French: back to English, and hydration sends no text, only prices.
+    await page.goto('/lab/shopping/?shopping=&market=pl&lang=fr');
+    await page.waitForFunction(() => Boolean((window as unknown as { __fake: FakeShopping }).__fake.hooks.onCartUpdated));
+    await expect(page.locator('#shop-language input[value="en"]')).toBeChecked();
+    await expect(page.locator('fw-storyblock').first()).not.toHaveAttribute('lang', /./);
+    const english = (await callHook(page, 'onProductsLoaded', { products: [{ product_ext_id: 'FJB-103' }] })) as Translated[];
+    expect(english[0]!.name).toBeUndefined();
+    expect(english[0]!.subtitle).toBeUndefined();
+    expect(english[0]).toMatchObject({ currency: 'PLN' });
   });
 
   test('the diagrams switch between high level and detailed, with the keyboard too, and remember the choice', async ({ page }) => {
